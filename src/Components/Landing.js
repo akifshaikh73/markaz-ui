@@ -9,10 +9,26 @@ function Landing() {
     const navigate = useNavigate();
     const { masjidID, unitID } = useParams();
     const [addressList, setAddressList] = useState(JSON.parse(localStorage.getItem('addressList')) || []);
-    const [searchParams, setSearchParams] = useState({});
+    const [searchParams, setSearchParams] = useState(
+        JSON.parse(localStorage.getItem('searchParams')) || {}
+    );
+    const [areaFilter, setAreaFilter] = useState(localStorage.getItem('areaFilter') || '');
 
-    const handleSearch = (searchParams) => {
-        setSearchParams(searchParams);
+    const filteredAddressList = areaFilter.trim()
+        ? addressList.filter(a => {
+            const term = areaFilter.trim().toLowerCase();
+            return a.area && a.area.toLowerCase().includes(term);
+          })
+        : addressList;
+
+    const handleAreaChange = (e) => {
+        setAreaFilter(e.target.value);
+        localStorage.setItem('areaFilter', e.target.value);
+    };
+
+    const handleSearch = (params) => {
+        setSearchParams(params);
+        localStorage.setItem('searchParams', JSON.stringify(params));
         fetch('http://localhost:3000/api/addressList/filter/search/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -26,6 +42,7 @@ function Landing() {
 
     const handleFilter = (filterParams) => {
         setSearchParams(filterParams);
+        localStorage.setItem('searchParams', JSON.stringify(filterParams));
         fetch('http://localhost:3000/api/addressList/filter/students/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -39,6 +56,8 @@ function Landing() {
 
     const onLogout = () => {
         localStorage.removeItem('addressList');
+        localStorage.removeItem('searchParams');
+        localStorage.removeItem('areaFilter');
         navigate('/login');
     };
 
@@ -60,13 +79,14 @@ function Landing() {
 
     return (
         <>
-            <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+            <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => navigate(`/map/${masjidID}/${unitID}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>
                 <button onClick={onLogout}>Logout</button>
             </div>
-            <SearchForm masjidID={masjidID} unitID={unitID} onSearch={handleSearch} />
+            <SearchForm masjidID={masjidID} unitID={unitID} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
             <FilterUI onFilter={handleFilter} />
             <h2>Address List</h2>
-            <AddressList initialAddressList={addressList} />
+            <AddressList initialAddressList={filteredAddressList} />
         </>
     );
 }

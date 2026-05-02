@@ -118,13 +118,19 @@ function AddressDetail({ address: initialAddress, isModal }) {
 
             <div>
                 <h3>Visit History:</h3>
-                {address.visitHistory && address.visitHistory.map((visit, index) => (
-                    <div key={index} style={{ display: 'flex', gap: '1.5rem', padding: '4px 0', borderBottom: '1px solid #eee' }}>
-                        <span><strong>Response:</strong> {visit.response}</span>
-                        <span><strong>Comments:</strong> {visit.comments}</span>
-                        <span><strong>Date:</strong> {formatDate(visit.createdDate)}</span>
-                    </div>
-                ))}
+                {address.visitHistory && [...address.visitHistory]
+                    .sort((a, b) => {
+                        const dateA = new Date((a.createdDate?.$date) ?? a.createdDate);
+                        const dateB = new Date((b.createdDate?.$date) ?? b.createdDate);
+                        return dateB - dateA;
+                    })
+                    .map((visit, index) => (
+                        <div key={index} style={{ display: 'flex', gap: '1.5rem', padding: '4px 0', borderBottom: '1px solid #eee' }}>
+                            <span><strong>Response:</strong> {visit.response}</span>
+                            <span><strong>Comments:</strong> {visit.comments}</span>
+                            <span><strong>Date:</strong> {formatDate(visit.createdDate)}</span>
+                        </div>
+                    ))}
             </div>
 
             <div>

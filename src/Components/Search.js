@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 
 
 
-function SearchForm({ masjidID, unitID,onSearch}) {
-    const [name, setName] = useState('');
-    const [address, setAddress] = useState('');
-    const [city, setCity] = useState('');
-    const [masjidId, setMasjidId] = useState(masjidID || '');
-    const [unitId, setUnitId] = useState(unitID || '');
-    const [_id, set_id] = useState('');
+function SearchForm({ masjidID, unitID, onSearch, initialValues = {}, areaValue = '', onAreaChange }) {
+    const [name, setName] = useState(initialValues.name || '');
+    const [address, setAddress] = useState(initialValues.address || '');
+    const [city, setCity] = useState(initialValues.city || '');
+    const [masjidId, setMasjidId] = useState(initialValues.masjidId || masjidID || '');
+    const [unitId, setUnitId] = useState(initialValues.unitId || unitID || '');
+    const [_id, set_id] = useState(initialValues._id || '');
 
 
     useEffect(() => {
@@ -56,6 +56,19 @@ function SearchForm({ masjidID, unitID,onSearch}) {
                 City:
                 <input type="text" placeholder="City" value={city} onChange={e => setCity(e.target.value)} />
             </label>
+            </div>
+
+            <div>
+                <label>
+                    Area:
+                    <input
+                        type="text"
+                        placeholder="Filter by address, city or state"
+                        value={areaValue}
+                        onChange={onAreaChange}
+                        style={{ width: '300px' }}
+                    />
+                </label>
             </div>
 
             <button type="submit">Search</button>
