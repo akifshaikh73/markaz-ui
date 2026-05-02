@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { formatDate } from '../utils';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
@@ -127,7 +126,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 <label>Met: {address.met ? 'Yes' : 'No'}</label>
             </div>
             <div>
-                <label>Last Modified Date: {address.lastModifiedDate}</label>
+                <label>Last Modified Date: {formatDate(address.lastModifiedDate)}</label>
             </div>
 
             <div>
@@ -136,7 +135,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <div key={index}>
                         <p>Response: {visit.response}</p>
                         <p>Comments: {visit.comments}</p>
-                        <p>Created Date: {visit.createdDate}</p>
+                        <p>Created Date: {formatDate(visit.createdDate)}</p>
                     </div>
                 ))}
             </div>

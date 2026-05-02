@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Modal, Button } from 'react-bootstrap'; // Assuming you're using react-bootstrap for modals
-import AddressDetail from './AddressDetail'; // Import the AddressDetail component
+import { Modal, Button } from 'react-bootstrap';
+import AddressDetail from './AddressDetail';
+import { formatDate } from '../utils';
 
 
 function AddressList({ initialAddressList }) {
@@ -57,7 +58,7 @@ function AddressList({ initialAddressList }) {
                             <td>{address.address1} , {address.city},{address.state}</td>
                             <td>{address.visitHistory.length > 0 ? address.visitHistory[address.visitHistory.length - 1].comments : ''}</td>
                             <td>{address.visitHistory.length > 0 ? address.visitHistory[address.visitHistory.length - 1].response : ''}</td>
-                            <td>{address.visitHistory.length > 0 ? new Date(address.visitHistory[address.visitHistory.length - 1].createdDate).toLocaleDateString() : ''}</td>
+                            <td>{address.visitHistory.length > 0 ? formatDate(address.visitHistory[address.visitHistory.length - 1].createdDate) : ''}</td>
                         </tr>
                     ))}
                 </tbody>
