@@ -1,25 +1,26 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import Login from './Components/Login';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const DEFAULT_MASJID_ID = 156;
+    const DEFAULT_UNIT_ID = 1;
+
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [masjidID, setMasjidID] = useState(DEFAULT_MASJID_ID);
+    const [unitID, setUnitID] = useState(DEFAULT_UNIT_ID);
+
+    const handleLogin = (masjidID = DEFAULT_MASJID_ID, unitID = DEFAULT_UNIT_ID) => {
+        // Handle login logic here
+        setIsLoggedIn(true);
+        console.log(`masjidID: ${masjidID}, unitID: ${unitID}`);
+        setMasjidID(masjidID);
+        setUnitID(unitID);
+    };
+
+    return (
+                <Login onLogin={handleLogin} />
+
+    );
 }
 
 export default App;
