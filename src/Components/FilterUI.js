@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 
-const FilterUI = ({ handleFilter }) => {
+const FilterUI = ({ onFilter: handleFilter }) => {
     const [filter, setFilter] = useState({ active: true, students: true });
 
     const handleActiveChange = (event) => {

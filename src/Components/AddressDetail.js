@@ -25,7 +25,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     setLastName(data.lastName);
                 });
         }
-    }, [id], initialAddress);
+    }, [id, initialAddress]);
     // Only re-run the effect if `address` changes    
 
     const handleUpdate = () => {

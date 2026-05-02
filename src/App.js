@@ -1,26 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Components/Login';
+import Landing from './Components/Landing';
+import AddressDetail from './Components/AddressDetail';
 
 function App() {
-    const DEFAULT_MASJID_ID = 156;
-    const DEFAULT_UNIT_ID = 1;
-
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [masjidID, setMasjidID] = useState(DEFAULT_MASJID_ID);
-    const [unitID, setUnitID] = useState(DEFAULT_UNIT_ID);
-
-    const handleLogin = (masjidID = DEFAULT_MASJID_ID, unitID = DEFAULT_UNIT_ID) => {
-        // Handle login logic here
-        setIsLoggedIn(true);
-        console.log(`masjidID: ${masjidID}, unitID: ${unitID}`);
-        setMasjidID(masjidID);
-        setUnitID(unitID);
-    };
-
-    return (
-                <Login onLogin={handleLogin} />
-
-    );
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
+    </div>
+  );
 }
 
 export default App;
