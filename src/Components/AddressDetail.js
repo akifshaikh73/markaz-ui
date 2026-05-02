@@ -61,81 +61,68 @@ function AddressDetail({ address: initialAddress, isModal }) {
         <div>
             <div>
                 <h2>Address Detail</h2>
-                <p>ID: {address._id}</p>
-
+                <p><strong>ID:</strong> {address._id}</p>
 
                 <label>
-                    First Name:
+                    <strong>First Name:</strong>
                     <input type="text" value={firstName} placeholder="firstName" onChange={e => setFirstName(e.target.value)} />
                 </label>
 
                 <label>
-                    Last Name:
+                    <strong>Last Name:</strong>
                     <input type="text" value={lastName} placeholder='lastName' onChange={e => setLastName(e.target.value)} />
                 </label>
             </div>
             <div>
-                <label>
-                    Masjid ID: {address.masjidId}
-                </label>
+                <label><strong>Masjid ID:</strong> {address.masjidId}</label>
             </div>
             <div>
-                <label>
-                    Unit ID: {address.unitId}
-                </label>
+                <label><strong>Unit ID:</strong> {address.unitId}</label>
             </div>
             <div>
-                <label>
-                    Address: {address.address1}
-                </label>
+                <label><strong>Address:</strong> {address.address1}</label>
             </div>
             <div>
-                <label>
-                    City: {address.city}
-                </label>
+                <label><strong>City:</strong> {address.city}</label>
             </div>
             <div>
-                <label>
-                    State: {address.state}
-                </label>
+                <label><strong>State:</strong> {address.state}</label>
             </div>
             <div>
-                <label>
-                    Zipcode: {address.zipcode}
-                </label>
+                <label><strong>Zipcode:</strong> {address.zipcode}</label>
             </div>
             <div>
-                <label>Phone Number: {address.phoneNumber}</label>
+                <label><strong>Phone Number:</strong> {address.phoneNumber}</label>
             </div>
             <div>
-                <label>Latitude: {address.latitude}</label>
+                <label><strong>Latitude:</strong> {address.latitude}</label>
             </div>
             <div>
-                <label>Longitude: {address.longitude}</label>
+                <label><strong>Longitude:</strong> {address.longitude}</label>
             </div>
             <div>
-                <label>Best Time: {address.bestTime}</label>
+                <label><strong>Best Time:</strong> {address.bestTime}</label>
             </div>
             <div>
-                <label>Profession: {address.profession}</label>
+                <label><strong>Profession:</strong> {address.profession}</label>
             </div>
             <div>
-                <label>Inactive: {address.inactive ? 'Yes' : 'No'}</label>
+                <label><strong>Inactive:</strong> {address.inactive ? 'Yes' : 'No'}</label>
             </div>
             <div>
-                <label>Met: {address.met ? 'Yes' : 'No'}</label>
+                <label><strong>Met:</strong> {address.met ? 'Yes' : 'No'}</label>
             </div>
             <div>
-                <label>Last Modified Date: {formatDate(address.lastModifiedDate)}</label>
+                <label><strong>Last Modified Date:</strong> {formatDate(address.lastModifiedDate)}</label>
             </div>
 
             <div>
                 <h3>Visit History:</h3>
                 {address.visitHistory && address.visitHistory.map((visit, index) => (
-                    <div key={index}>
-                        <p>Response: {visit.response}</p>
-                        <p>Comments: {visit.comments}</p>
-                        <p>Created Date: {formatDate(visit.createdDate)}</p>
+                    <div key={index} style={{ display: 'flex', gap: '1.5rem', padding: '4px 0', borderBottom: '1px solid #eee' }}>
+                        <span><strong>Response:</strong> {visit.response}</span>
+                        <span><strong>Comments:</strong> {visit.comments}</span>
+                        <span><strong>Date:</strong> {formatDate(visit.createdDate)}</span>
                     </div>
                 ))}
             </div>
@@ -145,21 +132,19 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 {address.students && address.students.length > 0 ? (
                     address.students.map((student, index) => (
                         <div key={index}>
-                            {/* Replace this with the actual student fields */}
-                            <p>Student {index + 1}: {student.name}</p>
+                            <p><strong>Student {index + 1}:</strong> {student.name}</p>
                         </div>
                     ))
                 ) : (
                     <p>No students.</p>
                 )}
             </div>
-            <button onClick={handleUpdate}>Update</button>
-            {
-                !isModal && (
-                    <div>
-                        <button onClick={handleNavigation}>Back to Landing Page</button>
-                    </div>)
-            }
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button onClick={handleUpdate}>Update</button>
+                {!isModal && (
+                    <button onClick={handleNavigation}>Back to Landing Page</button>
+                )}
+            </div>
         </div>
     );
 }
