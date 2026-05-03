@@ -4,18 +4,15 @@ import { formatDate } from '../utils';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
-    console.log(id);
-    // Fetch the address details using the id
+    const API_URL = process.env.REACT_APP_API_URL || '';
     const [address, setAddress] = useState(initialAddress || {});
-    console.log(address);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Fetch data or perform some other side effect
         if (!initialAddress) {
-            fetch(`http://localhost:3000/api/addressList/search/${id}`)
+            fetch(`${API_URL}/api/addressList/search/${id}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data); // Log the fetched data
@@ -35,7 +32,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
         address.firstName = firstName;
         address.lastName = lastName;
         
-        fetch(`http://localhost:3000/api/addressList/${address._id}`, {
+        fetch(`${API_URL}/api/addressList/${address._id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

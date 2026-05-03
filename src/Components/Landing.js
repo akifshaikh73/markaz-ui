@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import SearchForm from './Search';
 import AddressList from './AddressList';
 import FilterUI from './FilterUI';
+import { exportToExcel } from '../exportExcel';
 
 function Landing() {
     const location = useLocation();
@@ -26,10 +27,12 @@ function Landing() {
         localStorage.setItem('areaFilter', e.target.value);
     };
 
+    const API_URL = process.env.REACT_APP_API_URL || '';
+
     const handleSearch = (params) => {
         setSearchParams(params);
         localStorage.setItem('searchParams', JSON.stringify(params));
-        fetch('http://localhost:3000/api/addressList/filter/search/', {
+        fetch(`${API_URL}/api/addressList/filter/search/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(searchParams)
@@ -43,7 +46,7 @@ function Landing() {
     const handleFilter = (filterParams) => {
         setSearchParams(filterParams);
         localStorage.setItem('searchParams', JSON.stringify(filterParams));
-        fetch('http://localhost:3000/api/addressList/filter/students/', {
+        fetch(`${API_URL}/api/addressList/filter/students/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(filterParams)
@@ -68,7 +71,7 @@ function Landing() {
         }
 
         if (addressList.length === 0) {
-            fetch(`http://localhost:3000/api/addressList/list?masjid_id=${masjidID}&unit_id=${unitID}`)
+            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}&unit_id=${unitID}`)
                 .then(response => response.json())
                 .then(data => {
                     setAddressList(data);
@@ -81,6 +84,7 @@ function Landing() {
         <>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem' }}>
                 <button onClick={() => navigate(`/map/${masjidID}/${unitID}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>
+                <button onClick={() => exportToExcel(addressList, masjidID, unitID)}>⬇ Export Excel</button>
                 <button onClick={onLogout}>Logout</button>
             </div>
             <SearchForm masjidID={masjidID} unitID={unitID} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
