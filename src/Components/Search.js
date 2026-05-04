@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 
 
-function SearchForm({ masjidID, unitID, onSearch, initialValues = {}, areaValue = '', onAreaChange }) {
+function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch, initialValues = {}, areaValue = '', onAreaChange }) {
     const [name, setName] = useState(initialValues.name || '');
     const [address, setAddress] = useState(initialValues.address || '');
     const [city, setCity] = useState(initialValues.city || '');
@@ -29,12 +29,18 @@ function SearchForm({ masjidID, unitID, onSearch, initialValues = {}, areaValue 
             <div>
             <label>
                 Masjid ID:
-                <input type="text" placeholder="Masjid ID" value={masjidId} onChange={e => setMasjidId(e.target.value)} />
+                <input type="text" placeholder="Masjid ID" value={masjidId} onChange={e => setMasjidId(e.target.value)} required />
             </label>
-            <label>
-                Unit ID:
-                <input type="text" placeholder="Unit ID" value={unitId} onChange={e => setUnitId(e.target.value)} />
-            </label>
+            {unitOptions.length > 0 && (
+                <label style={{ marginLeft: '1rem' }}>
+                    Unit:
+                    <select value={unitId} onChange={onUnitChange} style={{ marginLeft: '0.5rem' }}>
+                        {unitOptions.map(u => (
+                            <option key={u} value={u}>{u}</option>
+                        ))}
+                    </select>
+                </label>
+            )}
             </div>
             <div>
 

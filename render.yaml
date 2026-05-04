@@ -11,4 +11,4 @@ services:
         destination: /index.html
     envVars:
       - key: REACT_APP_API_URL
-        sync: false   # Set this manually in the Render dashboard to your backend URL
+        value: https://visitation-api.onrender.com

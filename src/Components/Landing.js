@@ -4,16 +4,20 @@ import SearchForm from './Search';
 import AddressList from './AddressList';
 import FilterUI from './FilterUI';
 import { exportToExcel } from '../exportExcel';
+import { MASJID_UNITS } from '../config';
 
 function Landing() {
     const location = useLocation();
     const navigate = useNavigate();
     const { masjidID, unitID } = useParams();
+    const [selectedUnit, setSelectedUnit] = useState(parseInt(unitID));
     const [addressList, setAddressList] = useState(JSON.parse(localStorage.getItem('addressList')) || []);
     const [searchParams, setSearchParams] = useState(
         JSON.parse(localStorage.getItem('searchParams')) || {}
     );
     const [areaFilter, setAreaFilter] = useState(localStorage.getItem('areaFilter') || '');
+
+    const unitOptions = MASJID_UNITS[parseInt(masjidID)] || [parseInt(unitID)];
 
     const filteredAddressList = areaFilter.trim()
         ? addressList.filter(a => {
@@ -25,6 +29,15 @@ function Landing() {
     const handleAreaChange = (e) => {
         setAreaFilter(e.target.value);
         localStorage.setItem('areaFilter', e.target.value);
+    };
+
+    const handleUnitChange = (e) => {
+        const newUnit = parseInt(e.target.value);
+        setSelectedUnit(newUnit);
+        localStorage.removeItem('addressList');
+        localStorage.removeItem('searchParams');
+        localStorage.removeItem('areaFilter');
+        navigate(`/landing/${masjidID}/${newUnit}`, { state: { isLoggedIn: true } });
     };
 
     const API_URL = process.env.REACT_APP_API_URL || '';
@@ -71,23 +84,23 @@ function Landing() {
         }
 
         if (addressList.length === 0) {
-            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}&unit_id=${unitID}`)
+            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}&unit_id=${selectedUnit}`)
                 .then(response => response.json())
                 .then(data => {
                     setAddressList(data);
                     localStorage.setItem('addressList', JSON.stringify(data));
                 });
         }
-    }, [masjidID, unitID]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [masjidID, selectedUnit]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => navigate(`/map/${masjidID}/${unitID}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>
-                <button onClick={() => exportToExcel(addressList, masjidID, unitID)}>⬇ Export Excel</button>
+                <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>
+                <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>
                 <button onClick={onLogout}>Logout</button>
             </div>
-            <SearchForm masjidID={masjidID} unitID={unitID} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
+            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
             <FilterUI onFilter={handleFilter} />
             <h2>Address List</h2>
             <AddressList initialAddressList={filteredAddressList} />
