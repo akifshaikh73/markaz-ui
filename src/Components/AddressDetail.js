@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDate } from '../utils';
+import { getAdmin } from '../config';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
@@ -8,6 +9,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [address, setAddress] = useState(initialAddress || {});
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [isAdmin, setIsAdmin] = useState(getAdmin());
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,7 +24,11 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 });
         }
     }, [id, initialAddress]);
-    // Only re-run the effect if `address` changes    
+
+    useEffect(() => {
+        // Check admin status whenever component mounts or when admin status might change
+        setIsAdmin(getAdmin());
+    }, []);    
 
     const handleUpdate = () => {
         // Handle the update logic here
@@ -60,15 +66,19 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 <h2>Address Detail</h2>
                 <p><strong>ID:</strong> {address._id}</p>
 
-                <label>
-                    <strong>First Name:</strong>
-                    <input type="text" value={firstName} placeholder="firstName" onChange={e => setFirstName(e.target.value)} />
-                </label>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                    <label>
+                        <strong>First Name:</strong>
+                        <input type="text" value={firstName} placeholder="firstName" onChange={e => setFirstName(e.target.value)} readOnly={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed' } : {}} />
+                    </label>
 
-                <label>
-                    <strong>Last Name:</strong>
-                    <input type="text" value={lastName} placeholder='lastName' onChange={e => setLastName(e.target.value)} />
-                </label>
+                    <label>
+                        <strong>Last Name:</strong>
+                        <input type="text" value={lastName} placeholder='lastName' onChange={e => setLastName(e.target.value)} readOnly={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed' } : {}} />
+                    </label>
+
+                    <button onClick={handleUpdate} disabled={!isAdmin} style={!isAdmin ? { opacity: 0.5, cursor: 'not-allowed', padding: '0.5rem 1rem' } : { padding: '0.5rem 1rem' }}>Update</button>
+                </div>
             </div>
             <div>
                 <label><strong>Masjid ID:</strong> {address.masjidId}</label>
@@ -143,7 +153,6 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 )}
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button onClick={handleUpdate}>Update</button>
                 {!isModal && (
                     <button onClick={handleNavigation}>Back to Landing Page</button>
                 )}

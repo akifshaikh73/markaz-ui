@@ -4,7 +4,7 @@ import SearchForm from './Search';
 import AddressList from './AddressList';
 import FilterUI from './FilterUI';
 import { exportToExcel } from '../exportExcel';
-import { MASJID_UNITS } from '../config';
+import { MASJID_UNITS, setAdmin } from '../config';
 
 function Landing() {
     const location = useLocation();
@@ -71,6 +71,7 @@ function Landing() {
     };
 
     const onLogout = () => {
+        setAdmin(false); // Reset admin mode on logout
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
