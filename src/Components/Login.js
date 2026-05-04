@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setAdmin } from '../config';
+import { setAdmin, MASJID_UNITS, UNIT_OPTIONS } from '../config';
 
 const Login = ({ lockedMasjidID, unitOptions }) => {
     const [masjidID, setMasjidID] = useState(lockedMasjidID || 156);
     const [unitID, setUnitID] = useState(unitOptions ? unitOptions[0] : 1);
 
     const navigate = useNavigate();
+
+    const derivedUnitOptions = unitOptions || MASJID_UNITS[parseInt(masjidID)] || UNIT_OPTIONS;
+
+    const handleMasjidChange = (e) => {
+        const newMasjidID = e.target.value;
+        setMasjidID(newMasjidID);
+        const newUnitOptions = MASJID_UNITS[parseInt(newMasjidID)] || UNIT_OPTIONS;
+        setUnitID(newUnitOptions[0]);
+    };
 
     const handleLogin = () => {
         setAdmin(false); // Ensure regular users cannot edit
@@ -26,7 +35,7 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
                     <input
                         type="number"
                         value={masjidID}
-                        onChange={e => setMasjidID(e.target.value)}
+                        onChange={lockedMasjidID ? undefined : handleMasjidChange}
                         readOnly={!!lockedMasjidID}
                         style={lockedMasjidID ? { background: '#f0f0f0', cursor: 'not-allowed', width: '100%', marginTop: '0.5rem', padding: '0.5rem' } : { width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
                     />
@@ -35,15 +44,11 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
             <div>
                 <label>
                     Unit ID:
-                    {unitOptions ? (
-                        <select value={unitID} onChange={e => setUnitID(e.target.value)} style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}>
-                            {unitOptions.map(u => (
-                                <option key={u} value={u}>{u}</option>
-                            ))}
-                        </select>
-                    ) : (
-                        <input type="number" value={unitID} onChange={e => setUnitID(e.target.value)} style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }} />
-                    )}
+                    <select value={unitID} onChange={e => setUnitID(e.target.value)} style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}>
+                        {derivedUnitOptions.map(u => (
+                            <option key={u} value={u}>{u}</option>
+                        ))}
+                    </select>
                 </label>
             </div>
             <button onClick={handleLogin} disabled={!masjidID || !unitID} style={{ padding: '0.5rem' }}>

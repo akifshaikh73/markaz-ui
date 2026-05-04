@@ -8,7 +8,7 @@ const AdminLogin = () => {
     const navigate = useNavigate();
 
     // Simple password check - in production, this should be done securely on backend
-    const ADMIN_PASSWORD = 'admin123'; // Change this to your desired password
+    const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
 
     const handleAdminLogin = () => {
         if (adminPassword === ADMIN_PASSWORD) {

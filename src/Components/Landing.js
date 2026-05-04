@@ -4,7 +4,7 @@ import SearchForm from './Search';
 import AddressList from './AddressList';
 import FilterUI from './FilterUI';
 import { exportToExcel } from '../exportExcel';
-import { MASJID_UNITS, setAdmin } from '../config';
+import { MASJID_UNITS, setAdmin, getAdmin } from '../config';
 
 function Landing() {
     const location = useLocation();
@@ -97,8 +97,8 @@ function Landing() {
     return (
         <>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>
-                <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>
+                {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
+                {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
                 <button onClick={onLogout}>Logout</button>
             </div>
             <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
