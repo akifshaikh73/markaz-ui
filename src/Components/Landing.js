@@ -96,7 +96,10 @@ function Landing() {
 
     return (
         <>
-            <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem' }}>
+            <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#d4edda' : '#fff3cd', color: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#155724' : '#856404', border: '1px solid', borderColor: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#c3e6cb' : '#ffeeba' }}>
+                    DB: {process.env.REACT_APP_API_URL?.toLowerCase().includes('local') ? 'Local' : process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? 'Remote' : 'Unknown'}
+                </span>
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
                 <button onClick={onLogout}>Logout</button>

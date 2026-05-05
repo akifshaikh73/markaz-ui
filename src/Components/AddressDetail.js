@@ -9,8 +9,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [address, setAddress] = useState(initialAddress || {});
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [originalFirstName, setOriginalFirstName] = useState('');
+    const [originalLastName, setOriginalLastName] = useState('');
+    const [response, setResponse] = useState('');
+    const [comments, setComments] = useState('');
     const [isAdmin, setIsAdmin] = useState(getAdmin());
     const navigate = useNavigate();
+
+    const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb'];
 
     useEffect(() => {
         if (!initialAddress) {
@@ -21,9 +27,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     setAddress(data);
                     setFirstName(data.firstName);
                     setLastName(data.lastName);
+                    setOriginalFirstName(data.firstName);
+                    setOriginalLastName(data.lastName);
                 });
+        } else {
+            setOriginalFirstName(initialAddress.firstName);
+            setOriginalLastName(initialAddress.lastName);
         }
-    }, [id, initialAddress]);
+    }, [id, initialAddress, API_URL]);
 
     useEffect(() => {
         // Check admin status whenever component mounts or when admin status might change
@@ -48,14 +59,38 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 lastName: lastName,
             }),
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             console.log('Success:', data);
+            setOriginalFirstName(firstName);
+            setOriginalLastName(lastName);
         })
         .catch((error) => {
             console.error('Error:', error);
         });
     };
+    const handleUpdateResponse = () => {
+        fetch(`${API_URL}/api/addressList/visit/${address._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                lastmodifieddate: new Date().toISOString(), 
+                response, 
+                comments }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('Response updated:', data);
+            setAddress(prev => ({
+                ...prev,
+                visitHistory: [...(prev.visitHistory || []), { response, comments, createdDate: new Date().toISOString() }]
+            }));
+            setResponse('');
+            setComments('');
+        })
+        .catch(err => console.error('Error:', err));
+    };
+
     const handleNavigation = () => {
         navigate(`/landing/${address.masjidId}/${address.unitId}`, { state: { isLoggedIn: true } });
     };
@@ -64,6 +99,9 @@ function AddressDetail({ address: initialAddress, isModal }) {
         <div>
             <div>
                 <h2>Address Detail</h2>
+                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#d4edda' : '#fff3cd', color: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#155724' : '#856404', border: '1px solid', borderColor: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#c3e6cb' : '#ffeeba' }}>
+                    DB: {process.env.REACT_APP_API_URL?.toLowerCase().includes('local') ? 'Local' : process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? 'Remote' : 'Unknown'}
+                </span>
                 <p><strong>ID:</strong> {address._id}</p>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
@@ -77,7 +115,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         <input type="text" value={lastName} placeholder='lastName' onChange={e => setLastName(e.target.value)} readOnly={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed' } : {}} />
                     </label>
 
-                    <button onClick={handleUpdate} disabled={!isAdmin} style={!isAdmin ? { opacity: 0.5, cursor: 'not-allowed', padding: '0.5rem 1rem' } : { padding: '0.5rem 1rem' }}>Update</button>
+                    <button onClick={handleUpdate} disabled={!isAdmin || (firstName === originalFirstName && lastName === originalLastName)} style={!isAdmin || (firstName === originalFirstName && lastName === originalLastName) ? { opacity: 0.5, cursor: 'not-allowed', padding: '0.5rem 1rem' } : { padding: '0.5rem 1rem' }}>Update</button>
                 </div>
             </div>
             <div>
@@ -101,12 +139,16 @@ function AddressDetail({ address: initialAddress, isModal }) {
             <div>
                 <label><strong>Phone Number:</strong> {address.phoneNumber}</label>
             </div>
-            <div>
-                <label><strong>Latitude:</strong> {address.latitude}</label>
-            </div>
-            <div>
-                <label><strong>Longitude:</strong> {address.longitude}</label>
-            </div>
+            {isAdmin && (
+                <div>
+                    <label><strong>Latitude:</strong> {address.latitude}</label>
+                </div>
+            )}
+            {isAdmin && (
+                <div>
+                    <label><strong>Longitude:</strong> {address.longitude}</label>
+                </div>
+            )}
             <div>
                 <label><strong>Best Time:</strong> {address.bestTime}</label>
             </div>
@@ -125,6 +167,22 @@ function AddressDetail({ address: initialAddress, isModal }) {
 
             <div>
                 <h3>Visit History:</h3>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                    <label>
+                        <strong>Response:</strong>
+                        <select value={response} onChange={e => setResponse(e.target.value)} style={{ marginLeft: '0.5rem', padding: '0.25rem' }}>
+                            <option value="">-- Select --</option>
+                            {RESPONSE_OPTIONS.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        <strong>Comments:</strong>
+                        <input type="text" value={comments} onChange={e => setComments(e.target.value)} placeholder="Add comments..." style={{ marginLeft: '0.5rem', padding: '0.25rem', minWidth: '200px' }} />
+                    </label>
+                    <button onClick={handleUpdateResponse} disabled={!response} style={!response ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>Update Response</button>
+                </div>
                 {address.visitHistory && [...address.visitHistory]
                     .sort((a, b) => {
                         const dateA = new Date((a.createdDate?.$date) ?? a.createdDate);
