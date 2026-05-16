@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { setAdmin, MASJID_UNITS, UNIT_OPTIONS } from '../config';
+import StatusBadges from './StatusBadges';
 
 const Login = ({ lockedMasjidID, unitOptions }) => {
     const [masjidID, setMasjidID] = useState(lockedMasjidID || 156);
@@ -57,8 +58,8 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
             <button onClick={handleAdminLogin} style={{ padding: '0.5rem', background: '#f0f0f0' }}>
                 Admin Login
             </button>
-            <div style={{ textAlign: 'center', fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#d4edda' : '#fff3cd', color: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#155724' : '#856404', border: '1px solid', borderColor: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#c3e6cb' : '#ffeeba' }}>
-                DB: {process.env.REACT_APP_API_URL?.toLowerCase().includes('local') ? 'Local' : process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? 'Remote' : 'Unknown'}
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                <StatusBadges />
             </div>
         </div>
     );

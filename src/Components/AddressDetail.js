@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDate } from '../utils';
 import { getAdmin } from '../config';
+import StatusBadges from './StatusBadges';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
@@ -76,7 +77,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
             body: JSON.stringify({
                 lastmodifieddate: new Date().toISOString(), 
                 response, 
-                comments }),
+                comment: comments }),
         })
         .then(res => res.json())
         .then(data => {
@@ -99,9 +100,9 @@ function AddressDetail({ address: initialAddress, isModal }) {
         <div>
             <div>
                 <h2>Address Detail</h2>
-                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#d4edda' : '#fff3cd', color: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#155724' : '#856404', border: '1px solid', borderColor: process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? '#c3e6cb' : '#ffeeba' }}>
-                    DB: {process.env.REACT_APP_API_URL?.toLowerCase().includes('local') ? 'Local' : process.env.REACT_APP_API_URL?.toLowerCase().includes('render') ? 'Remote' : 'Unknown'}
-                </span>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <StatusBadges />
+                </div>
                 <p><strong>ID:</strong> {address._id}</p>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>

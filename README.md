@@ -29,6 +29,25 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
+### Production Deployment
+
+To build and run the app in production:
+
+1. **Build the optimized production bundle:**
+   ```bash
+   npm run build
+   ```
+   This creates a `build/` folder with minified, optimized files ready for deployment.
+
+2. **Serve the production build locally (for testing):**
+   ```bash
+   npm install -g serve
+   serve -s build
+   ```
+   Open [http://localhost:3000](http://localhost:3000) to view the production build.
+
+The app uses environment variables from `.env.production` for production settings, including the API endpoint (`REACT_APP_API_URL`).
+
 ### `npm run eject`
 
 **Note: this is a one-way operation. Once you `eject`, you can't go back!**
