@@ -49,11 +49,12 @@ function Landing() {
         fetch(`${API_URL}/api/addressList/filter/search/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(searchParams)
+            body: JSON.stringify(params)
         })
             .then(response => response.json())
             .then(data => {
                 setAddressList(data);
+                localStorage.setItem('addressList', JSON.stringify(data));
             });
     };
 
@@ -68,6 +69,7 @@ function Landing() {
             .then(response => response.json())
             .then(data => {
                 setAddressList(data);
+                localStorage.setItem('addressList', JSON.stringify(data));
             });
     };
 

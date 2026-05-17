@@ -14,6 +14,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [originalLastName, setOriginalLastName] = useState('');
     const [response, setResponse] = useState('');
     const [comments, setComments] = useState('');
+    const [modifiedDate, setModifiedDate] = useState(new Date().toISOString().split('T')[0]);
     const [isAdmin, setIsAdmin] = useState(getAdmin());
     const navigate = useNavigate();
 
@@ -75,7 +76,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                lastmodifieddate: new Date().toISOString(), 
+                lastmodifieddate: `${modifiedDate}T00:00:00Z`, 
                 response, 
                 comment: comments }),
         })
@@ -84,10 +85,11 @@ function AddressDetail({ address: initialAddress, isModal }) {
             console.log('Response updated:', data);
             setAddress(prev => ({
                 ...prev,
-                visitHistory: [...(prev.visitHistory || []), { response, comments, createdDate: new Date().toISOString() }]
+                visitHistory: [...(prev.visitHistory || []), { response, comments, createdDate: `${modifiedDate}T00:00:00Z` }]
             }));
             setResponse('');
             setComments('');
+            setModifiedDate(new Date().toISOString().split('T')[0]);
         })
         .catch(err => console.error('Error:', err));
     };
@@ -169,6 +171,10 @@ function AddressDetail({ address: initialAddress, isModal }) {
             <div>
                 <h3>Visit History:</h3>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                    <label>
+                        <strong>Date:</strong>
+                        <input type="date" value={modifiedDate} onChange={e => setModifiedDate(e.target.value)} style={{ marginLeft: '0.5rem', padding: '0.25rem' }} />
+                    </label>
                     <label>
                         <strong>Response:</strong>
                         <select value={response} onChange={e => setResponse(e.target.value)} style={{ marginLeft: '0.5rem', padding: '0.25rem' }}>

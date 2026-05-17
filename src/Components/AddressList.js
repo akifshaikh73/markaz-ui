@@ -44,9 +44,19 @@ function AddressList({ initialAddressList }) {
                             const bArea = (b.area || '').toLowerCase();
                             if (aArea < bArea) return -1;
                             if (aArea > bArea) return 1;
+                            
+                            // Within same area, sort by date descending
                             const dateA = new Date((a.lastModifiedDate?.$date) ?? a.lastModifiedDate);
                             const dateB = new Date((b.lastModifiedDate?.$date) ?? b.lastModifiedDate);
-                            return dateB - dateA;
+                            const dateATime = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+                            const dateBTime = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+                            if (dateBTime !== dateATime) return dateBTime - dateATime;
+                            
+                            // If same date, sort by name then ID
+                            const aName = `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase();
+                            const bName = `${b.firstName || ''} ${b.lastName || ''}`.trim().toLowerCase();
+                            if (aName !== bName) return aName.localeCompare(bName);
+                            return (a._id || '').localeCompare(b._id || '');
                         });
 
                         const groups = sorted.reduce((acc, address) => {
