@@ -87,6 +87,24 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 ...prev,
                 visitHistory: [...(prev.visitHistory || []), { response, comments, createdDate: `${modifiedDate}T00:00:00Z` }]
             }));
+            
+            // If response is Invalid or Moved, set inactive to true
+            if (response === 'Invalid' || response === 'Moved') {
+                fetch(`${API_URL}/api/addressList/${address._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inactive: true
+                    }),
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Inactive flag updated:', data);
+                    setAddress(prev => ({ ...prev, inactive: true }));
+                })
+                .catch(err => console.error('Error updating inactive:', err));
+            }
+            
             setResponse('');
             setComments('');
             setModifiedDate(new Date().toISOString().split('T')[0]);
