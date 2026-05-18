@@ -24,9 +24,16 @@ function Badge({ label, value }) {
     return <span style={style}>{label}: {display}</span>;
 }
 
-function StatusBadges() {
+function StatusBadges({ showOnMobile = false }) {
     const [dbStatus, setDbStatus] = useState('...');
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const apiStatus = isRemoteApi ? 'remote' : 'local';
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         fetch(`${API_URL}/api/dbStatus`)
@@ -40,6 +47,11 @@ function StatusBadges() {
             })
             .catch(() => setDbStatus('unknown'));
     }, []);
+
+    // Hide on mobile unless showOnMobile is true
+    if (isMobile && !showOnMobile) {
+        return null;
+    }
 
     return (
         <>

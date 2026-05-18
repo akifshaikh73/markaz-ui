@@ -27,7 +27,7 @@ function AddressList({ initialAddressList }) {
             <table>
                 <thead>
                     <tr>
-                        <th>M-U-ID</th>
+                        <th className="m-u-id-col">M-U-ID</th>
                         <th>ID</th>
                         <th>Name</th>
                         <th>Address</th>
@@ -74,15 +74,13 @@ function AddressList({ initialAddressList }) {
                             </tr>,
                             ...addresses.map(address => (
                                 <tr key={address._id}>
-                                    <td>
-                                        <Link to={{ pathname: `/address/${address._id}`, state: { address } }}>
-                                            {address.masjidId}-{address.unitId}-{address._id}
-                                        </Link>
+                                    <td className="m-u-id-col">
+                                        {address.masjidId}-{address.unitId}-{address._id}
                                     </td>
                                     <td>
-                                        <a href="#" onClick={(e) => { e.preventDefault(); handleOpen(address); }}>
+                                        <Link to={{ pathname: `/address/${address._id}`, state: { address } }}>
                                             {address._id}
-                                        </a>
+                                        </Link>
                                     </td>
                                     <td>{`${address.firstName || ''} ${address.lastName || ''}`.trim()}</td>
                                     <td>{address.address1}{address.city ? `, ${address.city}` : ''}{address.state ? `, ${address.state}` : ''}</td>

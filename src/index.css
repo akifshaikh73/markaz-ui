@@ -36,3 +36,87 @@ tr:nth-child(even) {
 tr:hover {
   background-color: #ddd;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Hide M-U-ID column on mobile */
+  .m-u-id-col {
+    display: none;
+  }
+
+  table {
+    font-size: 0.85rem;
+    margin: 10px 0;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
+  button {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.9rem;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  select {
+    font-size: 16px !important;
+    padding: 0.4rem !important;
+  }
+
+  form {
+    flex-direction: column !important;
+    padding: 1rem !important;
+  }
+
+  form > div {
+    width: 100% !important;
+    flex-direction: column !important;
+  }
+
+  form label {
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  form input,
+  form select {
+    width: 100% !important;
+    margin-top: 0.25rem !important;
+    box-sizing: border-box;
+  }
+
+  h2, h3 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 0.9rem;
+  }
+
+  table {
+    font-size: 0.75rem;
+  }
+
+  th, td {
+    padding: 4px;
+  }
+
+  button {
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.8rem;
+  }
+
+  h2, h3 {
+    font-size: 1rem;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  select {
+    font-size: 16px !important;
+  }
+}

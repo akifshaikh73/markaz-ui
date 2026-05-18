@@ -59,7 +59,7 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
                 Admin Login
             </button>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                <StatusBadges />
+                <StatusBadges showOnMobile={true} />
             </div>
         </div>
     );

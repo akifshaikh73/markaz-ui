@@ -17,6 +17,9 @@ function Landing() {
         JSON.parse(localStorage.getItem('searchParams')) || {}
     );
     const [areaFilter, setAreaFilter] = useState(localStorage.getItem('areaFilter') || '');
+    const [activeFilters, setActiveFilters] = useState(
+        JSON.parse(localStorage.getItem('activeFilters')) || { showInactive: false, filterByStudents: false }
+    );
 
     const unitOptions = MASJID_UNITS[parseInt(masjidID)] || [parseInt(unitID)];
 
@@ -38,18 +41,17 @@ function Landing() {
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
+        localStorage.removeItem('activeFilters');
         navigate(`/landing/${masjidID}/${newUnit}`, { state: { isLoggedIn: true } });
     };
 
     const API_URL = process.env.REACT_APP_API_URL || '';
 
-    const handleSearch = (params) => {
-        setSearchParams(params);
-        localStorage.setItem('searchParams', JSON.stringify(params));
+    const doSearch = (params, filters) => {
         fetch(`${API_URL}/api/addressList/filter/search/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(params)
+            body: JSON.stringify({ ...params, ...filters })
         })
             .then(response => response.json())
             .then(data => {
@@ -58,26 +60,27 @@ function Landing() {
             });
     };
 
-    const handleFilter = (filterParams) => {
-        setSearchParams(filterParams);
-        localStorage.setItem('searchParams', JSON.stringify(filterParams));
-        fetch(`${API_URL}/api/addressList/filter/students/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(filterParams)
-        })
-            .then(response => response.json())
-            .then(data => {
-                setAddressList(data);
-                localStorage.setItem('addressList', JSON.stringify(data));
-            });
+    const handleSearch = (params) => {
+        setSearchParams(params);
+        localStorage.setItem('searchParams', JSON.stringify(params));
+        doSearch(params, activeFilters);
     };
+
+    const handleFilterChange = (changed) => {
+        const newFilters = { ...activeFilters, ...changed };
+        setActiveFilters(newFilters);
+        localStorage.setItem('activeFilters', JSON.stringify(newFilters));
+        doSearch(searchParams, newFilters);
+    };
+
+
 
     const onLogout = () => {
         setAdmin(false); // Reset admin mode on logout
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
+        localStorage.removeItem('activeFilters');
         navigate('/login');
     };
 
@@ -106,7 +109,7 @@ function Landing() {
                 <button onClick={onLogout}>Logout</button>
             </div>
             <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
-            <FilterUI onFilter={handleFilter} />
+            <FilterUI filters={activeFilters} onFilterChange={handleFilterChange} />
             <h2>Address List</h2>
             <AddressList initialAddressList={filteredAddressList} />
         </>
