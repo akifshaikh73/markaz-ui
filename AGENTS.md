@@ -52,6 +52,44 @@ npm start         # dev server on port 3001 (3000 is reserved for the API)
 npm run build     # production build → build/
 ```
 
+### Running locally against local API (default)
+
+```bash
+npm start
+# REACT_APP_API_URL defaults to '' which hits relative URLs → works when API is on localhost:3000
+```
+
+Or explicitly set it:
+
+```bash
+# PowerShell
+$env:REACT_APP_API_URL="http://localhost:3000"; npm start
+
+# CMD
+set REACT_APP_API_URL=http://localhost:3000 && npm start
+```
+
+### Running locally against remote (Render) API
+
+```powershell
+# PowerShell (one-off, not persisted)
+$env:REACT_APP_API_URL="https://visitation-api.onrender.com"; npm start
+```
+
+Or create a `.env.local` file in `markaz-ui/` (gitignored by CRA):
+
+```
+REACT_APP_API_URL=https://visitation-api.onrender.com
+```
+
+Then just run `npm start`. `.env.local` overrides `.env.development`.
+
+### Environment precedence (CRA)
+
+1. `.env.local` (highest — ignored by git)
+2. `.env.development` / `.env.production`
+3. `.env`
+
 Deploy target: Render Static Site via `render.yaml` at repo root.
 
 ## Conventions

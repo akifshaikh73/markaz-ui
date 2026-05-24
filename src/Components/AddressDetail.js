@@ -18,7 +18,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [isAdmin, setIsAdmin] = useState(getAdmin());
     const navigate = useNavigate();
 
-    const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb'];
+    const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
 
     useEffect(() => {
         if (!initialAddress) {
@@ -88,8 +88,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 visitHistory: [...(prev.visitHistory || []), { response, comments, createdDate: `${modifiedDate}T00:00:00Z` }]
             }));
             
-            // If response is Invalid or Moved, set inactive to true
-            if (response === 'Invalid' || response === 'Moved') {
+            // If response is Invalid, Moved, or Duplicate, set inactive to true
+            if (response === 'Invalid' || response === 'Moved' || response === 'Duplicate') {
                 fetch(`${API_URL}/api/addressList/${address._id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -147,6 +147,9 @@ function AddressDetail({ address: initialAddress, isModal }) {
             </div>
             <div>
                 <label><strong>Address:</strong> {address.address1}</label>
+            </div>
+            <div>
+                <label><strong>Area:</strong> {address.area}</label>
             </div>
             <div>
                 <label><strong>City:</strong> {address.city}</label>
