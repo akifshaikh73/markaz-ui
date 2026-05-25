@@ -9,6 +9,33 @@ export const MASJID_UNITS = {
     [CPSA_ID]: [1], // Masjid 109
 };
 
+// Multi-Masjid Configuration
+export const MASJID_CONFIG = [
+    {
+        "name": "Masjid Uthhman",
+        "landing": "muthman",
+        "id": 156,
+        "units": [1, 2, 3]
+    },
+    {
+        "name": "CPSA",
+        "landing": "cpsa",
+        "id": 109,
+        "units": [1]
+    },
+    {
+        "name": "Aurora Masjid",
+        "landing": "aurora",
+        "id": 203,
+        "units": [1, 2, 3]
+    }
+];
+
+// Helper function to get masjid config by landing slug
+export const getMasjidByLanding = (landing) => {
+    return MASJID_CONFIG.find(m => m.landing === landing);
+};
+
 // Admin mode flag
 export let ADMIN = localStorage.getItem('ADMIN') === 'true';
 
