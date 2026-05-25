@@ -27,7 +27,12 @@ export const MASJID_CONFIG = [
         "name": "Aurora Masjid",
         "landing": "aurora",
         "id": 203,
-        "units": [1, 2, 3]
+        "units": [1, 2]
+    }, {
+        "name": "Masjid Darussalam",
+        "landing": "masjid-ds",
+        "id": 112,
+        "units": [1,2,3,4]
     }
 ];
 

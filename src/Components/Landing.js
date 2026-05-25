@@ -4,7 +4,7 @@ import SearchForm from './Search';
 import AddressList from './AddressList';
 import FilterUI from './FilterUI';
 import { exportToExcel } from '../exportExcel';
-import { MASJID_UNITS, setAdmin, getAdmin } from '../config';
+import { MASJID_UNITS, MASJID_CONFIG, setAdmin, getAdmin } from '../config';
 import StatusBadges from './StatusBadges';
 
 function Landing() {
@@ -12,16 +12,28 @@ function Landing() {
     const navigate = useNavigate();
     const { masjidID, unitID } = useParams();
     const [selectedUnit, setSelectedUnit] = useState(parseInt(unitID));
-    const [addressList, setAddressList] = useState(JSON.parse(localStorage.getItem('addressList')) || []);
+    const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
+    const cacheValid = cachedContext.masjidID === masjidID && cachedContext.unitID === unitID;
+
+    const [addressList, setAddressList] = useState(cacheValid ? (JSON.parse(localStorage.getItem('addressList')) || []) : []);
     const [searchParams, setSearchParams] = useState(
-        JSON.parse(localStorage.getItem('searchParams')) || {}
+        cacheValid ? (JSON.parse(localStorage.getItem('searchParams')) || {}) : {}
     );
-    const [areaFilter, setAreaFilter] = useState(localStorage.getItem('areaFilter') || '');
+    const [areaFilter, setAreaFilter] = useState(cacheValid ? (localStorage.getItem('areaFilter') || '') : '');
     const [activeFilters, setActiveFilters] = useState(
-        JSON.parse(localStorage.getItem('activeFilters')) || { showInactive: false, filterByStudents: false }
+        cacheValid ? (JSON.parse(localStorage.getItem('activeFilters')) || { showInactive: false, filterByStudents: false }) : { showInactive: false, filterByStudents: false }
     );
 
+    if (!cacheValid) {
+        localStorage.removeItem('addressList');
+        localStorage.removeItem('searchParams');
+        localStorage.removeItem('areaFilter');
+        localStorage.removeItem('activeFilters');
+        localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
+    }
+
     const unitOptions = MASJID_UNITS[parseInt(masjidID)] || [parseInt(unitID)];
+    const masjidConfig = MASJID_CONFIG.find(m => String(m.id) === String(masjidID));
 
     const filteredAddressList = areaFilter.trim()
         ? addressList.filter(a => {
@@ -42,6 +54,7 @@ function Landing() {
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
+        localStorage.removeItem('landingContext');
         navigate(`/landing/${masjidID}/${newUnit}`, { state: { isLoggedIn: true } });
     };
 
@@ -57,6 +70,7 @@ function Landing() {
             .then(data => {
                 setAddressList(data);
                 localStorage.setItem('addressList', JSON.stringify(data));
+                localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
             });
     };
 
@@ -81,12 +95,13 @@ function Landing() {
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
-        navigate('/login');
+        localStorage.removeItem('landingContext');
+        navigate('/masjid-login');
     };
 
     useEffect(() => {
         if (!location.state || !location.state.isLoggedIn) {
-            navigate('/login');
+            navigate('/masjid-login');
             return;
         }
 
@@ -110,7 +125,7 @@ function Landing() {
             </div>
             <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
             <FilterUI filters={activeFilters} onFilterChange={handleFilterChange} />
-            <h2>Address List</h2>
+            <h2>{masjidConfig ? `${masjidConfig.name} - Address List` : 'Address List'}</h2>
             <AddressList initialAddressList={filteredAddressList} />
         </>
     );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MASJID_CONFIG } from '../config';
 
-const Home = () => {
+const All = () => {
     if (!MASJID_CONFIG.length) {
         return (
             <div style={{ textAlign: 'center', marginTop: '80px' }}>
@@ -37,4 +37,4 @@ const Home = () => {
     );
 };
 
-export default Home;
+export default All;
