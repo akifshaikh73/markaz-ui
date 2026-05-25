@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { setAdmin } from '../config';
 
 const AdminLogin = () => {
     const [adminPassword, setAdminPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Simple password check - in production, this should be done securely on backend
     const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
@@ -14,15 +15,12 @@ const AdminLogin = () => {
         if (adminPassword === ADMIN_PASSWORD) {
             setAdmin(true);
             setError('');
-            navigate('/landing/156/1', { state: { isLoggedIn: true } });
+            const redirectPath = location.state?.from?.pathname || '/all';
+            navigate(redirectPath, { replace: true });
         } else {
             setError('Invalid admin password');
             setAdminPassword('');
         }
-    };
-
-    const handleBackToLogin = () => {
-        navigate('/login');
     };
 
     return (
@@ -44,9 +42,6 @@ const AdminLogin = () => {
             {error && <div style={{ color: 'red', fontSize: '0.9rem' }}>{error}</div>}
             <button onClick={handleAdminLogin} style={{ padding: '0.5rem' }}>
                 Login as Admin
-            </button>
-            <button onClick={handleBackToLogin} style={{ padding: '0.5rem', background: '#f0f0f0' }}>
-                Back to Regular Login
             </button>
         </div>
     );

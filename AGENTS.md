@@ -4,13 +4,18 @@
 
 React 18 SPA (Create React App). All components live in `src/Components/`. Shared utilities in `src/utils.js`. Excel export logic in `src/exportExcel.js`.
 
-**Routing** (react-router-dom v6):
+**Routing** (react-router-dom v6): When asked to display routes, always read `src/App.js` — it is the single source of truth for all routes.
+
 | Path | Component | Notes |
 |------|-----------|-------|
-| `/login` | `Login.js` | Entry point; navigates to landing on submit |
-| `/landing/:masjidID/:unitID` | `Landing.js` | Main list view; requires `location.state.isLoggedIn` |
-| `/address/:id` | `AddressDetail.js` | Detail/edit view; works standalone or inside a modal |
-| `/map/:masjidID/:unitID` | `MapView.js` | Leaflet map; reads from localStorage |
+| `/` | — | Redirects to `/masjid-login` |
+| `/all` | `All` | Protected — requires admin auth (`ProtectedAdminRoute`) |
+| `/masjid-login` | `MasjidLogin` | Entry point for regular users |
+| `/admin-login` | `AdminLogin` | Admin password login; redirects to `/all` on success |
+| `/:masjidSlug` | `MasjidLanding` | Masjid-specific landing page |
+| `/landing/:masjidID/:unitID` | `Landing` | Main list view |
+| `/address/:id` | `AddressDetail` | Detail/edit view |
+| `/map/:masjidID/:unitID` | `MapView` | Leaflet map view |
 
 ## API
 
@@ -43,6 +48,19 @@ Never hardcode `localhost` URLs.
 **Sorting**: address lists sort by `lastModifiedDate` descending; visit history sorts newest-first.
 
 **Grouping**: `AddressList` groups rows by `area` attribute with a header row per group. Addresses with no `area` fall into `(No Area)`.
+
+## Commit Workflow
+
+When asked to commit files, always follow these steps:
+
+1. Run `git status --short` to see all modified files.
+2. Stage each changed file individually: `git add <file>`.
+3. For each file (or group of closely related files), generate a concise commit message following the format:
+   `<type>(<scope>): <short description>`
+   - Types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`
+   - Scope: component name, route, or area of change
+4. Present the staged files and proposed commit message(s) to the user for confirmation before running `git commit`.
+5. After confirmation, run: `git commit -m "<message>"`
 
 ## Build & Run
 

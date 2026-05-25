@@ -23,10 +23,6 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
         navigate(`/landing/${masjidID}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
-    const handleAdminLogin = () => {
-        navigate('/admin-login');
-    };
-
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
             <h2>Login</h2>
@@ -54,9 +50,6 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
             </div>
             <button onClick={handleLogin} disabled={!masjidID || !unitID} style={{ padding: '0.5rem' }}>
                 Login
-            </button>
-            <button onClick={handleAdminLogin} style={{ padding: '0.5rem', background: '#f0f0f0' }}>
-                Admin Login
             </button>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />

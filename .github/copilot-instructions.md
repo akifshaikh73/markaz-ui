@@ -2,6 +2,19 @@
 
 See `AGENTS.md` at the repo root for full architecture, conventions, and API details.
 
+## Commit Workflow
+
+When asked to commit files, always follow these steps:
+
+1. Run `git status --short` to see all modified files.
+2. Stage each changed file: `git add <file>`.
+3. For each file (or group of closely related files), generate a concise commit message:
+   `<type>(<scope>): <short description>`
+   - Types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`
+   - Scope: component name, route, or area of change
+4. Present the staged files and proposed commit message(s) to the user for confirmation.
+5. After confirmation, run: `git commit -m "<message>"`
+
 ## Running Locally
 
 Dev server runs on **port 3001**. The API runs separately on port 3000.
