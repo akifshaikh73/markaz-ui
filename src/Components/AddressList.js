@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Modal, Button } from 'react-bootstrap';
 import AddressDetail from './AddressDetail';
-import { formatDate } from '../utils';
+import AddressRow from './AddressRow';
 
 
 function AddressList({ initialAddressList }) {
@@ -19,7 +18,7 @@ function AddressList({ initialAddressList }) {
     };
 
     useEffect(() => {
-        setAddressList(initialAddressList);
+        setAddressList(initialAddressList || []);
     }, [initialAddressList]);
 
     return (
@@ -73,37 +72,7 @@ function AddressList({ initialAddressList }) {
                                 </td>
                             </tr>,
                             ...addresses.map(address => (
-                                <tr key={address._id}>
-                                    <td className="m-u-id-col">
-                                        {address.masjidId}-{address.unitId}-{address._id}
-                                    </td>
-                                    <td>
-                                        <Link to={{ pathname: `/address/${address._id}`, state: { address } }}>
-                                            {address._id}
-                                        </Link>
-                                    </td>
-                                    <td>{`${address.firstName || ''} ${address.lastName || ''}`.trim()}</td>
-                                    <td>{address.address1}{address.city ? `, ${address.city}` : ''}{address.state ? `, ${address.state}` : ''}</td>
-                                    <td>{address.area}</td>
-                                    <td>
-                                        {[...address.visitHistory]
-                                            .filter(v => v.comments && v.comments.trim() !== '')
-                                            .sort((a, b) => {
-                                                const dA = new Date((a.createdDate?.$date) ?? a.createdDate);
-                                                const dB = new Date((b.createdDate?.$date) ?? b.createdDate);
-                                                return dB - dA;
-                                            })
-                                            .map((v, i) => (
-                                                <div key={i} style={{ fontSize: '0.85em', borderBottom: i > 0 ? '1px dotted #ccc' : 'none', paddingBottom: '2px', marginBottom: '2px' }}>
-                                                    <span style={{ color: '#888', marginRight: '4px' }}>{formatDate(v.createdDate)}:</span>
-                                                    {v.comments}
-                                                </div>
-                                            ))
-                                        }
-                                    </td>
-                                    <td>{address.visitHistory.length > 0 ? address.visitHistory[address.visitHistory.length - 1].response : ''}</td>
-                                    <td>{address.visitHistory.length > 0 ? formatDate(address.visitHistory[address.visitHistory.length - 1].createdDate) : ''}</td>
-                                </tr>
+                                <AddressRow key={address._id} address={address} />
                             ))
                         ]);
                     })()}
