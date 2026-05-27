@@ -1,5 +1,17 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { formatDate } from './utils';
+import { MASJID_CONFIG } from './config';
+
+const EXPORT_COLUMNS = [
+    { header: 'ID', key: 'ID', width: 26 },
+    { header: 'Name', key: 'Name', width: 24 },
+    { header: 'Address', key: 'Address', width: 40 },
+    { header: 'Met', key: 'Met', width: 10 },
+    { header: 'Last Response', key: 'Last Response', width: 16 },
+    { header: 'Last Visit', key: 'Last Visit', width: 14 },
+    { header: 'Comments', key: 'Comments', width: 56 },
+];
 
 /**
  * Converts a visit history array into a single string of non-empty comments,
@@ -13,7 +25,7 @@ function formatComments(visitHistory = []) {
             const dB = new Date((b.createdDate?.$date) ?? b.createdDate);
             return dB - dA;
         })
-        .map(v => `${formatDate(v.createdDate)}: ${v.comments}`)
+        .map(v => v.comments)
         .join('\n');
 }
 
@@ -29,6 +41,40 @@ function lastVisitDate(visitHistory = []) {
     return formatDate(last.createdDate);
 }
 
+function getMasjidName(masjidID) {
+    const idNum = Number(masjidID);
+    const masjid = MASJID_CONFIG.find(m => m.id === idNum);
+    return masjid?.name || String(masjidID || 'Masjid');
+}
+
+function excelHeaderText(text) {
+    // In Excel headers/footers, '&' starts control codes; escape it to render literal text.
+    return String(text || '').replace(/&/g, '&&');
+}
+
+function buildSheet(workbook, sheetName, rows, pageHeaderText) {
+    const sheet = workbook.addWorksheet(sheetName);
+    sheet.columns = EXPORT_COLUMNS;
+
+    rows.forEach(row => {
+        sheet.addRow(row);
+    });
+
+    sheet.pageSetup = {
+        orientation: 'landscape',
+        showGridLines: true,
+        printTitlesRow: '1:1',
+    };
+
+    sheet.headerFooter = {
+        differentFirst: false,
+        differentOddEven: false,
+        oddHeader: `&C${excelHeaderText(pageHeaderText)}`,
+    };
+
+    return sheet;
+}
+
 function toRow(address) {
     const comments = [
         address.profession ? `Profession: ${address.profession}` : null,
@@ -38,13 +84,11 @@ function toRow(address) {
     return {
         'ID':            address._id,
         'Name':          `${address.firstName || ''} ${address.lastName || ''}`.trim(),
-        'Address':       [address.address1, address.city, address.state].filter(Boolean).join(', '),
-        'Best Time':     address.bestTime || '',
+        'Address':       address.address1 || '',
         'Met':           address.met ? 'Yes' : 'No',
         'Last Response': lastResponse(address.visitHistory),
         'Last Visit':    lastVisitDate(address.visitHistory),
         'Comments':      comments,
-        'Last Modified': formatDate(address.lastModifiedDate),
     };
 }
 
@@ -56,8 +100,9 @@ function toRow(address) {
  * @param {string} masjidID
  * @param {string} unitID
  */
-export function exportToExcel(addressList, masjidID, unitID) {
-    const workbook = XLSX.utils.book_new();
+export async function exportToExcel(addressList, masjidID, unitID) {
+    const workbook = new ExcelJS.Workbook();
+    const masjidName = getMasjidName(masjidID);
 
     // Group by area; collect unassigned separately
     const groups = {};
@@ -85,18 +130,24 @@ export function exportToExcel(addressList, masjidID, unitID) {
         .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
         .forEach(area => {
             const rows = groups[area].sort(sortByDate).map(toRow);
-            const sheet = XLSX.utils.json_to_sheet(rows);
             // Limit sheet name to 31 chars (Excel limit)
             const sheetName = area.substring(0, 31);
-            XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+            buildSheet(workbook, sheetName, rows, `${masjidName}-${area}`);
         });
 
     // Add unassigned as the last sheet
     if (unassigned.length > 0) {
         const rows = unassigned.sort(sortByDate).map(toRow);
-        const sheet = XLSX.utils.json_to_sheet(rows);
-        XLSX.utils.book_append_sheet(workbook, sheet, 'Unassigned');
+        const sheetName = 'Unassigned';
+        buildSheet(workbook, sheetName, rows, `${masjidName}-Unassigned`);
     }
 
-    XLSX.writeFile(workbook, `${masjidID}_${unitID}.xlsx`);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([
+        buffer,
+    ], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    saveAs(blob, `${masjidID}_${unitID}.xlsx`);
 }
