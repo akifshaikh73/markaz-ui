@@ -33,6 +33,16 @@ export const MASJID_CONFIG = [
         "landing": "masjid-ds",
         "id": 112,
         "units": [1,2,3,4]
+    }, {
+        "name": "Al Hira",
+        "landing": "alhira",
+        "id": 105,
+        "units": [1, 2]
+    }, {
+        "name": "ICW",
+        "landing": "icw",
+        "id": 230,
+        "units": [1, 2]
     }
 ];
 
