@@ -7,6 +7,11 @@ export const UNIT_OPTIONS = [1, 2, 3];
 export const MASJID_UNITS = {
     [MASJID_UTHMAN_ID]: UNIT_OPTIONS,
     [CPSA_ID]: [1], // Masjid 109
+    203: [1, 2], // Aurora Masjid
+    112: [1, 2, 3, 4], // Masjid Darussalam
+    105: [1, 2], // Al Hira
+    230: [1, 2], // ICW
+    102: [1, 2], // Al Hidayah
 };
 
 // Multi-Masjid Configuration
@@ -42,6 +47,11 @@ export const MASJID_CONFIG = [
         "name": "ICW",
         "landing": "icw",
         "id": 230,
+        "units": [1, 2]
+    }, {
+        "name": "Al Hidayah",
+        "landing": "oleson",
+        "id": 102,
         "units": [1, 2]
     }
 ];
