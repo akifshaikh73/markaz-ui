@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDate } from '../utils';
-import { getAdmin } from '../config';
+import { getAdmin, MASJID_UNITS } from '../config';
 import StatusBadges from './StatusBadges';
 
 function AddressDetail({ address: initialAddress, isModal }) {
@@ -12,6 +12,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [lastName, setLastName] = useState('');
     const [originalFirstName, setOriginalFirstName] = useState('');
     const [originalLastName, setOriginalLastName] = useState('');
+    const [unitId, setUnitId] = useState('');
+    const [originalUnitId, setOriginalUnitId] = useState('');
     const [response, setResponse] = useState('');
     const [comments, setComments] = useState('');
     const [modifiedDate, setModifiedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -31,10 +33,17 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     setLastName(data.lastName);
                     setOriginalFirstName(data.firstName);
                     setOriginalLastName(data.lastName);
+                    setUnitId(data.unitId);
+                    setOriginalUnitId(data.unitId);
                 });
         } else {
+            setAddress(initialAddress);
+            setFirstName(initialAddress.firstName);
+            setLastName(initialAddress.lastName);
             setOriginalFirstName(initialAddress.firstName);
             setOriginalLastName(initialAddress.lastName);
+            setUnitId(initialAddress.unitId);
+            setOriginalUnitId(initialAddress.unitId);
         }
     }, [id, initialAddress, API_URL]);
 
@@ -66,6 +75,25 @@ function AddressDetail({ address: initialAddress, isModal }) {
             console.log('Success:', data);
             setOriginalFirstName(firstName);
             setOriginalLastName(lastName);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    };
+    const handleUpdateUnit = () => {
+        fetch(`${API_URL}/api/addressList/${address._id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                unitId: unitId,
+            }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('Unit updated:', data);
+            setOriginalUnitId(unitId);
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -143,7 +171,17 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 <label><strong>Masjid ID:</strong> {address.masjidId}</label>
             </div>
             <div>
-                <label><strong>Unit ID:</strong> {address.unitId}</label>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                    <label>
+                        <strong>Unit ID:</strong>
+                        <select value={unitId} onChange={e => setUnitId(e.target.value)} disabled={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed', marginLeft: '0.5rem', padding: '0.25rem' } : { marginLeft: '0.5rem', padding: '0.25rem' }}>
+                            {MASJID_UNITS[address.masjidId] && MASJID_UNITS[address.masjidId].map(u => (
+                                <option key={u} value={u}>{u}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <button onClick={handleUpdateUnit} disabled={!isAdmin || unitId === originalUnitId} style={!isAdmin || unitId === originalUnitId ? { opacity: 0.5, cursor: 'not-allowed', padding: '0.5rem 1rem' } : { padding: '0.5rem 1rem' }}>Update</button>
+                </div>
             </div>
             <div>
                 <label><strong>Address:</strong> {address.address1}</label>

@@ -1,18 +1,6 @@
-// Global configuration for Masjid units
-export const MASJID_UTHMAN_ID = 156;
-export const CPSA_ID = 109;
 
-export const UNIT_OPTIONS = [1, 2, 3];
 
-export const MASJID_UNITS = {
-    [MASJID_UTHMAN_ID]: UNIT_OPTIONS,
-    [CPSA_ID]: [1], // Masjid 109
-    203: [1, 2], // Aurora Masjid
-    112: [1, 2, 3, 4], // Masjid Darussalam
-    105: [1, 2], // Al Hira
-    230: [1, 2], // ICW
-    102: [1, 2], // Al Hidayah
-};
+
 
 // Multi-Masjid Configuration
 export const MASJID_CONFIG = [
@@ -42,7 +30,7 @@ export const MASJID_CONFIG = [
         "name": "Al Hira",
         "landing": "alhira",
         "id": 105,
-        "units": [1, 2]
+        "units": [1]
     }, {
         "name": "ICW",
         "landing": "icw",
@@ -52,9 +40,16 @@ export const MASJID_CONFIG = [
         "name": "Al Hidayah",
         "landing": "oleson",
         "id": 102,
-        "units": [1, 2]
+        "units": [1, 2, 3]
     }
 ];
+
+export const MASJID_UNITS = Object.fromEntries(
+    MASJID_CONFIG.map(m => [m.id, m.units])
+);
+
+// Default unit options fallback
+export const UNIT_OPTIONS = [1];
 
 // Helper function to get masjid config by landing slug
 export const getMasjidByLanding = (landing) => {
