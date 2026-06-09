@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMasjidByLanding } from '../config';
+import { getMasjidByLanding, setAdmin, getHijriYear } from '../config';
 import StatusBadges from './StatusBadges';
 
 const MasjidLanding = () => {
@@ -19,6 +19,11 @@ const MasjidLanding = () => {
     // State for unit selection
     const [unitID, setUnitID] = useState(lastUnit || '');
 
+    // Admin login state
+    const [showAdminLogin, setShowAdminLogin] = useState(false);
+    const [adminPassword, setAdminPassword] = useState('');
+    const [adminError, setAdminError] = useState('');
+
     // Handle when masjid slug is not found
     if (!masjidConfig) {
         return (
@@ -32,6 +37,18 @@ const MasjidLanding = () => {
 
     const handleLogin = () => {
         navigate(`/landing/${masjidConfig.id}/${unitID}`, { state: { isLoggedIn: true } });
+    };
+
+    const handleAdminLogin = () => {
+        const expectedPassword = `${masjidConfig.landing}${getHijriYear()}`;
+        if (adminPassword === expectedPassword) {
+            setAdmin(true);
+            setAdminError('');
+            setAdminPassword('');
+            navigate(`/landing/${masjidConfig.id}/${unitID}`, { state: { isLoggedIn: true } });
+        } else {
+            setAdminError('Incorrect admin password');
+        }
     };
 
     return (
@@ -65,6 +82,28 @@ const MasjidLanding = () => {
             <button onClick={handleLogin} style={{ padding: '0.5rem' }}>
                 Login
             </button>
+            <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: 'pointer' }}>
+                {showAdminLogin ? 'Cancel Admin Login' : 'Admin Login'}
+            </button>
+            {showAdminLogin && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff8f0' }}>
+                    <label>
+                        Admin Password:
+                        <input
+                            type="password"
+                            value={adminPassword}
+                            onChange={e => { setAdminPassword(e.target.value); setAdminError(''); }}
+                            onKeyPress={e => e.key === 'Enter' && handleAdminLogin()}
+                            style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem', boxSizing: 'border-box' }}
+                            placeholder="Enter admin password"
+                        />
+                    </label>
+                    {adminError && <p style={{ color: '#d32f2f', margin: '0.5rem 0', fontSize: '0.9rem' }}>{adminError}</p>}
+                    <button onClick={handleAdminLogin} disabled={!adminPassword} style={{ padding: '0.5rem', background: '#ff9800', color: 'white', border: 'none', borderRadius: '4px', cursor: adminPassword ? 'pointer' : 'not-allowed', opacity: adminPassword ? 1 : 0.5 }}>
+                        Login as Admin
+                    </button>
+                </div>
+            )}
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
             </div>

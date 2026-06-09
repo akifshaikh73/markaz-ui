@@ -9,10 +9,6 @@ function AddressList({ initialAddressList }) {
     const [addressList, setAddressList] = useState(initialAddressList || []);
     const [selectedAddress, setSelectedAddress] = useState(null);
 
-    const handleOpen = (address) => {
-        setSelectedAddress(address);
-    };
-
     const handleClose = () => {
         setSelectedAddress(null);
     };

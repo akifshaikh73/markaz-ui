@@ -41,6 +41,11 @@ export const MASJID_CONFIG = [
         "landing": "oleson",
         "id": 102,
         "units": [1, 2, 3]
+    }, {
+        "name": "Masjid Darul Iman",
+        "landing": "di",
+        "id": 111,
+        "units": [1, 2, 3, 4]
     }
 ];
 
@@ -51,9 +56,19 @@ export const MASJID_UNITS = Object.fromEntries(
 // Default unit options fallback
 export const UNIT_OPTIONS = [1];
 
+// Admin password
+export const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
+
 // Helper function to get masjid config by landing slug
 export const getMasjidByLanding = (landing) => {
     return MASJID_CONFIG.find(m => m.landing === landing);
+};
+
+// Returns the current Hijri (Islamic) year using the browser's Intl API
+export const getHijriYear = () => {
+    const formatter = new Intl.DateTimeFormat('en-u-ca-islamic', { year: 'numeric' });
+    const parts = formatter.formatToParts(new Date());
+    return parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
 };
 
 // Admin mode flag
