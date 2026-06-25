@@ -11,7 +11,7 @@ function Landing() {
     const location = useLocation();
     const navigate = useNavigate();
     const { masjidID, unitID } = useParams();
-    const [selectedUnit, setSelectedUnit] = useState(parseInt(unitID));
+    const [selectedUnit, setSelectedUnit] = useState(unitID === 'all' ? '' : (parseInt(unitID) || ''));
     const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
     const cacheValid = cachedContext.masjidID === masjidID && cachedContext.unitID === unitID;
 
@@ -48,23 +48,40 @@ function Landing() {
     };
 
     const handleUnitChange = (e) => {
-        const newUnit = parseInt(e.target.value);
-        setSelectedUnit(newUnit);
+        const val = e.target.value;
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
-        navigate(`/landing/${masjidID}/${newUnit}`, { state: { isLoggedIn: true } });
+        if (val === '') {
+            setSelectedUnit('');
+            setSearchParams({});
+            setAreaFilter('');
+            setActiveFilters({ showInactive: false, filterByStudents: false });
+            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`)
+                .then(response => response.json())
+                .then(data => {
+                    setAddressList(data);
+                    localStorage.setItem('addressList', JSON.stringify(data));
+                });
+        } else {
+            const newUnit = parseInt(val);
+            setSelectedUnit(newUnit);
+            setAddressList([]);
+            navigate(`/landing/${masjidID}/${newUnit || 'all'}`, { state: { isLoggedIn: true } });
+        }
     };
 
     const API_URL = process.env.REACT_APP_API_URL || '';
 
     const doSearch = (params, filters) => {
+        const body = { ...params, ...filters };
+        if (!body.unitId) delete body.unitId;
         fetch(`${API_URL}/api/addressList/filter/search/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...params, ...filters })
+            body: JSON.stringify(body)
         })
             .then(response => response.json())
             .then(data => {
@@ -106,7 +123,8 @@ function Landing() {
         }
 
         if (addressList.length === 0) {
-            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}&unit_id=${selectedUnit}`)
+            const unitParam = selectedUnit !== '' ? `&unit_id=${selectedUnit}` : '';
+            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`)
                 .then(response => response.json())
                 .then(data => {
                     setAddressList(data);

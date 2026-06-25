@@ -38,12 +38,13 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
                         {unitOptions.map(u => (
                             <option key={u} value={u}>{u}</option>
                         ))}
+                        <option value="">All</option>
                     </select>
                 </label>
             )}
             </div>
             <div>
-
+            
 
             <label>
                 ID:

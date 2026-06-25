@@ -23,7 +23,7 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
 
     const handleLogin = () => {
         setAdmin(false); // Ensure regular users cannot edit
-        navigate(`/landing/${masjidID}/${unitID}`, { state: { isLoggedIn: true } });
+        navigate(`/landing/${masjidID}/${unitID || 'all'}`, { state: { isLoggedIn: true } });
     };
 
     const handleAdminLogin = () => {
@@ -31,7 +31,7 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
             setAdmin(true);
             setAdminError('');
             setAdminPassword('');
-            navigate(`/landing/${masjidID}/${unitID}`, { state: { isLoggedIn: true } });
+            navigate(`/landing/${masjidID}/${unitID || 'all'}`, { state: { isLoggedIn: true } });
         } else {
             setAdminError('Incorrect admin password');
         }
@@ -59,10 +59,11 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
                         {derivedUnitOptions.map(u => (
                             <option key={u} value={u}>{u}</option>
                         ))}
+                        <option value="">All</option>
                     </select>
                 </label>
             </div>
-            <button onClick={handleLogin} disabled={!masjidID || !unitID} style={{ padding: '0.5rem' }}>
+            <button onClick={handleLogin} disabled={!masjidID} style={{ padding: '0.5rem' }}>
                 Login
             </button>
             <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: 'pointer' }}>

@@ -1,3 +1,19 @@
+# Markaz Visitation UI
+
+## API Reference
+
+All endpoints are relative to `REACT_APP_API_URL` (configured via environment variable).
+
+| Method | Endpoint | Query Params / Body | Description | Component |
+|--------|----------|----------------------|-------------|-----------|
+| `GET` | `/api/addressList/list` | `masjid_id`, `unit_id` *(optional)* | Fetch address list for a masjid; omit `unit_id` for all units | `Landing` |
+| `POST` | `/api/addressList/filter/search/` | Body: `{ masjidId, unitId?, _id?, name?, address?, city?, showInactive?, filterByStudents? }` | Search/filter addresses | `Landing` |
+| `GET` | `/api/addressList/search/:id` | — | Fetch a single address by ID | `AddressDetail` |
+| `PUT` | `/api/addressList/:id` | Body: `{ firstName?, lastName?, unitId?, inactive? }` | Update address name, unit, or inactive flag | `AddressDetail` |
+| `PUT` | `/api/addressList/visit/:id` | Body: `{ lastmodifieddate, response, comment }` | Record a visit response | `AddressDetail` |
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
