@@ -13,7 +13,7 @@ const MasjidLanding = () => {
     // Restore last selected unit for this masjid if available
     const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
     const lastUnit = cachedContext.masjidID === String(masjidConfig?.id) && cachedContext.unitID
-        ? parseInt(cachedContext.unitID)
+        ? (cachedContext.unitID === 'all' ? 'all' : parseInt(cachedContext.unitID))
         : masjidConfig?.units[0];
 
     // State for unit selection
@@ -76,6 +76,7 @@ const MasjidLanding = () => {
                         {masjidConfig.units.map(u => (
                             <option key={u} value={u}>{u}</option>
                         ))}
+                        <option key="all" value="all">All</option>
                     </select>
                 </label>
             </div>

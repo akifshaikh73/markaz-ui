@@ -17,6 +17,35 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 | `/address/:id` | `AddressDetail` | Detail/edit view |
 | `/map/:masjidID/:unitID` | `MapView` | Leaflet map view |
 
+## Masjid Config (`src/config.js`)
+
+`MASJID_CONFIG` is the single source of truth for all masjids:
+
+| id | name | landing slug | units |
+|----|------|-------------|-------|
+| 156 | Masjid Uthhman | `muthman` | 1,2,3 |
+| 109 | CPSA | `cpsa` | 1 |
+| 203 | Aurora Masjid | `aurora` | 1,2 |
+| 112 | Masjid Darussalam | `masjid-ds` | 1,2,3,4 |
+| 105 | Al Hira | `alhira` | 1 |
+| 230 | ICW | `icw` | 1,2 |
+| 102 | Al Hidayah | `oleson` | 1,2,3 |
+| 111 | Masjid Darul Iman | `di` | 1,2,3,4 |
+
+`MASJID_UNITS` — derived map `{ id: units[] }`. `UNIT_OPTIONS = [1]` is the fallback.
+
+`getMasjidByLanding(slug)` — looks up config by `landing` field.
+
+`getHijriYear()` — returns current Hijri year via `Intl` (used for masjid passwords).
+
+**Admin flag**: `ADMIN` is stored in `localStorage('ADMIN')`; mutate only via `setAdmin(bool)`.
+
+**Env var**: `REACT_APP_ADMIN_PASSWORD` — admin password for `/admin-login`.
+
+## MasjidLanding Auth Flow
+
+Route `/:masjidSlug` → resolves `getMasjidByLanding(slug)` → password is `${masjid.landing}${getHijriYear()}` → navigates to `/landing/:id/:unit` with `{ state: { isLoggedIn: true } }`. Unknown slug shows error + "Go to Login" button.
+
 ## API
 
 All fetch calls use `process.env.REACT_APP_API_URL` as the base:
@@ -39,6 +68,9 @@ Never hardcode `localhost` URLs.
 - `addressList` — full fetched list (cleared on logout)
 - `searchParams` — last search form values (cleared on logout)
 - `areaFilter` — last area filter text (cleared on logout)
+- `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
+- `landingContext` — `{ masjidID, unitID }` last visited (cleared on logout; used to restore unit selection)
+- `ADMIN` — `'true'`/`'false'` string; read on init, written by `setAdmin()`
 
 **Address data shape** (key fields):
 `_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `inactive`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`
@@ -116,3 +148,5 @@ Deploy target: Render Static Site via `render.yaml` at repo root.
 - Guard all `useNavigate` / `navigate()` calls inside `useEffect` — never call during render.
 - `useEffect` deps must not include derived values that change every render (e.g., `array.length` after a setState).
 - The `FilterUI` prop is named `onFilter` (not `handleFilter`).
+- **Logout** navigates to `/masjid-login` with `{ state: { masjidID } }` so the login page restores the same masjid ID instead of defaulting to 156.
+- `MasjidLogin` initialises `masjidID` state as: `lockedMasjidID || location.state?.masjidID || 156`.

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { setAdmin, MASJID_UNITS, UNIT_OPTIONS, ADMIN_PASSWORD } from '../config';
 import StatusBadges from './StatusBadges';
 
 const Login = ({ lockedMasjidID, unitOptions }) => {
-    const [masjidID, setMasjidID] = useState(lockedMasjidID || 156);
+    const location = useLocation();
+    const [masjidID, setMasjidID] = useState(lockedMasjidID || location.state?.masjidID || 156);
     const [unitID, setUnitID] = useState(unitOptions ? unitOptions[0] : 1);
     const [showAdminLogin, setShowAdminLogin] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');

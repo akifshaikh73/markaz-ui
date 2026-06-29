@@ -113,7 +113,7 @@ function Landing() {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
-        navigate('/masjid-login');
+        navigate('/masjid-login', { state: { masjidID } });
     };
 
     useEffect(() => {

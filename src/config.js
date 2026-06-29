@@ -35,7 +35,7 @@ export const MASJID_CONFIG = [
         "name": "ICW",
         "landing": "icw",
         "id": 230,
-        "units": [1, 2]
+        "units": [1]
     }, {
         "name": "Al Hidayah",
         "landing": "oleson",
