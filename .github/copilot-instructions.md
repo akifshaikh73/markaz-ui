@@ -2,6 +2,22 @@
 
 See `AGENTS.md` at the repo root for full architecture, conventions, and API details.
 
+## Documentation Maintenance
+
+When making any change to the following data structures in `src/Components/Landing.js`, **always update both `README.md` and `AGENTS.md`** in the same response:
+
+- `addressList` — working set state
+- `fullAddressList` — complete unit list state
+- `unitAreas` — unique area names state
+- `areaFilter` — neighborhood filter state
+- `filteredAddressList` — derived render list
+- `searchParams` / `activeFilters` — search/filter state
+- Any `localStorage` or `sessionStorage` keys (add, remove, or rename)
+- The `doSearch`, `handleUpdateArea`, `handleUnitChange`, or `onLogout` functions (if their effect on the above states changes)
+
+In `README.md`: update the **State & Caching Architecture** section (tables for Data Structures, Update Rules, Storage Layers).
+In `AGENTS.md`: update the **localStorage keys**, **sessionStorage keys**, and **Landing Component — State & Data Flow** sections.
+
 ## Commit Workflow
 
 When asked to commit files, always follow these steps:
