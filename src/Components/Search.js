@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 
 
-function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch, initialValues = {}, areaValue = '', onAreaChange }) {
+function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch, initialValues = {}, areaValue = '', onAreaChange, areaOptions = [] }) {
     const [name, setName] = useState(initialValues.name || '');
     const [address, setAddress] = useState(initialValues.address || '');
     const [city, setCity] = useState(initialValues.city || '');
@@ -68,13 +68,17 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
             <div>
                 <label>
                     Neighborhood:
-                    <input
-                        type="text"
-                        placeholder="Search by area / neighborhood"
+                    <select
                         value={areaValue}
                         onChange={onAreaChange}
-                        style={{ width: '300px' }}
-                    />
+                        style={{ width: '300px', marginLeft: '0.5rem' }}
+                    >
+                        <option value="">— All Neighborhoods —</option>
+                        <option value="__NO_AREA__">— No Area —</option>
+                        {areaOptions.map(a => (
+                            <option key={a} value={a}>{a}</option>
+                        ))}
+                    </select>
                 </label>
             </div>
 

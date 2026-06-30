@@ -21,6 +21,16 @@ function Landing() {
         cacheValid ? (JSON.parse(localStorage.getItem('searchParams')) || {}) : {}
     );
     const [areaFilter, setAreaFilter] = useState(cacheValid ? (localStorage.getItem('areaFilter') || '') : '');
+    const unitAreasKey = `unitAreas_${masjidID}_${unitID}`;
+    const fullListKey = `fullList_${masjidID}_${unitID}`;
+    const [unitAreas, setUnitAreas] = useState(() => {
+        const cached = sessionStorage.getItem(unitAreasKey);
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [fullAddressList, setFullAddressList] = useState(() => {
+        const cached = sessionStorage.getItem(fullListKey);
+        return cached ? JSON.parse(cached) : [];
+    });
     const [showAddAddress, setShowAddAddress] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [newArea, setNewArea] = useState('');
@@ -40,12 +50,14 @@ function Landing() {
     const unitOptions = MASJID_UNITS[parseInt(masjidID)] || [parseInt(unitID)];
     const masjidConfig = MASJID_CONFIG.find(m => String(m.id) === String(masjidID));
 
-    const filteredAddressList = areaFilter.trim()
-        ? addressList.filter(a => {
-            const term = areaFilter.trim().toLowerCase();
-            return a.area && a.area.toLowerCase().includes(term);
-          })
-        : addressList;
+    const filteredAddressList = areaFilter === '__NO_AREA__'
+        ? fullAddressList.filter(a => !a.area || !a.area.trim())
+        : areaFilter.trim()
+            ? fullAddressList.filter(a => {
+                const term = areaFilter.trim().toLowerCase();
+                return a.area && a.area.toLowerCase().includes(term);
+              })
+            : addressList;
 
     const handleAreaChange = (e) => {
         setAreaFilter(e.target.value);
@@ -59,6 +71,9 @@ function Landing() {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
+        setUnitAreas([]);
+        sessionStorage.removeItem(fullListKey);
+        setFullAddressList([]);
         if (val === '') {
             setSelectedUnit('');
             setSearchParams({});
@@ -68,12 +83,16 @@ function Landing() {
                 .then(response => response.json())
                 .then(data => {
                     setAddressList(data);
+                    setFullAddressList(data);
                     localStorage.setItem('addressList', JSON.stringify(data));
                 });
         } else {
             const newUnit = parseInt(val);
             setSelectedUnit(newUnit);
             setAddressList([]);
+            setAreaFilter('');
+            setSearchParams({});
+            setActiveFilters({ showInactive: false, filterByStudents: false });
             navigate(`/landing/${masjidID}/${newUnit || 'all'}`, { state: { isLoggedIn: true } });
         }
     };
@@ -118,6 +137,17 @@ function Landing() {
         .then(res => res.json())
         .then((data) => {
             setAddressList(prev => prev.map(a => ids.includes(a._id) ? { ...a, area } : a));
+            setFullAddressList(prev => {
+                const updated = prev.map(a => ids.includes(a._id) ? { ...a, area } : a);
+                sessionStorage.setItem(fullListKey, JSON.stringify(updated));
+                return updated;
+            });
+            setUnitAreas(prev => {
+                if (prev.includes(area)) return prev;
+                const updated = [...prev, area].sort();
+                sessionStorage.setItem(unitAreasKey, JSON.stringify(updated));
+                return updated;
+            });
             setSelectedIds([]);
             setNewArea('');
             setAreaUpdateStatus(data);
@@ -135,6 +165,7 @@ function Landing() {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
+        sessionStorage.clear();
         navigate(masjidConfig ? `/${masjidConfig.landing}` : '/masjid-login');
     };
 
@@ -150,7 +181,14 @@ function Landing() {
                 .then(response => response.json())
                 .then(data => {
                     setAddressList(data);
+                    setFullAddressList(data);
+                    sessionStorage.setItem(fullListKey, JSON.stringify(data));
                     localStorage.setItem('addressList', JSON.stringify(data));
+                    if (unitAreas.length === 0) {
+                        const areas = [...new Set(data.map(a => a.area).filter(a => a && a.trim()))].sort();
+                        setUnitAreas(areas);
+                        sessionStorage.setItem(unitAreasKey, JSON.stringify(areas));
+                    }
                 });
         }
     }, [masjidID, selectedUnit]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -164,7 +202,7 @@ function Landing() {
                 {getAdmin() && <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>}
                 <button onClick={onLogout}>Logout</button>
             </div>
-            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} />
+            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} />
             <FilterUI filters={activeFilters} onFilterChange={handleFilterChange} />
             {selectedIds.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0', padding: '0.5rem 1rem', background: '#e3f2fd', borderRadius: '6px' }}>
@@ -173,11 +211,15 @@ function Landing() {
                         Set Neighborhood:
                         <input
                             type="text"
+                            list="area-options-datalist"
                             value={newArea}
                             onChange={e => setNewArea(e.target.value)}
-                            placeholder="Enter neighborhood name"
+                            placeholder="Enter or pick neighborhood"
                             style={{ padding: '0.3rem 0.5rem', minWidth: '200px' }}
                         />
+                        <datalist id="area-options-datalist">
+                            {unitAreas.map(a => <option key={a} value={a} />)}
+                        </datalist>
                     </label>
                     <button
                         onClick={() => handleUpdateArea(selectedIds, newArea)}
