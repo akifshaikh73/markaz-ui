@@ -65,12 +65,28 @@ Never hardcode `localhost` URLs.
 **Dates** — always use `formatDate()` from `src/utils.js`. Never use `toLocaleDateString()` directly; it causes off-by-one day errors with MongoDB UTC dates. `formatDate` handles MongoDB `{ $date: "..." }` objects, ISO strings, and Date instances.
 
 **localStorage keys**:
-- `addressList` — full fetched list (cleared on logout)
+- `addressList` — working set from last fetch or search (cleared on logout)
 - `searchParams` — last search form values (cleared on logout)
 - `areaFilter` — last area filter text (cleared on logout)
 - `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
 - `landingContext` — `{ masjidID, unitID }` last visited (cleared on logout; used to restore unit selection)
 - `ADMIN` — `'true'`/`'false'` string; read on init, written by `setAdmin()`
+
+**sessionStorage keys** (keyed per masjid+unit; cleared on logout via `sessionStorage.clear()`):
+- `unitAreas_<masjidID>_<unitID>` — sorted unique area/neighborhood strings for the Neighborhood dropdown
+- `fullList_<masjidID>_<unitID>` — complete unit address list; never replaced by search results
+
+## Landing Component — State & Data Flow
+
+| State | Source | Rule |
+|-------|--------|------|
+| `addressList` | `/list` on load; `/filter/search/` on search | Working set. Replaced by search results. |
+| `fullAddressList` | `/list` on load only | Full unit list. Never replaced by search. Used for area filtering. |
+| `unitAreas` | Derived from `fullAddressList` on load | Unique sorted area names. Only grows (new areas appended on bulk update). |
+| `areaFilter` | Neighborhood `<select>` | Filters `fullAddressList`, not `addressList`. |
+| `filteredAddressList` | Derived at render | `fullAddressList` filtered by `areaFilter`; falls back to `addressList` when filter is empty. |
+
+**Key invariant**: `doSearch()` only updates `addressList` — never `fullAddressList` or `unitAreas`. This ensures the Neighborhood dropdown always reflects the complete unit dataset regardless of active searches.
 
 **Address data shape** (key fields):
 `_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `inactive`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`

@@ -14,6 +14,46 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 
 ---
 
+## State & Caching Architecture (`Landing` component)
+
+### Data Structures
+
+| Name | Type | Source | Purpose |
+|------|------|--------|---------|
+| `addressList` | React state | API (`/list` or `/filter/search/`) | The **working set** shown in the table. May be the full unit list or search results. |
+| `fullAddressList` | React state | API (`/list`) only | The **complete unit list**. Never replaced by search results. Used exclusively for Neighborhood area filtering. |
+| `unitAreas` | React state | Derived from `fullAddressList` on initial fetch | Sorted unique area/neighborhood names for the Neighborhood `<select>` dropdown and the "Set Neighborhood" datalist. |
+| `areaFilter` | React state | User selects from Neighborhood `<select>` | The currently active neighborhood filter string. Empty string = no filter. |
+| `filteredAddressList` | Derived (render-time) | `fullAddressList` filtered by `areaFilter`; falls back to `addressList` when no filter | What `AddressList` actually renders. |
+| `searchParams` | React state | Search form submit | Last submitted search field values. |
+| `activeFilters` | React state | FilterUI buttons | `{ showInactive: bool, filterByStudents: bool }` |
+
+### Update Rules
+
+| Event | `addressList` | `fullAddressList` | `unitAreas` |
+|-------|--------------|-------------------|-------------|
+| Initial page load (`/list`) | Set | Set | Populated |
+| Search / FilterUI button (`doSearch`) | Replaced with results | Not touched | Not touched |
+| Bulk area update | Patched in-place | Patched in-place | New area appended if new |
+| Unit switch | Cleared | Cleared | Cleared |
+| Logout | Cleared | Cleared | Cleared |
+
+### Storage Layers
+
+| Storage | Keys | Scope | Cleared by |
+|---------|------|-------|-----------|
+| `localStorage` | `addressList`, `searchParams`, `areaFilter`, `activeFilters`, `landingContext` | Browser (survives refresh) | Logout, unit switch |
+| `sessionStorage` | `unitAreas_<masjidID>_<unitID>`, `fullList_<masjidID>_<unitID>` | Browser tab | Logout (`sessionStorage.clear()`), unit switch, tab close |
+| React state | All of the above + `fullAddressList`, `filteredAddressList` | Component lifetime | Component unmount |
+
+### Why the Split (`addressList` vs `fullAddressList`)
+
+The Neighborhood dropdown lists **all areas for the unit** (from `unitAreas`). When the user picks an area, the filter must search the **complete unit list** — not just the current search results. Without `fullAddressList`, toggling Active/Inactive or running a search would silently shrink the filterable dataset, making some neighborhoods appear empty.
+
+**Rule**: area filter always uses `fullAddressList`. Search and sort results use `addressList`.
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
