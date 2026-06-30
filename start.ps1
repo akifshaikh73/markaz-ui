@@ -1,3 +1,8 @@
+# Usage:
+#   .\start.ps1                  Start the UI pointing to the local API (default)
+#   .\start.ps1 -api local       Start the UI pointing to http://localhost:3000
+#   .\start.ps1 -api remote      Start the UI pointing to https://visitation-api.onrender.com
+
 param(
     [ValidateSet('local', 'remote')]
     [string]$api = 'local'
