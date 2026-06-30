@@ -67,10 +67,10 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
 
             <div>
                 <label>
-                    Area:
+                    Neighborhood:
                     <input
                         type="text"
-                        placeholder="Filter by address, city or state"
+                        placeholder="Search by area / neighborhood"
                         value={areaValue}
                         onChange={onAreaChange}
                         style={{ width: '300px' }}

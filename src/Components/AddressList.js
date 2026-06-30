@@ -4,10 +4,28 @@ import AddressDetail from './AddressDetail';
 import AddressRow from './AddressRow';
 
 
-function AddressList({ initialAddressList }) {
+function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }) {
     console.log(initialAddressList);
     const [addressList, setAddressList] = useState(initialAddressList || []);
     const [selectedAddress, setSelectedAddress] = useState(null);
+
+    const handleToggle = (id) => {
+        if (selectedIds.includes(id)) {
+            onSelectionChange(selectedIds.filter(i => i !== id));
+        } else {
+            onSelectionChange([...selectedIds, id]);
+        }
+    };
+
+    const handleSelectAll = (allIds) => {
+        const allSelected = allIds.every(id => selectedIds.includes(id));
+        if (allSelected) {
+            onSelectionChange(selectedIds.filter(id => !allIds.includes(id)));
+        } else {
+            const merged = Array.from(new Set([...selectedIds, ...allIds]));
+            onSelectionChange(merged);
+        }
+    };
 
     const handleClose = () => {
         setSelectedAddress(null);
@@ -26,7 +44,23 @@ function AddressList({ initialAddressList }) {
                         <th>ID</th>
                         <th>Name</th>
                         <th>Address</th>
-                        <th>Area</th>
+                        {(() => {
+                            const allIds = addressList.map(a => a._id);
+                            const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.includes(id));
+                            const someSelected = allIds.some(id => selectedIds.includes(id));
+                            return (
+                                <th>
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        ref={el => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                                        onChange={() => handleSelectAll(allIds)}
+                                        style={{ marginRight: '4px', cursor: 'pointer' }}
+                                    />
+                                    Neighborhood
+                                </th>
+                            );
+                        })()}
                         <th>Comments</th>
                         <th>Last Response</th>
                         <th>Date</th>
@@ -68,7 +102,7 @@ function AddressList({ initialAddressList }) {
                                 </td>
                             </tr>,
                             ...addresses.map(address => (
-                                <AddressRow key={address._id} address={address} />
+                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} />
                             ))
                         ]);
                     })()}

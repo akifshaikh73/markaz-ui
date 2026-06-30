@@ -187,7 +187,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 <label><strong>Address:</strong> {address.address1}</label>
             </div>
             <div>
-                <label><strong>Area:</strong> {address.area}</label>
+                <label><strong>Neighborhood:</strong> {address.area}</label>
             </div>
             <div>
                 <label><strong>City:</strong> {address.city}</label>
@@ -224,7 +224,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 <label><strong>Met:</strong> {address.met ? 'Yes' : 'No'}</label>
             </div>
             <div>
-                <label><strong>Last Modified Date:</strong> {formatDate(address.lastModifiedDate)}</label>
+                <label><strong>Last Visited Date:</strong> {formatDate(address.lastModifiedDate)}</label>
             </div>
 
             <div>
