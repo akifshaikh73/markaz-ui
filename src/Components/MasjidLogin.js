@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { setAdmin, MASJID_UNITS, UNIT_OPTIONS, ADMIN_PASSWORD } from '../config';
 import StatusBadges from './StatusBadges';
+import versionInfo from '../version.json';
+const { version } = versionInfo;
 
 const Login = ({ lockedMasjidID, unitOptions }) => {
     const location = useLocation();
@@ -95,6 +97,7 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
             </div>
+            <p style={{ margin: 0, textAlign: 'center', fontSize: '0.75rem', color: '#aaa' }}>v{version}</p>
         </div>
     );
 };

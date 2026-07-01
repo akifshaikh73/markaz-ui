@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMasjidByLanding, setAdmin, getHijriYear } from '../config';
 import StatusBadges from './StatusBadges';
+import versionInfo from '../version.json';
+const { version } = versionInfo;
 
 const MasjidLanding = () => {
     const { masjidSlug } = useParams();
@@ -108,6 +110,7 @@ const MasjidLanding = () => {
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
             </div>
+            <p style={{ margin: 0, textAlign: 'center', fontSize: '0.75rem', color: '#aaa' }}>v{version}</p>
         </div>
     );
 };
