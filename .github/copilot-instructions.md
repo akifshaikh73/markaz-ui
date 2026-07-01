@@ -6,8 +6,8 @@ See `AGENTS.md` at the repo root for full architecture, conventions, and API det
 
 When making any change to the following data structures in `src/Components/Landing.js`, **always update both `README.md` and `AGENTS.md`** in the same response:
 
-- `addressList` — working set state
-- `fullAddressList` — complete unit list state
+- `addressList` — working set state (may be full list or search results)
+- `unitAreas` — unique area names state (sessionStorage-cached; never replaced by search)
 - `unitAreas` — unique area names state
 - `areaFilter` — neighborhood filter state
 - `filteredAddressList` — derived render list

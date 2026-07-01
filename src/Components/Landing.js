@@ -22,13 +22,8 @@ function Landing() {
     );
     const [areaFilter, setAreaFilter] = useState(cacheValid ? (localStorage.getItem('areaFilter') || '') : '');
     const unitAreasKey = `unitAreas_${masjidID}_${unitID}`;
-    const fullListKey = `fullList_${masjidID}_${unitID}`;
     const [unitAreas, setUnitAreas] = useState(() => {
         const cached = sessionStorage.getItem(unitAreasKey);
-        return cached ? JSON.parse(cached) : [];
-    });
-    const [fullAddressList, setFullAddressList] = useState(() => {
-        const cached = sessionStorage.getItem(fullListKey);
         return cached ? JSON.parse(cached) : [];
     });
     const [showAddAddress, setShowAddAddress] = useState(false);
@@ -51,9 +46,9 @@ function Landing() {
     const masjidConfig = MASJID_CONFIG.find(m => String(m.id) === String(masjidID));
 
     const filteredAddressList = areaFilter === '__NO_AREA__'
-        ? fullAddressList.filter(a => !a.area || !a.area.trim())
+        ? addressList.filter(a => !a.area || !a.area.trim())
         : areaFilter.trim()
-            ? fullAddressList.filter(a => {
+            ? addressList.filter(a => {
                 const term = areaFilter.trim().toLowerCase();
                 return a.area && a.area.toLowerCase().includes(term);
               })
@@ -72,8 +67,6 @@ function Landing() {
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
         setUnitAreas([]);
-        sessionStorage.removeItem(fullListKey);
-        setFullAddressList([]);
         if (val === '') {
             setSelectedUnit('');
             setSearchParams({});
@@ -83,7 +76,6 @@ function Landing() {
                 .then(response => response.json())
                 .then(data => {
                     setAddressList(data);
-                    setFullAddressList(data);
                     localStorage.setItem('addressList', JSON.stringify(data));
                 });
         } else {
@@ -137,11 +129,6 @@ function Landing() {
         .then(res => res.json())
         .then((data) => {
             setAddressList(prev => prev.map(a => ids.includes(a._id) ? { ...a, area } : a));
-            setFullAddressList(prev => {
-                const updated = prev.map(a => ids.includes(a._id) ? { ...a, area } : a);
-                sessionStorage.setItem(fullListKey, JSON.stringify(updated));
-                return updated;
-            });
             setUnitAreas(prev => {
                 if (prev.includes(area)) return prev;
                 const updated = [...prev, area].sort();
@@ -181,8 +168,6 @@ function Landing() {
                 .then(response => response.json())
                 .then(data => {
                     setAddressList(data);
-                    setFullAddressList(data);
-                    sessionStorage.setItem(fullListKey, JSON.stringify(data));
                     localStorage.setItem('addressList', JSON.stringify(data));
                     if (unitAreas.length === 0) {
                         const areas = [...new Set(data.map(a => a.area).filter(a => a && a.trim()))].sort();

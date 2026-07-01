@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { localDateString } from '../utils';
 
 const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
 
@@ -8,11 +9,15 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [address1, setAddress1] = useState('');
+    const [address2, setAddress2] = useState('');
+    const [city, setCity] = useState('');
+    const [addrState, setAddrState] = useState('');
+    const [zipcode, setZipcode] = useState('');
     const [unitId, setUnitId] = useState(unitOptions[0] || '');
 
     const [response, setResponse] = useState('');
     const [comment, setComment] = useState('');
-    const [visitDate, setVisitDate] = useState(new Date().toISOString().split('T')[0]);
+    const [visitDate, setVisitDate] = useState(localDateString());
 
     const [createdId, setCreatedId] = useState(null);
     const [error, setError] = useState('');
@@ -26,20 +31,24 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
         setError('');
         setSubmitting(true);
 
+        const fullAddress1 = [address1.trim(), address2.trim()].filter(Boolean).join(', ');
         const body = {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
-            address1: address1.trim(),
+            address1: fullAddress1,
+            ...(city.trim()     && { city: city.trim() }),
+            ...(addrState.trim()&& { state: addrState.trim() }),
+            ...(zipcode.trim()  && { zipcode: zipcode.trim() }),
             masjidId: parseInt(masjidID),
             unitId: parseInt(unitId),
         };
 
+        body.source = 'render';
+
         if (response || comment) {
-            body.visitHistory = [{
-                response,
-                comments: comment,
-                createdDate: `${visitDate}T00:00:00Z`,
-            }];
+            body.lastModifiedDate = `${visitDate}T00:00:00Z`;
+            body.latestResponse = response;
+            body.comments = comment;
         }
 
         fetch(`${API_URL}/api/addressList`, {
@@ -69,7 +78,7 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
                 <h3 style={{ margin: '0 0 0.5rem', color: '#2e7d32' }}>Address Created</h3>
                 <p style={{ margin: '0 0 0.25rem' }}>New ID: <strong>{createdId}</strong></p>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                    <button onClick={() => { setCreatedId(null); setFirstName(''); setLastName(''); setAddress1(''); setResponse(''); setComment(''); setVisitDate(new Date().toISOString().split('T')[0]); }}>
+                    <button onClick={() => { setCreatedId(null); setFirstName(''); setLastName(''); setAddress1(''); setAddress2(''); setCity(''); setAddrState(''); setZipcode(''); setResponse(''); setComment(''); setVisitDate(localDateString()); }}>
                         Add Another
                     </button>
                     {onClose && <button onClick={onClose}>Close</button>}
@@ -105,9 +114,29 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
             </label>
 
             <label style={labelStyle}>
-                Address <span style={{ color: 'red' }}>*</span>
+                Address Line 1 <span style={{ color: 'red' }}>*</span>
                 <input type="text" value={address1} onChange={e => setAddress1(e.target.value)} style={fieldStyle} placeholder="Street address" />
             </label>
+
+            <label style={labelStyle}>
+                Address Line 2 <span style={{ color: '#999', fontWeight: 400, fontSize: '0.85rem' }}>(optional — Apt, Suite, etc.)</span>
+                <input type="text" value={address2} onChange={e => setAddress2(e.target.value)} style={fieldStyle} placeholder="Apt / Suite / Unit" />
+            </label>
+
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <label style={{ ...labelStyle, flex: 2 }}>
+                    City
+                    <input type="text" value={city} onChange={e => setCity(e.target.value)} style={fieldStyle} placeholder="City" />
+                </label>
+                <label style={{ ...labelStyle, flex: 1 }}>
+                    State
+                    <input type="text" value={addrState} onChange={e => setAddrState(e.target.value)} style={fieldStyle} placeholder="IL" maxLength={2} />
+                </label>
+                <label style={{ ...labelStyle, flex: 1 }}>
+                    Zip
+                    <input type="text" value={zipcode} onChange={e => setZipcode(e.target.value)} style={fieldStyle} placeholder="60601" maxLength={10} />
+                </label>
+            </div>
 
             <hr style={{ margin: '1rem 0', borderColor: '#eee' }} />
             <h4 style={{ margin: '0 0 0.75rem', fontWeight: 500 }}>Visitation Log (optional)</h4>

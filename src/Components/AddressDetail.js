@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { formatDate } from '../utils';
+import { formatDate, localDateString } from '../utils';
 import { getAdmin, MASJID_UNITS } from '../config';
 import StatusBadges from './StatusBadges';
 
@@ -16,7 +16,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [originalUnitId, setOriginalUnitId] = useState('');
     const [response, setResponse] = useState('');
     const [comments, setComments] = useState('');
-    const [modifiedDate, setModifiedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [modifiedDate, setModifiedDate] = useState(localDateString());
     const [isAdmin, setIsAdmin] = useState(getAdmin());
     const navigate = useNavigate();
 
@@ -135,7 +135,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
             
             setResponse('');
             setComments('');
-            setModifiedDate(new Date().toISOString().split('T')[0]);
+            setModifiedDate(localDateString());
         })
         .catch(err => console.error('Error:', err));
     };

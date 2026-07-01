@@ -74,19 +74,17 @@ Never hardcode `localhost` URLs.
 
 **sessionStorage keys** (keyed per masjid+unit; cleared on logout via `sessionStorage.clear()`):
 - `unitAreas_<masjidID>_<unitID>` — sorted unique area/neighborhood strings for the Neighborhood dropdown
-- `fullList_<masjidID>_<unitID>` — complete unit address list; never replaced by search results
 
 ## Landing Component — State & Data Flow
 
 | State | Source | Rule |
 |-------|--------|------|
-| `addressList` | `/list` on load; `/filter/search/` on search | Working set. Replaced by search results. |
-| `fullAddressList` | `/list` on load only | Full unit list. Never replaced by search. Used for area filtering. |
-| `unitAreas` | Derived from `fullAddressList` on load | Unique sorted area names. Only grows (new areas appended on bulk update). |
-| `areaFilter` | Neighborhood `<select>` | Filters `fullAddressList`, not `addressList`. |
-| `filteredAddressList` | Derived at render | `fullAddressList` filtered by `areaFilter`; falls back to `addressList` when filter is empty. |
+| `addressList` | `/list` on load; `/filter/search/` on search | Working set. Replaced by search results. Area filter applied on top. |
+| `unitAreas` | Derived from initial `/list` fetch | Unique sorted area names. Cached in sessionStorage. Only grows (new areas appended on bulk update). |
+| `areaFilter` | Neighborhood `<select>` | Filters `addressList`. `''` = none; `'__NO_AREA__'` = unassigned addresses. |
+| `filteredAddressList` | Derived at render | `addressList` filtered by `areaFilter`. Area and search filters compose on the same dataset. |
 
-**Key invariant**: `doSearch()` only updates `addressList` — never `fullAddressList` or `unitAreas`. This ensures the Neighborhood dropdown always reflects the complete unit dataset regardless of active searches.
+**Key invariant**: `doSearch()` only updates `addressList` — never `unitAreas`. Area dropdown options always reflect the full unit dataset (from initial fetch, cached in sessionStorage) regardless of active searches.
 
 **Address data shape** (key fields):
 `_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `inactive`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`

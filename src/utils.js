@@ -16,3 +16,10 @@ export function formatDate(value) {
     const year  = d.getUTCFullYear();
     return `${month}/${day}/${year}`;
 }
+
+/** Returns today's date as a YYYY-MM-DD string in local time (for date input defaults). */
+export function localDateString(d = new Date()) {
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day   = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
+}

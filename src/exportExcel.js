@@ -1,7 +1,6 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { formatDate } from './utils';
-import { MASJID_CONFIG } from './config';
 
 const EXPORT_COLUMNS = [
     { header: 'ID', key: 'ID', width: 26 },
@@ -39,12 +38,6 @@ function lastVisitDate(visitHistory = []) {
     if (!visitHistory.length) return '';
     const last = visitHistory[visitHistory.length - 1];
     return formatDate(last.createdDate);
-}
-
-function getMasjidName(masjidID) {
-    const idNum = Number(masjidID);
-    const masjid = MASJID_CONFIG.find(m => m.id === idNum);
-    return masjid?.name || String(masjidID || 'Masjid');
 }
 
 function excelHeaderText(text) {
@@ -102,7 +95,6 @@ function toRow(address) {
  */
 export async function exportToExcel(addressList, masjidID, unitID) {
     const workbook = new ExcelJS.Workbook();
-    const masjidName = getMasjidName(masjidID);
 
     // Group by area; collect unassigned separately
     const groups = {};
@@ -132,14 +124,14 @@ export async function exportToExcel(addressList, masjidID, unitID) {
             const rows = groups[area].sort(sortByDate).map(toRow);
             // Limit sheet name to 31 chars (Excel limit)
             const sheetName = area.substring(0, 31);
-            buildSheet(workbook, sheetName, rows, `${masjidName}-${area}`);
+            buildSheet(workbook, sheetName, rows, `Unit ${unitID} - ${area}`);
         });
 
     // Add unassigned as the last sheet
     if (unassigned.length > 0) {
         const rows = unassigned.sort(sortByDate).map(toRow);
         const sheetName = 'Unassigned';
-        buildSheet(workbook, sheetName, rows, `${masjidName}-Unassigned`);
+        buildSheet(workbook, sheetName, rows, `Unit ${unitID} - Unassigned`);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
