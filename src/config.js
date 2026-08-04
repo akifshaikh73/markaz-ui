@@ -8,13 +8,7 @@ export const MASJID_CONFIG = [
         "name": "Masjid Uthhman",
         "landing": "muthman",
         "id": 156,
-        "units": [1, 2, 3]
-    },
-    {
-        "name": "CPSA",
-        "landing": "cpsa",
-        "id": 109,
-        "units": [1]
+        "units": [1, 2, 3, 4]
     },
     {
         "name": "Aurora Masjid",

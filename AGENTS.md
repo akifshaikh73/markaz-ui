@@ -23,8 +23,7 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 
 | id | name | landing slug | units |
 |----|------|-------------|-------|
-| 156 | Masjid Uthhman | `muthman` | 1,2,3 |
-| 109 | CPSA | `cpsa` | 1 |
+| 156 | Masjid Uthhman | `muthman` | 1,2,3,4 |
 | 203 | Aurora Masjid | `aurora` | 1,2 |
 | 112 | Masjid Darussalam | `masjid-ds` | 1,2,3,4 |
 | 105 | Al Hira | `alhira` | 1 |

@@ -31,6 +31,11 @@ When asked to commit files, always follow these steps:
 4. Present the staged files and proposed commit message(s) to the user for confirmation.
 5. After confirmation, run: `git commit -m "<message>"`
 
+## Deployment
+
+- **Deployed UI:** https://markaz-ui.onrender.com
+- **Deployed API:** https://visitation-api.onrender.com
+
 ## Running Locally
 
 Dev server runs on **port 3001**. The API runs separately on port 3000.
@@ -65,3 +70,20 @@ fetch(`${API_URL}/api/addressList/...`)
 ```
 
 Never hardcode `localhost` URLs.
+
+## Authentication
+
+### Global admin (`MasjidLogin.js` / `AdminLogin.js`)
+Password comes from the `REACT_APP_ADMIN_PASSWORD` environment variable (`.env` or deployment dashboard). Not stored in source.
+
+### Masjid-specific admin (`MasjidLanding.js`)
+Password is derived at runtime — no config or env var needed:
+```js
+const expectedPassword = `${masjidConfig.landing}${getHijriYear()}`;
+```
+- `masjidConfig.landing` — the URL slug from `MASJID_CONFIG` in `src/config.js`
+- `getHijriYear()` — current Hijri year from the browser's `Intl` API
+
+**Example:** Masjid Darul Iman has `landing: "di"`. In Hijri year 1448 the password is `di1448`.
+
+To find any masjid's slug, look up its entry in `MASJID_CONFIG` in `src/config.js`.
