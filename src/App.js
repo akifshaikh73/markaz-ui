@@ -7,6 +7,8 @@ import All from './Components/All';
 import Landing from './Components/Landing';
 import AddressDetail from './Components/AddressDetail';
 import MapView from './Components/MapView';
+import MasjidManagement from './Components/MasjidManagement';
+import MasjidDetail from './Components/MasjidDetail';
 import { getAdmin } from './config';
 
 const ProtectedAdminRoute = ({ children }) => {
@@ -38,6 +40,22 @@ function App() {
                 <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
                 <Route path="/address/:id" element={<AddressDetail />} />
                 <Route path="/map/:masjidID/:unitID" element={<MapView />} />
+                <Route
+                    path="/admin/masjids"
+                    element={
+                        <ProtectedAdminRoute>
+                            <MasjidManagement />
+                        </ProtectedAdminRoute>
+                    }
+                />
+                <Route
+                    path="/admin/masjids/:id"
+                    element={
+                        <ProtectedAdminRoute>
+                            <MasjidDetail />
+                        </ProtectedAdminRoute>
+                    }
+                />
             </Routes>
         </BrowserRouter>
     );
