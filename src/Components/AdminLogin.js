@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { setAdmin } from '../config';
+import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 
 const AdminLogin = () => {
     const [adminPassword, setAdminPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
+    const apiReady = useApiReady();
 
     // Simple password check - in production, this should be done securely on backend
     const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
+
+    if (!apiReady) return <ApiSplash />;
 
     const handleAdminLogin = () => {
         if (adminPassword === ADMIN_PASSWORD) {

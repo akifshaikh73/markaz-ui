@@ -2,20 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { setAdmin, MASJID_UNITS, UNIT_OPTIONS, ADMIN_PASSWORD } from '../config';
 import StatusBadges from './StatusBadges';
+import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import versionInfo from '../version.json';
 const { version } = versionInfo;
 
 const Login = ({ lockedMasjidID, unitOptions }) => {
     const location = useLocation();
-    const [masjidID, setMasjidID] = useState(lockedMasjidID || location.state?.masjidID || 156);
+    const [masjidID, setMasjidID] = useState(lockedMasjidID || location.state?.masjidID || '');
     const [unitID, setUnitID] = useState(unitOptions ? unitOptions[0] : 1);
     const [showAdminLogin, setShowAdminLogin] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');
     const [adminError, setAdminError] = useState('');
+    const apiReady = useApiReady();
 
     const navigate = useNavigate();
 
     const derivedUnitOptions = unitOptions || MASJID_UNITS[parseInt(masjidID)] || UNIT_OPTIONS;
+
+    if (!apiReady) return <ApiSplash />;
 
     const handleMasjidChange = (e) => {
         const newMasjidID = e.target.value;

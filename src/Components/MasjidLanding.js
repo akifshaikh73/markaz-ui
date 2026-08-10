@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMasjidByLanding, setAdmin, getHijriYear } from '../config';
 import StatusBadges from './StatusBadges';
+import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import versionInfo from '../version.json';
 const { version } = versionInfo;
 
@@ -25,6 +26,9 @@ const MasjidLanding = () => {
     const [showAdminLogin, setShowAdminLogin] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');
     const [adminError, setAdminError] = useState('');
+    const apiReady = useApiReady();
+
+    if (!apiReady) return <ApiSplash />;
 
     // Handle when masjid slug is not found
     if (!masjidConfig) {
