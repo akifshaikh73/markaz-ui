@@ -38,27 +38,41 @@ When asked to commit files, always follow these steps:
 
 ## Running Locally
 
-Dev server runs on **port 3001**. The API runs separately on port 3000.
+Dev server runs on **port 3001**. The API runs separately on port 5000.
 
 ### Against local API (default)
 
-```bash
-npm start
-# REACT_APP_API_URL is unset → fetch calls use relative URLs → proxied to localhost:3000
+**PowerShell (preferred):**
+```powershell
+.\scripts\start.ps1
+# or: .\scripts\start.ps1 -api local
+# Sets REACT_APP_API_URL=http://localhost:5000
+```
+
+**npm directly:**
+```powershell
+$env:REACT_APP_API_URL="http://localhost:5000"; npm start
 ```
 
 ### Against remote (Render) API
 
-**PowerShell (one-off):**
+**PowerShell (preferred):**
+```powershell
+.\scripts\start.ps1 -api remote
+# Sets REACT_APP_API_URL=https://visitation-api.onrender.com
+```
+
+**npm directly:**
 ```powershell
 $env:REACT_APP_API_URL="https://visitation-api.onrender.com"; npm start
 ```
 
-**Persistent (recommended) — create `markaz-ui/.env.local`:**
+### Stop / Status
+
+```powershell
+.\scripts\stop.ps1    # kill the dev server
+.\scripts\status.ps1  # check if running
 ```
-REACT_APP_API_URL=https://visitation-api.onrender.com
-```
-Then run `npm start`. `.env.local` is gitignored by CRA and overrides `.env.development`.
 
 ## API Base URL
 

@@ -111,41 +111,42 @@ When asked to commit files, always follow these steps:
 
 ```bash
 npm install       # install dependencies
-npm start         # dev server on port 3001 (3000 is reserved for the API)
 npm run build     # production build → build/
 ```
 
+### Scripts (`scripts/` folder — run from `markaz-ui/`)
+
+| Script | Purpose |
+|---|---|
+| `.\scripts\start.ps1` | Start UI (defaults to local API) |
+| `.\scripts\start.ps1 -api remote` | Start UI pointing to Render API |
+| `.\scripts\stop.ps1` | Kill the dev server (port 3000) |
+| `.\scripts\status.ps1` | Show running/stopped status |
+
 ### Running locally against local API (default)
 
-```bash
-npm start
-# REACT_APP_API_URL defaults to '' which hits relative URLs → works when API is on localhost:3000
+```powershell
+.\scripts\start.ps1
+# or: .\scripts\start.ps1 -api local
+# Sets REACT_APP_API_URL=http://localhost:5000
 ```
 
-Or explicitly set it:
-
-```bash
-# PowerShell
-$env:REACT_APP_API_URL="http://localhost:3000"; npm start
-
-# CMD
-set REACT_APP_API_URL=http://localhost:3000 && npm start
+Or with npm directly:
+```powershell
+$env:REACT_APP_API_URL="http://localhost:5000"; npm start
 ```
 
 ### Running locally against remote (Render) API
 
 ```powershell
-# PowerShell (one-off, not persisted)
+.\scripts\start.ps1 -api remote
+# Sets REACT_APP_API_URL=https://visitation-api.onrender.com
+```
+
+Or with npm directly:
+```powershell
 $env:REACT_APP_API_URL="https://visitation-api.onrender.com"; npm start
 ```
-
-Or create a `.env.local` file in `markaz-ui/` (gitignored by CRA):
-
-```
-REACT_APP_API_URL=https://visitation-api.onrender.com
-```
-
-Then just run `npm start`. `.env.local` overrides `.env.development`.
 
 ### Environment precedence (CRA)
 
