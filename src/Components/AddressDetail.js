@@ -33,8 +33,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     setLastName(data.lastName);
                     setOriginalFirstName(data.firstName);
                     setOriginalLastName(data.lastName);
-                    setUnitId(data.unitId);
-                    setOriginalUnitId(data.unitId);
+                    setUnitId(String(data.unitId));
+                    setOriginalUnitId(String(data.unitId));
                 });
         } else {
             setAddress(initialAddress);
@@ -42,8 +42,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
             setLastName(initialAddress.lastName);
             setOriginalFirstName(initialAddress.firstName);
             setOriginalLastName(initialAddress.lastName);
-            setUnitId(initialAddress.unitId);
-            setOriginalUnitId(initialAddress.unitId);
+            setUnitId(String(initialAddress.unitId));
+            setOriginalUnitId(String(initialAddress.unitId));
         }
     }, [id, initialAddress, API_URL]);
 
@@ -175,8 +175,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <label>
                         <strong>Unit ID:</strong>
                         <select value={unitId} onChange={e => setUnitId(e.target.value)} disabled={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed', marginLeft: '0.5rem', padding: '0.25rem' } : { marginLeft: '0.5rem', padding: '0.25rem' }}>
-                            {MASJID_UNITS[address.masjidId] && MASJID_UNITS[address.masjidId].map(u => (
-                                <option key={u} value={u}>{u}</option>
+                            {(MASJID_UNITS[address.masjidId] || [unitId]).map(u => (
+                                <option key={u} value={String(u)}>{u}</option>
                             ))}
                         </select>
                     </label>
