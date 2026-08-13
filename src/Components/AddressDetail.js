@@ -184,7 +184,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 </div>
             </div>
             <div>
-                <label><strong>Address:</strong> {address.address1}</label>
+                <label><strong>Address:</strong> {[address.address1, address.address2].filter(Boolean).join(', ')}</label>
             </div>
             <div>
                 <label><strong>Neighborhood:</strong> {address.area}</label>
