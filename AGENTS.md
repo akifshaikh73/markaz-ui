@@ -16,6 +16,8 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 | `/landing/:masjidID/:unitID` | `Landing` | Main list view |
 | `/address/:id` | `AddressDetail` | Detail/edit view |
 | `/map/:masjidID/:unitID` | `MapView` | Leaflet map view |
+| `/admin/masjids` | `MasjidManagement` | Protected — browse/search all masjids |
+| `/admin/masjids/:id` | `MasjidDetail` | Protected — view single masjid by ID |
 
 ## Masjid Config (`src/config.js`)
 
@@ -27,7 +29,7 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 | 203 | Aurora Masjid | `aurora` | 1,2 |
 | 112 | Masjid Darussalam | `masjid-ds` | 1,2,3,4 |
 | 105 | Al Hira | `alhira` | 1 |
-| 230 | ICW | `icw` | 1,2 |
+| 230 | ICW | `icw` | 1 |
 | 102 | Al Hidayah | `oleson` | 1,2,3 |
 | 111 | Masjid Darul Iman | `di` | 1,2,3,4 |
 
@@ -58,6 +60,12 @@ fetch(`${API_URL}/api/addressList/...`)
 - **Prod**: `https://visitation-api.onrender.com` (`.env.production`)
 
 Never hardcode `localhost` URLs.
+
+## Hooks
+
+**`src/hooks/useApiReady.js`** — polls `GET /api/dbStatus` every 3 s until the remote API is reachable, then returns `true`. Returns `true` immediately when `REACT_APP_API_URL` is localhost/127.0.0.1 (local dev). Use this hook to gate any UI that depends on a cold-start Render API being awake.
+
+`isRemoteApi` (named export) — `true` when `REACT_APP_API_URL` is not localhost.
 
 ## Key Conventions
 
