@@ -19,7 +19,7 @@ const AdminLogin = () => {
         if (adminPassword === ADMIN_PASSWORD) {
             setAdmin(true);
             setError('');
-            const redirectPath = location.state?.from?.pathname || '/all';
+            const redirectPath = location.state?.from?.pathname || '/admin/all';
             navigate(redirectPath, { replace: true });
         } else {
             setError('Invalid admin password');
