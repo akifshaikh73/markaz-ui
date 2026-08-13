@@ -42,6 +42,7 @@ const MasjidLanding = () => {
     }
 
     const handleLogin = () => {
+        setAdmin(false);
         navigate(`/landing/${masjidConfig.id}/${unitID}`, { state: { isLoggedIn: true } });
     };
 

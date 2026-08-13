@@ -65,14 +65,11 @@ export const getHijriYear = () => {
     return parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
 };
 
-// Admin mode flag
-export let ADMIN = localStorage.getItem('ADMIN') === 'true';
-
 export const setAdmin = (value) => {
-    ADMIN = value;
     localStorage.setItem('ADMIN', value);
 };
 
+// Always reads from storage so stale module-level cache can never bypass the guard
 export const getAdmin = () => {
-    return ADMIN;
+    return localStorage.getItem('ADMIN') === 'true';
 };
