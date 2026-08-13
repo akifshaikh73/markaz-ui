@@ -18,6 +18,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [comments, setComments] = useState('');
     const [modifiedDate, setModifiedDate] = useState(localDateString());
     const [isAdmin, setIsAdmin] = useState(getAdmin());
+    const [accessDenied, setAccessDenied] = useState(false);
     const navigate = useNavigate();
 
     const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
@@ -27,7 +28,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
             fetch(`${API_URL}/api/addressList/search/${id}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data); // Log the fetched data
+                    if (!getAdmin()) {
+                        const ctx = JSON.parse(localStorage.getItem('landingContext') || '{}');
+                        console.log('[AccessCheck] data.masjidId:', data.masjidId, '| ctx.masjidID:', ctx.masjidID, '| isAdmin:', getAdmin());
+                        if (!ctx.masjidID || String(data.masjidId) !== String(ctx.masjidID)) {
+                            setAccessDenied(true);
+                            return;
+                        }
+                    }
                     setAddress(data);
                     setFirstName(data.firstName);
                     setLastName(data.lastName);
@@ -35,7 +43,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     setOriginalLastName(data.lastName);
                     setUnitId(String(data.unitId));
                     setOriginalUnitId(String(data.unitId));
-                });
+                })
+                .catch(err => console.error('[AddressDetail] fetch error:', err));
         } else {
             setAddress(initialAddress);
             setFirstName(initialAddress.firstName);
@@ -144,9 +153,18 @@ function AddressDetail({ address: initialAddress, isModal }) {
         navigate(`/landing/${address.masjidId}/${address.unitId}`, { state: { isLoggedIn: true } });
     };
 
+    if (accessDenied) {
+        return (
+            <div style={{ margin: '2rem', padding: '1.5rem', border: '1px solid #f5c6cb', borderRadius: '8px', background: '#fff3f3', color: '#b71c1c' }}>
+                <strong>Access Denied</strong>
+                <p style={{ margin: '0.5rem 0 1rem' }}>You don't have access to this listing.</p>
+                <button onClick={() => navigate(-1)}>Go Back</button>
+            </div>
+        );
+    }
+
     return (
         <div>
-            <div>
                 <h2>Address Detail</h2>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <StatusBadges />
@@ -166,7 +184,6 @@ function AddressDetail({ address: initialAddress, isModal }) {
 
                     <button onClick={handleUpdate} disabled={!isAdmin || (firstName === originalFirstName && lastName === originalLastName)} style={!isAdmin || (firstName === originalFirstName && lastName === originalLastName) ? { opacity: 0.5, cursor: 'not-allowed', padding: '0.5rem 1rem' } : { padding: '0.5rem 1rem' }}>Update</button>
                 </div>
-            </div>
             <div>
                 <label><strong>Masjid ID:</strong> {address.masjidId}</label>
             </div>

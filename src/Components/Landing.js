@@ -30,6 +30,7 @@ function Landing() {
     const [selectedIds, setSelectedIds] = useState([]);
     const [newArea, setNewArea] = useState('');
     const [areaUpdateStatus, setAreaUpdateStatus] = useState(null);
+    const [searchWarning, setSearchWarning] = useState(null); // 'no-results' | 'cross-masjid' | null
     const [activeFilters, setActiveFilters] = useState(
         cacheValid ? (JSON.parse(localStorage.getItem('activeFilters')) || { showInactive: false, filterByStudents: false }) : { showInactive: false, filterByStudents: false }
     );
@@ -75,8 +76,9 @@ function Landing() {
             fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`)
                 .then(response => response.json())
                 .then(data => {
-                    setAddressList(data);
-                    localStorage.setItem('addressList', JSON.stringify(data));
+                    const filtered = data.filter(item => String(item.masjidId) === String(masjidID));
+                    setAddressList(filtered);
+                    localStorage.setItem('addressList', JSON.stringify(filtered));
                 });
         } else {
             const newUnit = parseInt(val);
@@ -92,6 +94,7 @@ function Landing() {
     const API_URL = process.env.REACT_APP_API_URL || '';
 
     const doSearch = (params, filters) => {
+        setSearchWarning(null);
         const body = { ...params, ...filters };
         if (!body.unitId) delete body.unitId;
         fetch(`${API_URL}/api/addressList/filter/search/`, {
@@ -101,8 +104,16 @@ function Landing() {
         })
             .then(response => response.json())
             .then(data => {
-                setAddressList(data);
-                localStorage.setItem('addressList', JSON.stringify(data));
+                const filtered = data.filter(item => String(item.masjidId) === String(masjidID));
+                if (data.length === 0) {
+                    setSearchWarning('no-results');
+                } else if (filtered.length === 0) {
+                    setSearchWarning('cross-masjid');
+                } else {
+                    setSearchWarning(null);
+                }
+                setAddressList(filtered);
+                localStorage.setItem('addressList', JSON.stringify(filtered));
                 localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
             });
     };
@@ -167,8 +178,9 @@ function Landing() {
             fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`)
                 .then(response => response.json())
                 .then(data => {
-                    setAddressList(data);
-                    localStorage.setItem('addressList', JSON.stringify(data));
+                    const filtered = data.filter(item => String(item.masjidId) === String(masjidID));
+                    setAddressList(filtered);
+                    localStorage.setItem('addressList', JSON.stringify(filtered));
                     if (unitAreas.length === 0) {
                         const areas = [...new Set(data.map(a => a.area).filter(a => a && a.trim()))].sort();
                         setUnitAreas(areas);
@@ -219,6 +231,16 @@ function Landing() {
             {areaUpdateStatus && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.25rem 0', padding: '0.4rem 1rem', background: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '6px', color: '#2e7d32', fontWeight: 500 }}>
                     ✓ Updated {areaUpdateStatus.modifiedCount} of {areaUpdateStatus.matchedCount} address{areaUpdateStatus.matchedCount !== 1 ? 'es' : ''}
+                </div>
+            )}
+            {searchWarning === 'no-results' && (
+                <div style={{ margin: '0.5rem 0', padding: '0.75rem 1rem', border: '1px solid #ffe082', borderRadius: '6px', background: '#fffde7', color: '#795548', fontWeight: 500 }}>
+                    No listing found matching your search.
+                </div>
+            )}
+            {searchWarning === 'cross-masjid' && (
+                <div style={{ margin: '0.5rem 0', padding: '0.75rem 1rem', border: '1px solid #f5c6cb', borderRadius: '6px', background: '#fff3f3', color: '#b71c1c', fontWeight: 500 }}>
+                    This listing does not belong to this masjid.
                 </div>
             )}
             <h2>{masjidConfig ? `${masjidConfig.name} - Address List` : 'Address List'}</h2>
