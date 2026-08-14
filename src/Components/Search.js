@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 
 
-function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch, initialValues = {}, areaValue = '', onAreaChange, areaOptions = [] }) {
+function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch, initialValues = {}, areaValue = '', onAreaChange, areaOptions = [], lockMasjidId = false }) {
     const [name, setName] = useState(initialValues.name || '');
     const [address, setAddress] = useState(initialValues.address || '');
     const [city, setCity] = useState(initialValues.city || '');
@@ -29,7 +29,7 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
             <div>
             <label>
                 Masjid ID:
-                <input type="text" placeholder="Masjid ID" value={masjidId} onChange={e => setMasjidId(e.target.value)} required />
+                <input type="text" placeholder="Masjid ID" value={masjidId} onChange={lockMasjidId ? undefined : e => setMasjidId(e.target.value)} readOnly={lockMasjidId} style={lockMasjidId ? { background: '#f0f0f0', cursor: 'not-allowed' } : undefined} required />
             </label>
             {unitOptions.length > 0 && (
                 <label style={{ marginLeft: '1rem' }}>
