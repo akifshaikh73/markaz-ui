@@ -158,6 +158,25 @@ function Landing() {
 
 
 
+    const handleReset = () => {
+        const baseParams = { masjidId: masjidID };
+        setSearchParams(baseParams);
+        setAreaFilter('');
+        setActiveFilters({ showInactive: false, filterByStudents: false });
+        setSearchWarning(null);
+        localStorage.setItem('searchParams', JSON.stringify(baseParams));
+        localStorage.removeItem('areaFilter');
+        localStorage.setItem('activeFilters', JSON.stringify({ showInactive: false, filterByStudents: false }));
+        const unitParam = selectedUnit !== '' ? `&unit_id=${selectedUnit}` : '';
+        fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`)
+            .then(r => r.json())
+            .then(data => {
+                const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
+                setAddressList(filtered);
+                localStorage.setItem('addressList', JSON.stringify(filtered));
+            });
+    };
+
     const onLogout = () => {
         setAdmin(false); // Reset admin mode on logout
         const source = localStorage.getItem('loginSource');
@@ -200,14 +219,16 @@ function Landing() {
 
     return (
         <>
+            <div style={{ position: 'fixed', top: '10px', left: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center', zIndex: 1000 }}>
+                <StatusBadges showOnMobile={true} />
+            </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <StatusBadges />
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
                 {getAdmin() && <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>}
                 <button onClick={onLogout}>Logout</button>
             </div>
-            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
+            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} onReset={handleReset} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
             <FilterUI filters={activeFilters} onFilterChange={handleFilterChange} />
             {selectedIds.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0', padding: '0.5rem 1rem', background: '#e3f2fd', borderRadius: '6px' }}>

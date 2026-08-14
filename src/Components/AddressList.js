@@ -49,7 +49,7 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }
                             const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.includes(id));
                             const someSelected = allIds.some(id => selectedIds.includes(id));
                             return (
-                                <th>
+                                <th className="neighborhood-col">
                                     <input
                                         type="checkbox"
                                         checked={allSelected}

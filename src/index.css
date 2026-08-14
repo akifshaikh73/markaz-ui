@@ -44,6 +44,11 @@ tr:hover {
     display: none;
   }
 
+  /* Hide Neighborhood column on mobile */
+  .neighborhood-col {
+    display: none;
+  }
+
   table {
     font-size: 0.85rem;
     margin: 10px 0;

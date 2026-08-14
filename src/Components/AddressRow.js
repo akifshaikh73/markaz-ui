@@ -27,7 +27,7 @@ function AddressRow({ address, isSelected, onToggle }) {
             </td>
             <td>{`${address.firstName || ''} ${address.lastName || ''}`.trim()}</td>
             <td>{[address.address1, address.address2].filter(Boolean).join(', ')}</td>
-            <td>
+            <td className="neighborhood-col">
                 <input type="checkbox" checked={!!isSelected} onChange={onToggle} style={{ marginRight: '5px', cursor: 'pointer' }} />
                 {address.area}
             </td>
