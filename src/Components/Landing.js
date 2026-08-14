@@ -43,6 +43,8 @@ function Landing() {
         localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
     }
 
+    const isMarkazAdmin = localStorage.getItem('loginSource') === 'admin';
+
     const unitOptions = MASJID_UNITS[parseInt(masjidID)] || [parseInt(unitID)];
     const masjidConfig = MASJID_CONFIG.find(m => String(m.id) === String(masjidID));
 
@@ -76,7 +78,7 @@ function Landing() {
             fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`)
                 .then(response => response.json())
                 .then(data => {
-                    const filtered = data.filter(item => String(item.masjidId) === String(masjidID));
+                    const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
                     setAddressList(filtered);
                     localStorage.setItem('addressList', JSON.stringify(filtered));
                 });
@@ -104,10 +106,10 @@ function Landing() {
         })
             .then(response => response.json())
             .then(data => {
-                const filtered = data.filter(item => String(item.masjidId) === String(masjidID));
+                const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
                 if (data.length === 0) {
                     setSearchWarning('no-results');
-                } else if (filtered.length === 0) {
+                } else if (!isMarkazAdmin && filtered.length === 0) {
                     setSearchWarning('cross-masjid');
                 } else {
                     setSearchWarning(null);
@@ -158,13 +160,19 @@ function Landing() {
 
     const onLogout = () => {
         setAdmin(false); // Reset admin mode on logout
+        const source = localStorage.getItem('loginSource');
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
+        localStorage.removeItem('loginSource');
         sessionStorage.clear();
-        navigate(masjidConfig ? `/${masjidConfig.landing}` : '/masjid-login');
+        if (source === 'admin') {
+            navigate('/admin/login');
+        } else {
+            navigate(masjidConfig ? `/${masjidConfig.landing}` : '/masjid-login');
+        }
     };
 
     useEffect(() => {
@@ -178,7 +186,7 @@ function Landing() {
             fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`)
                 .then(response => response.json())
                 .then(data => {
-                    const filtered = data.filter(item => String(item.masjidId) === String(masjidID));
+                    const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
                     setAddressList(filtered);
                     localStorage.setItem('addressList', JSON.stringify(filtered));
                     if (unitAreas.length === 0) {
@@ -199,7 +207,7 @@ function Landing() {
                 {getAdmin() && <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>}
                 <button onClick={onLogout}>Logout</button>
             </div>
-            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} />
+            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
             <FilterUI filters={activeFilters} onFilterChange={handleFilterChange} />
             {selectedIds.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0', padding: '0.5rem 1rem', background: '#e3f2fd', borderRadius: '6px' }}>

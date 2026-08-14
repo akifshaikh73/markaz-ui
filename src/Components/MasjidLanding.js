@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMasjidByLanding, setAdmin, getHijriYear } from '../config';
+import { getMasjidByLanding, setAdmin, getAdmin, getHijriYear } from '../config';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import versionInfo from '../version.json';
@@ -41,8 +41,21 @@ const MasjidLanding = () => {
         );
     }
 
+    const handleLogout = () => {
+        setAdmin(false);
+        localStorage.removeItem('addressList');
+        localStorage.removeItem('searchParams');
+        localStorage.removeItem('areaFilter');
+        localStorage.removeItem('activeFilters');
+        localStorage.removeItem('landingContext');
+        localStorage.removeItem('loginSource');
+        sessionStorage.clear();
+        navigate('/');
+    };
+
     const handleLogin = () => {
         setAdmin(false);
+        localStorage.setItem('loginSource', 'masjid');
         navigate(`/landing/${masjidConfig.id}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
@@ -52,6 +65,7 @@ const MasjidLanding = () => {
             setAdmin(true);
             setAdminError('');
             setAdminPassword('');
+            localStorage.setItem('loginSource', 'masjid');
             navigate(`/landing/${masjidConfig.id}/${unitID}`, { state: { isLoggedIn: true } });
         } else {
             setAdminError('Incorrect admin password');
@@ -60,6 +74,9 @@ const MasjidLanding = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
+            {getAdmin() && (
+                <button onClick={handleLogout} style={{ alignSelf: 'flex-end', background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>Logout</button>
+            )}
             <h2>{masjidConfig.name}</h2>
             <div>
                 <label>
@@ -91,7 +108,7 @@ const MasjidLanding = () => {
                 Login
             </button>
             <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: 'pointer' }}>
-                {showAdminLogin ? 'Cancel Admin Login' : 'Admin Login'}
+                {showAdminLogin ? 'Cancel Masjid Admin Login' : 'Masjid Admin Login'}
             </button>
             {showAdminLogin && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff8f0' }}>

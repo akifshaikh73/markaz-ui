@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { setAdmin } from '../config';
 
 const API_URL = process.env.REACT_APP_API_URL || '';
 
@@ -45,11 +46,25 @@ const MasjidManagement = () => {
         fetchMasjids('');
     };
 
+    const handleLogout = () => {
+        setAdmin(false);
+        localStorage.removeItem('addressList');
+        localStorage.removeItem('searchParams');
+        localStorage.removeItem('areaFilter');
+        localStorage.removeItem('activeFilters');
+        localStorage.removeItem('landingContext');
+        localStorage.removeItem('loginSource');
+        sessionStorage.clear();
+        navigate('/admin/login');
+    };
+
     return (
         <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <button onClick={() => navigate('/')} style={{ ...btnStyle, background: '#f0f0f0', color: '#333' }}>← Home</button>
                 <button onClick={() => navigate(-1)} style={{ ...btnStyle, background: '#f0f0f0', color: '#333' }}>← Back</button>
                 <h2 style={{ margin: 0 }}>Masjid Management</h2>
+                <button onClick={handleLogout} style={{ ...btnStyle, background: '#d32f2f', color: '#fff', marginLeft: 'auto' }}>Logout</button>
             </div>
 
             {/* Search by ID */}

@@ -28,16 +28,16 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
         setUnitID(newUnitOptions[0]);
     };
 
-    const handleLogin = () => {
-        setAdmin(false); // Ensure regular users cannot edit
-        navigate(`/landing/${masjidID}/${unitID || 'all'}`, { state: { isLoggedIn: true } });
-    };
-
     const handleAdminLogin = () => {
+        if (!masjidID) {
+            setAdminError('Please enter a Masjid ID first');
+            return;
+        }
         if (adminPassword === ADMIN_PASSWORD) {
             setAdmin(true);
             setAdminError('');
             setAdminPassword('');
+            localStorage.setItem('loginSource', 'masjid');
             navigate(`/landing/${masjidID}/${unitID || 'all'}`, { state: { isLoggedIn: true } });
         } else {
             setAdminError('Incorrect admin password');
@@ -46,6 +46,7 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
+            <button onClick={() => navigate('/')} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>← Home</button>
             <h2>Login</h2>
             <div>
                 <label>
@@ -70,11 +71,8 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
                     </select>
                 </label>
             </div>
-            <button onClick={handleLogin} disabled={!masjidID} style={{ padding: '0.5rem' }}>
-                Login
-            </button>
-            <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: 'pointer' }}>
-                {showAdminLogin ? 'Cancel Admin Login' : 'Admin Login'}
+            <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} disabled={!masjidID} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: masjidID ? 'pointer' : 'not-allowed', opacity: masjidID ? 1 : 0.5 }}>
+                {showAdminLogin ? 'Cancel Markaz Admin Login' : 'Markaz Admin Login'}
             </button>
             {showAdminLogin && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff8f0' }}>
