@@ -4,7 +4,7 @@ name: "git-push"
 argument-hint: "Optional note to include in changelog entry"
 ---
 
-Follow the commit workflow defined in [AGENTS.md](../../AGENTS.md#commit-workflow) and update [docs/changelog.md](../../docs/changelog.md) as part of the commit. Steps:
+Follow the steps below and update [docs/changelog.md](../../docs/changelog.md) as part of the commit. Steps:
 
 1. Run `git status --short` to list all modified/untracked files.
 2. Run `git diff` across all changed files to review the actual changes.

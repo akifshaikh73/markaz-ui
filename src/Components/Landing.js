@@ -220,7 +220,7 @@ function Landing() {
     return (
         <>
             <div style={{ position: 'fixed', top: '10px', left: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center', zIndex: 1000 }}>
-                <StatusBadges showOnMobile={true} />
+                <StatusBadges />
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
