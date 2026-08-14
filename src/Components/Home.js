@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MASJID_CONFIG } from '../config';
 
 const card = {
     border: '1px solid #e0e0e0',
@@ -49,38 +48,16 @@ const Home = () => (
         <h1 style={{ marginBottom: '0.25rem' }}>Markaz Visitation</h1>
         <p style={{ color: '#888', marginTop: 0, marginBottom: '2rem' }}>Select an entry point below.</p>
 
-        {/* General */}
-        <div style={card}>
-            <h2 style={sectionTitle}>General</h2>
-
-            <div style={{ ...linkRow, borderBottom: '1px solid #f0f0f0' }}>
-                <Link to="/masjid-login" style={linkStyle}>Masjid Login</Link>
-                <span style={badge('#1976d2')}>General</span>
-            </div>
-        </div>
-
-        {/* Masjid Quick Access */}
-        <div style={card}>
-            <h2 style={sectionTitle}>Masjid Quick Access</h2>
-
-            {MASJID_CONFIG.map((m, i) => (
-                <div key={m.id} style={{ ...linkRow, ...(i === MASJID_CONFIG.length - 1 ? { borderBottom: 'none' } : {}) }}>
-                    <Link to={`/${m.landing}`} style={linkStyle}>{m.name}</Link>
-                    <span style={{ color: '#aaa', fontSize: '0.85rem' }}>/{m.landing}</span>
-                </div>
-            ))}
-        </div>
-
         {/* Admin */}
         <div style={card}>
             <h2 style={sectionTitle}>Admin</h2>
 
             <div style={linkRow}>
-                <Link to="/admin/login" style={linkStyle}>Admin Login</Link>
-                <span style={badge('#d32f2f')}>Admin</span>
+                <Link to="/masjid-login" style={linkStyle}>Any Masjid Login</Link>
+                <span style={badge('#d32f2f')}>Protected</span>
             </div>
             <div style={linkRow}>
-                <Link to="/admin/all" style={linkStyle}>All Masjids — Address List</Link>
+                <Link to="/admin/all" style={linkStyle}>Masjid Landing Pages</Link>
                 <span style={badge('#d32f2f')}>Protected</span>
             </div>
             <div style={{ ...linkRow, borderBottom: 'none' }}>

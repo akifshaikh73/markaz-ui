@@ -38,6 +38,12 @@ const MasjidDetail = () => {
         <div style={{ maxWidth: '700px', margin: '2rem auto', padding: '0 1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                 <button
+                    onClick={() => navigate('/')}
+                    style={{ padding: '0.5rem 1.2rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: '#f0f0f0', color: '#333', fontSize: '1rem' }}
+                >
+                    ← Home
+                </button>
+                <button
                     onClick={() => navigate('/admin/masjids')}
                     style={{ padding: '0.5rem 1.2rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: '#f0f0f0', color: '#333', fontSize: '1rem' }}
                 >
