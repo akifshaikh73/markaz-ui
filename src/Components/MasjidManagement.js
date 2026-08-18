@@ -53,7 +53,6 @@ const MasjidManagement = () => {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
-        localStorage.removeItem('loginSource');
         sessionStorage.clear();
         navigate('/admin/login');
     };
@@ -103,7 +102,7 @@ const MasjidManagement = () => {
                             <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
                                 <th style={thStyle}>ID</th>
                                 <th style={thStyle}>Name</th>
-                                <th style={thStyle}>Landing Slug</th>
+                                <th style={thStyle}>Landing</th>
                                 <th style={thStyle}>Units</th>
                                 <th style={thStyle}></th>
                             </tr>

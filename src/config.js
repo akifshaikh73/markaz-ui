@@ -2,61 +2,10 @@
 
 
 
-// Multi-Masjid Configuration
-export const MASJID_CONFIG = [
-    {
-        "name": "Masjid Uthhman",
-        "landing": "muthman",
-        "id": 156,
-        "units": [1, 2, 3, 4]
-    },
-    {
-        "name": "Aurora Masjid",
-        "landing": "aurora",
-        "id": 203,
-        "units": [1, 2]
-    }, {
-        "name": "Masjid Darussalam",
-        "landing": "masjid-ds",
-        "id": 112,
-        "units": [1,2,3,4]
-    }, {
-        "name": "Al Hira",
-        "landing": "alhira",
-        "id": 105,
-        "units": [1]
-    }, {
-        "name": "ICW",
-        "landing": "icw",
-        "id": 230,
-        "units": [1]
-    }, {
-        "name": "Al Hidayah",
-        "landing": "oleson",
-        "id": 102,
-        "units": [1, 2, 3]
-    }, {
-        "name": "Masjid Darul Iman",
-        "landing": "di",
-        "id": 111,
-        "units": [1, 2, 3, 4]
-    }
-];
-
-export const MASJID_UNITS = Object.fromEntries(
-    MASJID_CONFIG.map(m => [m.id, m.units])
-);
-
-// Default unit options fallback
-export const UNIT_OPTIONS = [1];
-
 // Admin password
 export const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
 
-// Helper function to get masjid config by landing slug
-export const getMasjidByLanding = (landing) => {
-    return MASJID_CONFIG.find(m => m.landing === landing);
-};
+// Helper — comment to get masjid config is now in useMasjids.js
 
 // Returns the current Hijri (Islamic) year using the browser's Intl API
 export const getHijriYear = () => {
@@ -65,11 +14,18 @@ export const getHijriYear = () => {
     return parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
 };
 
-export const setAdmin = (value) => {
-    localStorage.setItem('ADMIN', value);
+export const setUserRole = (role) => {
+    localStorage.setItem('userRole', role);
 };
 
-// Always reads from storage so stale module-level cache can never bypass the guard
+export const getUserRole = () => localStorage.getItem('userRole') || '';
+
+// Clears role on logout; kept for call sites that only need a boolean clear
+export const setAdmin = (value) => {
+    if (!value) setUserRole('');
+};
+
 export const getAdmin = () => {
-    return localStorage.getItem('ADMIN') === 'true';
+    const role = getUserRole();
+    return role === 'MarkazAdmin' || role === 'MasjidAdmin';
 };

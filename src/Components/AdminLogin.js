@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { setAdmin } from '../config';
+import { setUserRole } from '../config';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 
 const AdminLogin = () => {
@@ -21,8 +21,7 @@ const AdminLogin = () => {
             if (passwordRef.current) passwordRef.current.value = '';
             return;
         }
-        setAdmin(true);
-        localStorage.setItem('loginSource', 'admin');
+        setUserRole('MarkazAdmin');
         setError('');
         const redirectPath = location.state?.from?.pathname;
         navigate(redirectPath && redirectPath !== '/admin/login' ? redirectPath : '/admin/all', { replace: true });
