@@ -11,6 +11,7 @@ import MasjidManagement from './Components/MasjidManagement';
 import MasjidDetail from './Components/MasjidDetail';
 import { getAdmin } from './config';
 import Home from './Components/Home';
+import { MasjidProvider } from './hooks/useMasjids';
 
 const ProtectedAdminRoute = () => {
     const location = useLocation();
@@ -22,22 +23,24 @@ const ProtectedAdminRoute = () => {
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/masjid-login" element={<MasjidLogin />} />
-                <Route path="/:masjidSlug" element={<MasjidLanding />} />
-                <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
-                <Route path="/address/:id" element={<AddressDetail />} />
-                <Route path="/map/:masjidID/:unitID" element={<MapView />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route element={<ProtectedAdminRoute />}>
-                    <Route path="/admin/all" element={<All />} />
-                    <Route path="/admin/masjids" element={<MasjidManagement />} />
-                    <Route path="/admin/masjids/:id" element={<MasjidDetail />} />
-                </Route>
-            </Routes>
-        </BrowserRouter>
+        <MasjidProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/masjid-login" element={<MasjidLogin />} />
+                    <Route path="/:masjidSlug" element={<MasjidLanding />} />
+                    <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
+                    <Route path="/address/:id" element={<AddressDetail />} />
+                    <Route path="/map/:masjidID/:unitID" element={<MapView />} />
+                    <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route element={<ProtectedAdminRoute />}>
+                        <Route path="/admin/all" element={<All />} />
+                        <Route path="/admin/masjids" element={<MasjidManagement />} />
+                        <Route path="/admin/masjids/:id" element={<MasjidDetail />} />
+                    </Route>
+                </Routes>
+            </BrowserRouter>
+        </MasjidProvider>
     );
 }
 

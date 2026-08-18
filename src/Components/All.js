@@ -1,9 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MASJID_CONFIG, setAdmin } from '../config';
+import { setAdmin } from '../config';
+import { useMasjidConfig } from '../hooks/useMasjids';
+import { ApiSplash } from '../hooks/useApiReady';
 
 const All = () => {
     const navigate = useNavigate();
+    const { masjids, loading } = useMasjidConfig();
 
     const handleLogout = () => {
         setAdmin(false);
@@ -12,17 +15,11 @@ const All = () => {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
-        localStorage.removeItem('loginSource');
         sessionStorage.clear();
         navigate('/admin/login');
     };
-    if (!MASJID_CONFIG.length) {
-        return (
-            <div style={{ maxWidth: '700px', margin: '3rem auto', padding: '0 1rem' }}>
-                <h2>No Masjid Landing Pages Configured</h2>
-            </div>
-        );
-    }
+
+    if (loading) return <ApiSplash />;
 
     return (
         <div style={{ maxWidth: '700px', margin: '3rem auto', padding: '0 1rem' }}>
@@ -41,21 +38,21 @@ const All = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {MASJID_CONFIG.map((masjid, i) => (
+                    {masjids.map((masjid, i) => (
                         <tr
-                            key={masjid.id}
-                            style={{ borderBottom: i === MASJID_CONFIG.length - 1 ? 'none' : '1px solid #f0f0f0' }}
+                            key={masjid._id ?? masjid.id}
+                            style={{ borderBottom: i === masjids.length - 1 ? 'none' : '1px solid #f0f0f0' }}
                         >
                             <td style={{ padding: '0.75rem' }}>
                                 <Link
-                                    to={`/landing/${masjid.id}/all`}
+                                    to={`/landing/${masjid._id ?? masjid.id}/all`}
                                     style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 500 }}
                                     state={{ isLoggedIn: true }}
                                 >
                                     {masjid.name}
                                 </Link>
                             </td>
-                            <td style={{ padding: '0.75rem', color: '#555', fontFamily: 'monospace' }}>{masjid.id}</td>
+                            <td style={{ padding: '0.75rem', color: '#555', fontFamily: 'monospace' }}>{masjid._id ?? masjid.id}</td>
                             <td style={{ padding: '0.75rem' }}>
                                 <Link
                                     to={`/${masjid.landing}`}

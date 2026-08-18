@@ -5,8 +5,10 @@ import AddressList from './AddressList';
 import FilterUI from './FilterUI';
 import AddAddress from './AddAddress';
 import { exportToExcel } from '../exportExcel';
-import { MASJID_UNITS, MASJID_CONFIG, setAdmin, getAdmin } from '../config';
+import { setAdmin, getAdmin, getUserRole } from '../config';
 import StatusBadges from './StatusBadges';
+import { RoleBadge } from '../utils';
+import { useMasjidConfig } from '../hooks/useMasjids';
 
 function Landing() {
     const location = useLocation();
@@ -43,10 +45,12 @@ function Landing() {
         localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
     }
 
-    const isMarkazAdmin = localStorage.getItem('loginSource') === 'admin';
+    const { getMasjidById, masjidUnitsMap } = useMasjidConfig();
 
-    const unitOptions = MASJID_UNITS[parseInt(masjidID)] || [parseInt(unitID)];
-    const masjidConfig = MASJID_CONFIG.find(m => String(m.id) === String(masjidID));
+    const isMarkazAdmin = getUserRole() === 'MarkazAdmin';
+
+    const [unitOptions, setUnitOptions] = useState(masjidUnitsMap[masjidID] || []);
+    const masjidConfig = getMasjidById(masjidID);
 
     const filteredAddressList = areaFilter === '__NO_AREA__'
         ? addressList.filter(a => !a.area || !a.area.trim())
@@ -178,16 +182,15 @@ function Landing() {
     };
 
     const onLogout = () => {
-        setAdmin(false); // Reset admin mode on logout
-        const source = localStorage.getItem('loginSource');
+        const wasMarkaz = getUserRole() === 'MarkazAdmin';
+        setAdmin(false);
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
-        localStorage.removeItem('loginSource');
         sessionStorage.clear();
-        if (source === 'admin') {
+        if (wasMarkaz) {
             navigate('/admin/login');
         } else {
             navigate(masjidConfig ? `/${masjidConfig.landing}` : '/masjid-login');
@@ -217,10 +220,26 @@ function Landing() {
         }
     }, [masjidID, selectedUnit]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        if (unitOptions.length > 0) return;
+        fetch(`${API_URL}/api/masjids/${encodeURIComponent(masjidID)}`)
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data && Array.isArray(data.units) && data.units.length > 0) {
+                    setUnitOptions(data.units);
+                }
+            })
+            .catch(() => {});
+    }, [masjidID]); // eslint-disable-line react-hooks/exhaustive-deps
+
     return (
         <>
             <div style={{ position: 'fixed', top: '10px', left: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center', zIndex: 1000 }}>
                 <StatusBadges />
+                <RoleBadge />
+                {isMarkazAdmin && (
+                    <a href="/" style={{ fontSize: '0.75rem', color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>⌂ Home</a>
+                )}
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}

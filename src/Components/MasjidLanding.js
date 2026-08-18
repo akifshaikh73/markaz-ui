@@ -1,36 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMasjidByLanding, setAdmin, getAdmin, getHijriYear } from '../config';
+import { setAdmin, setUserRole, getHijriYear } from '../config';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
+import { useMasjidConfig } from '../hooks/useMasjids';
 import versionInfo from '../version.json';
 const { version } = versionInfo;
 
 const MasjidLanding = () => {
     const { masjidSlug } = useParams();
     const navigate = useNavigate();
-    
-    // Get masjid configuration
+    const { getMasjidByLanding, loading: masjidLoading } = useMasjidConfig();
+    const apiReady = useApiReady();
+
     const masjidConfig = getMasjidByLanding(masjidSlug);
-
-    // Restore last selected unit for this masjid if available
     const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
-    const lastUnit = cachedContext.masjidID === String(masjidConfig?.id) && cachedContext.unitID
-        ? (cachedContext.unitID === 'all' ? 'all' : parseInt(cachedContext.unitID))
-        : masjidConfig?.units[0];
 
-    // State for unit selection
-    const [unitID, setUnitID] = useState(lastUnit || '');
-
-    // Admin login state
+    const [unitID, setUnitID] = useState('');
     const [showAdminLogin, setShowAdminLogin] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');
     const [adminError, setAdminError] = useState('');
-    const apiReady = useApiReady();
 
-    if (!apiReady) return <ApiSplash />;
+    // Set initial unit once masjidConfig is available
+    useEffect(() => {
+        if (!masjidConfig) return;
+        const lastUnit = cachedContext.masjidID === String(masjidConfig._id ?? masjidConfig.id) && cachedContext.unitID
+            ? (cachedContext.unitID === 'all' ? 'all' : parseInt(cachedContext.unitID))
+            : (Array.isArray(masjidConfig.units) ? masjidConfig.units[0] : '');
+        setUnitID(lastUnit || '');
+    }, [masjidConfig?._id ?? masjidConfig?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Handle when masjid slug is not found
+    if (!apiReady || masjidLoading) return <ApiSplash />;
+
     if (!masjidConfig) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
@@ -41,6 +42,8 @@ const MasjidLanding = () => {
         );
     }
 
+    const masjidId = masjidConfig._id ?? masjidConfig.id;
+
     const handleLogout = () => {
         setAdmin(false);
         localStorage.removeItem('addressList');
@@ -48,25 +51,22 @@ const MasjidLanding = () => {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
-        localStorage.removeItem('loginSource');
         sessionStorage.clear();
         navigate('/');
     };
 
     const handleLogin = () => {
         setAdmin(false);
-        localStorage.setItem('loginSource', 'masjid');
-        navigate(`/landing/${masjidConfig.id}/${unitID}`, { state: { isLoggedIn: true } });
+        navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
     const handleAdminLogin = () => {
         const expectedPassword = `${masjidConfig.landing}${getHijriYear()}`;
         if (adminPassword === expectedPassword) {
-            setAdmin(true);
+            setUserRole('MasjidAdmin');
             setAdminError('');
             setAdminPassword('');
-            localStorage.setItem('loginSource', 'masjid');
-            navigate(`/landing/${masjidConfig.id}/${unitID}`, { state: { isLoggedIn: true } });
+            navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
         } else {
             setAdminError('Incorrect admin password');
         }
@@ -74,7 +74,7 @@ const MasjidLanding = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            {getAdmin() && (
+            {cachedContext.masjidID === String(masjidId) && (
                 <button onClick={handleLogout} style={{ alignSelf: 'flex-end', background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>Logout</button>
             )}
             <h2>{masjidConfig.name}</h2>
@@ -83,7 +83,7 @@ const MasjidLanding = () => {
                     Masjid ID:
                     <input
                         type="number"
-                        value={masjidConfig.id}
+                        value={masjidId}
                         readOnly
                         style={{ background: '#f0f0f0', cursor: 'not-allowed', width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
                     />
@@ -97,7 +97,7 @@ const MasjidLanding = () => {
                         onChange={e => setUnitID(e.target.value)}
                         style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
                     >
-                        {masjidConfig.units.map(u => (
+                        {(Array.isArray(masjidConfig.units) ? masjidConfig.units : []).map(u => (
                             <option key={u} value={u}>{u}</option>
                         ))}
                         <option key="all" value="all">All</option>

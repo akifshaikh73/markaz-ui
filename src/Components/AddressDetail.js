@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { formatDate, localDateString } from '../utils';
-import { getAdmin, MASJID_UNITS } from '../config';
+import { formatDate, localDateString, RoleBadge } from '../utils';
+import { getAdmin } from '../config';
+import { useMasjidConfig } from '../hooks/useMasjids';
 import StatusBadges from './StatusBadges';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
     const API_URL = process.env.REACT_APP_API_URL || '';
+    const { masjidUnitsMap } = useMasjidConfig();
     const [address, setAddress] = useState(initialAddress || {});
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -166,8 +168,12 @@ function AddressDetail({ address: initialAddress, isModal }) {
     return (
         <div>
                 <h2>Address Detail</h2>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                     <StatusBadges />
+                    <RoleBadge />
+                    {localStorage.getItem('loginSource') === 'admin' && getAdmin() && (
+                        <a href="/" style={{ fontSize: '0.75rem', color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>⌂ Home</a>
+                    )}
                 </div>
                 <p><strong>ID:</strong> {address._id}</p>
 
@@ -192,7 +198,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <label>
                         <strong>Unit ID:</strong>
                         <select value={unitId} onChange={e => setUnitId(e.target.value)} disabled={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed', marginLeft: '0.5rem', padding: '0.25rem' } : { marginLeft: '0.5rem', padding: '0.25rem' }}>
-                            {(MASJID_UNITS[address.masjidId] || [unitId]).map(u => (
+                            {(masjidUnitsMap[String(address.masjidId)] || [unitId]).map(u => (
                                 <option key={u} value={String(u)}>{u}</option>
                             ))}
                         </select>
