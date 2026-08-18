@@ -27,7 +27,7 @@ const MasjidLanding = () => {
         const lastUnit = cachedContext.masjidID === String(masjidConfig._id ?? masjidConfig.id) && cachedContext.unitID
             ? (cachedContext.unitID === 'all' ? 'all' : parseInt(cachedContext.unitID))
             : (Array.isArray(masjidConfig.units) ? masjidConfig.units[0] : '');
-        setUnitID(lastUnit || '');
+        setUnitID(lastUnit !== undefined && lastUnit !== null && lastUnit !== '' ? lastUnit : '');
     }, [masjidConfig?._id ?? masjidConfig?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!apiReady || masjidLoading) return <ApiSplash />;
