@@ -5,6 +5,26 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-08-18
+
+### Auth
+- **refactor(auth):** Replaced dual `ADMIN` + `loginSource` localStorage keys with a single `userRole` key (`MarkazAdmin` | `MasjidAdmin` | `''`); `getAdmin()` now derives from role; `loginSource` removed entirely.
+- **feat(auth):** "Continue as Admin" shortcut on `/masjid-login` when an admin session already exists in localStorage; password input gains `autocomplete="current-password"`.
+
+### Config / Data
+- **feat(config):** Removed hardcoded `MASJID_CONFIG` list from `config.js`; replaced with `MasjidProvider` context (`src/hooks/useMasjids.js`) that fetches `/api/masjids` at startup with sessionStorage caching. `All`, `Landing`, `MasjidLanding`, and `AddressDetail` now consume live DB data.
+- **feat(config):** Unit options on the address list page are now populated from the API's `units` field for the selected masjid, not the static local config.
+
+### UI
+- **feat(ui):** Role badge (Markaz Admin / Masjid Admin / General) shown top-left on address list and detail pages; Markaz Admin gets a "⌂ Home" link.
+- **fix(ui):** Generic masjid login no longer shows unit selection — unit is chosen on the address list page after login.
+- **fix(ui):** "Landing Slug" column renamed to "Landing" in Masjid Management table and detail view; Landing value is now a clickable hyperlink to the masjid's landing page.
+- **fix(ui):** Masjid landing page logout button only shown when user has an active session for that masjid (`landingContext` match).
+- **fix(ui):** Neighborhood column hidden on mobile (≤768px); API/DB status badges moved to fixed top-left corner, hidden on mobile.
+- **feat(ui):** Reset button in search form clears all filter and search criteria (except Masjid ID) and reloads the full address list.
+
+---
+
 ## 2026-08-13
 
 ### Auth & Login Flow

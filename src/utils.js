@@ -23,3 +23,24 @@ export function localDateString(d = new Date()) {
     const day   = String(d.getDate()).padStart(2, '0');
     return `${d.getFullYear()}-${month}-${day}`;
 }
+
+import { getUserRole } from './config';
+
+const roleStyles = {
+    MarkazAdmin: { background: '#ede7f6', color: '#6a1b9a', border: '1px solid #ce93d8' },
+    MasjidAdmin: { background: '#fff3e0', color: '#e65100', border: '1px solid #ffcc80' },
+    '':          { background: '#f5f5f5', color: '#555',    border: '1px solid #ddd' },
+};
+
+const roleLabel = { MarkazAdmin: 'Markaz Admin', MasjidAdmin: 'Masjid Admin', '': 'General' };
+
+/** Inline role badge — reads role from localStorage via config. */
+export function RoleBadge() {
+    const role = getUserRole();
+    const style = {
+        fontSize: '0.72rem', padding: '0.2rem 0.5rem', borderRadius: '4px',
+        fontWeight: 600, whiteSpace: 'nowrap',
+        ...(roleStyles[role] || roleStyles['']),
+    };
+    return <span style={style}>{roleLabel[role] || 'General'}</span>;
+}

@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { setAdmin, MASJID_UNITS, UNIT_OPTIONS, ADMIN_PASSWORD } from '../config';
+import { setAdmin, getAdmin, setUserRole, ADMIN_PASSWORD } from '../config';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import versionInfo from '../version.json';
 const { version } = versionInfo;
 
-const Login = ({ lockedMasjidID, unitOptions }) => {
+const Login = ({ lockedMasjidID }) => {
     const location = useLocation();
     const [masjidID, setMasjidID] = useState(lockedMasjidID || location.state?.masjidID || '');
-    const [unitID, setUnitID] = useState(unitOptions ? unitOptions[0] : 1);
     const [showAdminLogin, setShowAdminLogin] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');
     const [adminError, setAdminError] = useState('');
@@ -17,15 +16,10 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
 
     const navigate = useNavigate();
 
-    const derivedUnitOptions = unitOptions || MASJID_UNITS[parseInt(masjidID)] || UNIT_OPTIONS;
-
     if (!apiReady) return <ApiSplash />;
 
     const handleMasjidChange = (e) => {
-        const newMasjidID = e.target.value;
-        setMasjidID(newMasjidID);
-        const newUnitOptions = MASJID_UNITS[parseInt(newMasjidID)] || UNIT_OPTIONS;
-        setUnitID(newUnitOptions[0]);
+        setMasjidID(e.target.value);
     };
 
     const handleAdminLogin = () => {
@@ -34,11 +28,10 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
             return;
         }
         if (adminPassword === ADMIN_PASSWORD) {
-            setAdmin(true);
+            setUserRole('MasjidAdmin');
             setAdminError('');
             setAdminPassword('');
-            localStorage.setItem('loginSource', 'masjid');
-            navigate(`/landing/${masjidID}/${unitID || 'all'}`, { state: { isLoggedIn: true } });
+            navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } });
         } else {
             setAdminError('Incorrect admin password');
         }
@@ -60,20 +53,18 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
                     />
                 </label>
             </div>
-            <div>
-                <label>
-                    Unit ID:
-                    <select value={unitID} onChange={e => setUnitID(e.target.value)} style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}>
-                        {derivedUnitOptions.map(u => (
-                            <option key={u} value={u}>{u}</option>
-                        ))}
-                        <option value="">All</option>
-                    </select>
-                </label>
-            </div>
+
             <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} disabled={!masjidID} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: masjidID ? 'pointer' : 'not-allowed', opacity: masjidID ? 1 : 0.5 }}>
                 {showAdminLogin ? 'Cancel Markaz Admin Login' : 'Markaz Admin Login'}
             </button>
+            {getAdmin() && masjidID && (
+                <button
+                    onClick={() => { navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } }); }}
+                    style={{ padding: '0.5rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                    Continue as Admin
+                </button>
+            )}
             {showAdminLogin && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff8f0' }}>
                     <label>
@@ -81,6 +72,8 @@ const Login = ({ lockedMasjidID, unitOptions }) => {
                         <input
                             type="password"
                             value={adminPassword}
+                            name="markaz-admin-password"
+                            autoComplete="current-password"
                             onChange={(e) => {
                                 setAdminPassword(e.target.value);
                                 setAdminError('');
