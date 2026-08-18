@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../utils';
 
-function AddressRow({ address, isSelected, onToggle }) {
+function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onUnitToggle, isAdmin = false }) {
     const visitHistory = Array.isArray(address.visitHistory) ? address.visitHistory : [];
 
     const commentsWithDate = [...visitHistory]
@@ -27,10 +27,17 @@ function AddressRow({ address, isSelected, onToggle }) {
             </td>
             <td>{`${address.firstName || ''} ${address.lastName || ''}`.trim()}</td>
             <td>{[address.address1, address.address2].filter(Boolean).join(', ')}</td>
+            {isAdmin && (
+                <td>
+                    <input type="checkbox" checked={!!isUnitSelected} onChange={onUnitToggle} style={{ marginRight: '5px', cursor: 'pointer' }} />
+                    {address.unitId}
+                </td>
+            )}
             <td className="neighborhood-col">
                 <input type="checkbox" checked={!!isSelected} onChange={onToggle} style={{ marginRight: '5px', cursor: 'pointer' }} />
                 {address.area}
             </td>
+            {isAdmin && <td>{address.unitId}</td>}
             <td>
                 {commentsWithDate.map((v, i) => (
                     <div

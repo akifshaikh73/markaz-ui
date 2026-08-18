@@ -14,7 +14,7 @@ function Landing() {
     const location = useLocation();
     const navigate = useNavigate();
     const { masjidID, unitID } = useParams();
-    const [selectedUnit, setSelectedUnit] = useState(unitID === 'all' ? '' : (parseInt(unitID) || ''));
+    const [selectedUnit, setSelectedUnit] = useState(unitID === 'all' ? '' : (unitID !== '' && !isNaN(parseInt(unitID)) ? parseInt(unitID) : ''));
     const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
     const cacheValid = cachedContext.masjidID === masjidID && cachedContext.unitID === unitID;
 
@@ -30,8 +30,11 @@ function Landing() {
     });
     const [showAddAddress, setShowAddAddress] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
+    const [selectedUnitIds, setSelectedUnitIds] = useState([]);
     const [newArea, setNewArea] = useState('');
+    const [newUnit, setNewUnit] = useState('');
     const [areaUpdateStatus, setAreaUpdateStatus] = useState(null);
+    const [unitUpdateStatus, setUnitUpdateStatus] = useState(null);
     const [searchWarning, setSearchWarning] = useState(null); // 'no-results' | 'cross-masjid' | null
     const [activeFilters, setActiveFilters] = useState(
         cacheValid ? (JSON.parse(localStorage.getItem('activeFilters')) || { showInactive: false, filterByStudents: false }) : { showInactive: false, filterByStudents: false }
@@ -93,7 +96,7 @@ function Landing() {
             setAreaFilter('');
             setSearchParams({});
             setActiveFilters({ showInactive: false, filterByStudents: false });
-            navigate(`/landing/${masjidID}/${newUnit || 'all'}`, { state: { isLoggedIn: true } });
+            navigate(`/landing/${masjidID}/${!isNaN(newUnit) ? newUnit : 'all'}`, { state: { isLoggedIn: true } });
         }
     };
 
@@ -161,6 +164,26 @@ function Landing() {
     };
 
 
+
+    const handleBulkUpdateUnit = (ids, unit) => {
+        const unitVal = parseInt(unit);
+        if (isNaN(unitVal)) return;
+        Promise.all(ids.map(id =>
+            fetch(`${API_URL}/api/addressList/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ unitId: unitVal }),
+            }).then(r => r.json())
+        ))
+        .then(() => {
+            setAddressList(prev => prev.map(a => ids.includes(a._id) ? { ...a, unitId: unitVal } : a));
+            setSelectedUnitIds([]);
+            setNewUnit('');
+            setUnitUpdateStatus({ count: ids.length });
+            setTimeout(() => setUnitUpdateStatus(null), 4000);
+        })
+        .catch(err => console.error('Error updating unit:', err));
+    };
 
     const handleReset = () => {
         const baseParams = { masjidId: masjidID };
@@ -276,6 +299,35 @@ function Landing() {
                     <button onClick={() => setSelectedIds([])} style={{ padding: '0.3rem 0.6rem', background: 'none', border: '1px solid #aaa', cursor: 'pointer' }}>Clear</button>
                 </div>
             )}
+            {selectedUnitIds.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0', padding: '0.5rem 1rem', background: '#fce4ec', borderRadius: '6px' }}>
+                    <span style={{ fontWeight: 500 }}>{selectedUnitIds.length} selected</span>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
+                        Set Unit:
+                        <select
+                            value={newUnit}
+                            onChange={e => setNewUnit(e.target.value)}
+                            style={{ padding: '0.3rem 0.5rem' }}
+                        >
+                            <option value="">— pick —</option>
+                            {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                    </label>
+                    <button
+                        onClick={() => handleBulkUpdateUnit(selectedUnitIds, newUnit)}
+                        disabled={newUnit === ''}
+                        style={{ padding: '0.3rem 0.8rem', opacity: newUnit === '' ? 0.5 : 1, cursor: newUnit === '' ? 'not-allowed' : 'pointer' }}
+                    >
+                        Update
+                    </button>
+                    <button onClick={() => setSelectedUnitIds([])} style={{ padding: '0.3rem 0.6rem', background: 'none', border: '1px solid #aaa', cursor: 'pointer' }}>Clear</button>
+                </div>
+            )}
+            {unitUpdateStatus && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.25rem 0', padding: '0.4rem 1rem', background: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '6px', color: '#2e7d32', fontWeight: 500 }}>
+                    ✓ Updated {unitUpdateStatus.count} address{unitUpdateStatus.count !== 1 ? 'es' : ''} to new unit
+                </div>
+            )}
             {areaUpdateStatus && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.25rem 0', padding: '0.4rem 1rem', background: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '6px', color: '#2e7d32', fontWeight: 500 }}>
                     ✓ Updated {areaUpdateStatus.modifiedCount} of {areaUpdateStatus.matchedCount} address{areaUpdateStatus.matchedCount !== 1 ? 'es' : ''}
@@ -300,7 +352,7 @@ function Landing() {
                     onCreated={() => {}}
                 />
             )}
-            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} />
+            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} selectedUnitIds={selectedUnitIds} onUnitSelectionChange={setSelectedUnitIds} isAdmin={getAdmin()} />
         </>
     );
 }

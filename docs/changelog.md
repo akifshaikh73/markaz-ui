@@ -22,6 +22,8 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 - **fix(ui):** Masjid landing page logout button only shown when user has an active session for that masjid (`landingContext` match).
 - **fix(ui):** Neighborhood column hidden on mobile (≤768px); API/DB status badges moved to fixed top-left corner, hidden on mobile.
 - **feat(ui):** Reset button in search form clears all filter and search criteria (except Masjid ID) and reloads the full address list.
+- **fix(unit):** Unit value `0` no longer treated as falsy — fixed in MasjidLanding initial state and Landing unit-change navigation.
+- **feat(bulk-unit):** Unit column added to address list (admin-only) with independent header + row checkboxes; selecting rows shows a separate bulk bar to reassign unit via dropdown.
 
 ---
 

@@ -4,7 +4,7 @@ import AddressDetail from './AddressDetail';
 import AddressRow from './AddressRow';
 
 
-function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }) {
+function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, selectedUnitIds = [], onUnitSelectionChange, isAdmin = false }) {
     console.log(initialAddressList);
     const [addressList, setAddressList] = useState(initialAddressList || []);
     const [selectedAddress, setSelectedAddress] = useState(null);
@@ -27,6 +27,23 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }
         }
     };
 
+    const handleUnitToggle = (id) => {
+        if (selectedUnitIds.includes(id)) {
+            onUnitSelectionChange(selectedUnitIds.filter(i => i !== id));
+        } else {
+            onUnitSelectionChange([...selectedUnitIds, id]);
+        }
+    };
+
+    const handleUnitSelectAll = (allIds) => {
+        const allSelected = allIds.every(id => selectedUnitIds.includes(id));
+        if (allSelected) {
+            onUnitSelectionChange(selectedUnitIds.filter(id => !allIds.includes(id)));
+        } else {
+            onUnitSelectionChange(Array.from(new Set([...selectedUnitIds, ...allIds])));
+        }
+    };
+
     const handleClose = () => {
         setSelectedAddress(null);
     };
@@ -44,6 +61,23 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }
                         <th>ID</th>
                         <th>Name</th>
                         <th>Address</th>
+                        {isAdmin && (() => {
+                            const allIds = addressList.map(a => a._id);
+                            const allUnitSelected = allIds.length > 0 && allIds.every(id => selectedUnitIds.includes(id));
+                            const someUnitSelected = allIds.some(id => selectedUnitIds.includes(id));
+                            return (
+                                <th>
+                                    <input
+                                        type="checkbox"
+                                        checked={allUnitSelected}
+                                        ref={el => { if (el) el.indeterminate = someUnitSelected && !allUnitSelected; }}
+                                        onChange={() => handleUnitSelectAll(allIds)}
+                                        style={{ marginRight: '4px', cursor: 'pointer' }}
+                                    />
+                                    Unit
+                                </th>
+                            );
+                        })()}
                         {(() => {
                             const allIds = addressList.map(a => a._id);
                             const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.includes(id));
@@ -97,12 +131,12 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }
 
                         return Object.entries(groups).flatMap(([area, addresses]) => [
                             <tr key={`group-${area}`}>
-                                <td colSpan={8} style={{ background: '#e8eaf6', fontWeight: 'bold', padding: '6px 8px', fontSize: '1em' }}>
+                                <td colSpan={isAdmin ? 9 : 8} style={{ background: '#e8eaf6', fontWeight: 'bold', padding: '6px 8px', fontSize: '1em' }}>
                                     {area} ({addresses.length})
                                 </td>
                             </tr>,
                             ...addresses.map(address => (
-                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} />
+                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} isUnitSelected={selectedUnitIds.includes(address._id)} onUnitToggle={() => handleUnitToggle(address._id)} isAdmin={isAdmin} />
                             ))
                         ]);
                     })()}
