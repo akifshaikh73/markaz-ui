@@ -9,6 +9,7 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 - **refactor(nav):** Removed redundant Masjid Quick Access page (`All.js`) and its Home link; landing slug in Masjid Management list is now a clickable link to the masjid's login page.
 - **fix(masjid-detail):** Renamed "Landing" field to "Landing Page URL" with a clickable link, matching the management list style.
+- **fix(search):** Unit value `0` no longer treated as falsy in search form state init, sync effect, and `doSearch` — selecting unit 0 now correctly filters results instead of returning all units.
 
 ---
 

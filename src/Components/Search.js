@@ -7,13 +7,13 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
     const [address, setAddress] = useState(initialValues.address || '');
     const [city, setCity] = useState(initialValues.city || '');
     const [masjidId, setMasjidId] = useState(initialValues.masjidId || masjidID || '');
-    const [unitId, setUnitId] = useState(initialValues.unitId || unitID || '');
+    const [unitId, setUnitId] = useState(initialValues.unitId !== undefined && initialValues.unitId !== '' ? initialValues.unitId : (unitID !== undefined && unitID !== '' ? unitID : ''));
     const [_id, set_id] = useState(initialValues._id || '');
 
 
     useEffect(() => {
         setMasjidId(masjidID);
-        setUnitId(unitID);
+        setUnitId(unitID !== undefined && unitID !== null ? unitID : '');
     }, [masjidID, unitID]);
 
     const handleSubmit = (event) => {

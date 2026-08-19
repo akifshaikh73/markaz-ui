@@ -105,7 +105,7 @@ function Landing() {
     const doSearch = (params, filters) => {
         setSearchWarning(null);
         const body = { ...params, ...filters };
-        if (!body.unitId) delete body.unitId;
+        if (body.unitId === undefined || body.unitId === null || body.unitId === '') delete body.unitId;
         fetch(`${API_URL}/api/addressList/filter/search/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
