@@ -61,8 +61,8 @@ const MasjidDetail = () => {
 
                     <Field label="ID" value={masjid._id ?? masjid.id} />
                     <Field label="Name" value={masjid.name} />
-                    <Field label="Landing" value={masjid.landing
-                        ? <a href={`/${masjid.landing}`} style={{ color: '#1976d2' }}>/{masjid.landing}</a>
+                    <Field label="Landing Page URL" value={masjid.landing
+                        ? <a href={`/${masjid.landing}`} style={{ color: '#1976d2', textDecoration: 'none' }}>/{masjid.landing}</a>
                         : undefined}
                     />
                     <Field label="Units" value={Array.isArray(masjid.units) ? masjid.units.join(', ') : masjid.units} />

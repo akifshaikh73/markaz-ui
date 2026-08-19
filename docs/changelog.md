@@ -5,6 +5,13 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-08-19
+
+- **refactor(nav):** Removed redundant Masjid Quick Access page (`All.js`) and its Home link; landing slug in Masjid Management list is now a clickable link to the masjid's login page.
+- **fix(masjid-detail):** Renamed "Landing" field to "Landing Page URL" with a clickable link, matching the management list style.
+
+---
+
 ## 2026-08-18
 
 ### Auth
