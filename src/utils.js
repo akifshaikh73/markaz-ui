@@ -1,3 +1,6 @@
+import React from 'react';
+import { getUserRole } from './config';
+
 /**
  * Safely formats a date value that may be a MongoDB extended JSON object
  * ({ $date: "..." }), a plain ISO string, or a Date instance.
@@ -23,8 +26,6 @@ export function localDateString(d = new Date()) {
     const day   = String(d.getDate()).padStart(2, '0');
     return `${d.getFullYear()}-${month}-${day}`;
 }
-
-import { getUserRole } from './config';
 
 const roleStyles = {
     MarkazAdmin: { background: '#ede7f6', color: '#6a1b9a', border: '1px solid #ce93d8' },
