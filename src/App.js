@@ -3,11 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'rea
 import MasjidLogin from './Components/MasjidLogin';
 import AdminLogin from './Components/AdminLogin';
 import MasjidLanding from './Components/MasjidLanding';
-import All from './Components/All';
-import Landing from './Components/Landing';
+import MasjidManagement from './Components/MasjidManagement';
 import AddressDetail from './Components/AddressDetail';
 import MapView from './Components/MapView';
-import MasjidManagement from './Components/MasjidManagement';
+import Landing from './Components/Landing';
 import MasjidDetail from './Components/MasjidDetail';
 import { getAdmin } from './config';
 import Home from './Components/Home';
@@ -34,7 +33,6 @@ function App() {
                     <Route path="/map/:masjidID/:unitID" element={<MapView />} />
                     <Route path="/admin/login" element={<AdminLogin />} />
                     <Route element={<ProtectedAdminRoute />}>
-                        <Route path="/admin/all" element={<All />} />
                         <Route path="/admin/masjids" element={<MasjidManagement />} />
                         <Route path="/admin/masjids/:id" element={<MasjidDetail />} />
                     </Route>

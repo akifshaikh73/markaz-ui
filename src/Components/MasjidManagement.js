@@ -115,7 +115,11 @@ const MasjidManagement = () => {
                                 <tr key={m._id ?? m.id} style={{ borderBottom: '1px solid #eee' }}>
                                     <td style={tdStyle}>{m._id ?? m.id}</td>
                                     <td style={tdStyle}>{m.name}</td>
-                                    <td style={tdStyle}>{m.landing ?? '—'}</td>
+                                    <td style={tdStyle}>
+                                        {m.landing
+                                            ? <a href={`/${m.landing}`} style={{ color: '#1976d2', textDecoration: 'none' }}>/{m.landing}</a>
+                                            : '—'}
+                                    </td>
                                     <td style={tdStyle}>{Array.isArray(m.units) ? m.units.join(', ') : (m.units ?? '—')}</td>
                                     <td style={tdStyle}>
                                         <button
