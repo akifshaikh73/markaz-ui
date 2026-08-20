@@ -51,12 +51,14 @@ const MasjidLanding = () => {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
+        localStorage.removeItem('preferredMasjid');
         sessionStorage.clear();
         navigate('/');
     };
 
     const handleLogin = () => {
         setAdmin(false);
+        localStorage.setItem('preferredMasjid', masjidSlug);
         navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
@@ -64,6 +66,7 @@ const MasjidLanding = () => {
         const expectedPassword = `${masjidConfig.landing}${getHijriYear()}`;
         if (adminPassword === expectedPassword) {
             setUserRole('MasjidAdmin');
+            localStorage.setItem('preferredMasjid', masjidSlug);
             setAdminError('');
             setAdminPassword('');
             navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });

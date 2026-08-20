@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const card = {
     border: '1px solid #e0e0e0',
@@ -43,25 +43,48 @@ const badge = (color) => ({
     letterSpacing: '0.04em',
 });
 
-const Home = () => (
-    <div style={{ maxWidth: '600px', margin: '3rem auto', padding: '0 1rem' }}>
-        <h1 style={{ marginBottom: '0.25rem' }}>Markaz Visitation</h1>
-        <p style={{ color: '#888', marginTop: 0, marginBottom: '2rem' }}>Select an entry point below.</p>
+const Home = () => {
+    const navigate = useNavigate();
 
-        {/* Admin */}
-        <div style={card}>
-            <h2 style={sectionTitle}>Admin</h2>
+    useEffect(() => {
+        // Smart redirect based on user context
+        const preferredMasjid = localStorage.getItem('preferredMasjid');
+        const userRole = localStorage.getItem('userRole');
 
-            <div style={linkRow}>
-                <Link to="/masjid-login" style={linkStyle}>Any Masjid Login</Link>
-                <span style={badge('#d32f2f')}>Protected</span>
-            </div>
-            <div style={{ ...linkRow, borderBottom: 'none' }}>
-                <Link to="/admin/masjids" style={linkStyle}>Masjid Management</Link>
-                <span style={badge('#d32f2f')}>Protected</span>
+        // If user has a preferred masjid, redirect there
+        if (preferredMasjid) {
+            navigate(`/${preferredMasjid}`, { replace: true });
+            return;
+        }
+
+        // If user is admin, redirect to admin panel
+        if (userRole === 'MarkazAdmin' || userRole === 'MasjidAdmin') {
+            navigate('/admin/masjids', { replace: true });
+            return;
+        }
+        // Otherwise show home page
+    }, [navigate]);
+
+    return (
+        <div style={{ maxWidth: '600px', margin: '3rem auto', padding: '0 1rem' }}>
+            <h1 style={{ marginBottom: '0.25rem' }}>Markaz Visitation</h1>
+            <p style={{ color: '#888', marginTop: 0, marginBottom: '2rem' }}>Select an entry point below.</p>
+
+            {/* Admin */}
+            <div style={card}>
+                <h2 style={sectionTitle}>Admin</h2>
+
+                <div style={linkRow}>
+                    <Link to="/masjid-login" style={linkStyle}>Any Masjid Login</Link>
+                    <span style={badge('#d32f2f')}>Protected</span>
+                </div>
+                <div style={{ ...linkRow, borderBottom: 'none' }}>
+                    <Link to="/admin/masjids" style={linkStyle}>Masjid Management</Link>
+                    <span style={badge('#d32f2f')}>Protected</span>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default Home;
