@@ -8,6 +8,7 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 ## 2026-08-20
 
 - **feat(pwa):** Smart PWA entry point — Home component redirects to preferred masjid on app launch if stored; saves masjid preference on login and clears on logout. Users on returning visits go directly to their last masjid instead of home page.
+- **feat(pwa):** PWA now detects masjid slug from URL path (`/di`, `/mvnu`, etc.) and saves it automatically. Users can pin the app from any masjid URL and it will launch to that specific masjid on future opens.
 
 ---
 

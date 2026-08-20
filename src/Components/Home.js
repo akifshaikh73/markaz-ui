@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const card = {
     border: '1px solid #e0e0e0',
@@ -45,8 +45,21 @@ const badge = (color) => ({
 
 const Home = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
+        // Extract slug from current URL path (e.g., '/di' from pathname='/di')
+        const path = location.pathname;
+        const slug = path.split('/')[1]; // Get first segment after /
+        const reservedRoutes = ['landing', 'map', 'address', 'masjid-login', 'admin'];
+
+        // If user is accessing a masjid slug directly, save it for PWA pinning
+        if (slug && !reservedRoutes.includes(slug)) {
+            localStorage.setItem('preferredMasjid', slug);
+            navigate(`/${slug}`, { replace: true });
+            return;
+        }
+
         // Smart redirect based on user context
         const preferredMasjid = localStorage.getItem('preferredMasjid');
         const userRole = localStorage.getItem('userRole');
@@ -63,7 +76,7 @@ const Home = () => {
             return;
         }
         // Otherwise show home page
-    }, [navigate]);
+    }, [navigate, location.pathname]);
 
     return (
         <div style={{ maxWidth: '600px', margin: '3rem auto', padding: '0 1rem' }}>
