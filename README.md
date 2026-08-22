@@ -5,12 +5,12 @@
 **Route**: `/` and `/user-login` (aliases)
 
 The app launches directly to user login (`/user-login`). Users authenticate with:
-- **User ID** — unique user identifier
+- **Email** — user email address
 - **PIN** — password
 
 On successful login, the user is redirected to their masjid's landing page (`/:masjidSlug`). 
 
-**Auto-Login**: Credentials (`userId` and `userPin`) are stored in `localStorage`. On PWA launch, if credentials exist, the app automatically verifies them and logs the user back in. If verification fails, the user returns to the login page.
+**Auto-Login**: Credentials (`userEmail` and `userPin`) are stored in `localStorage`. On PWA launch, if credentials exist, the app automatically verifies them and logs the user back in. If verification fails, the user returns to the login page.
 
 **Manifest**: `public/manifest.json` has `start_url: "/user-login"`, so PWA installations launch directly to the user login page.
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 const UserLogin = () => {
     const navigate = useNavigate();
-    const [userId, setUserId] = useState('');
+    const [email, setEmail] = useState('');
     const [pin, setPin] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -11,30 +11,33 @@ const UserLogin = () => {
 
     useEffect(() => {
         // Check if user already has valid stored credentials
-        const storedUserId = localStorage.getItem('userId');
+        const storedEmail = localStorage.getItem('userEmail');
         const storedPin = localStorage.getItem('userPin');
-        if (storedUserId && storedPin) {
-            verifyAndRedirect(storedUserId, storedPin);
+        if (storedEmail && storedPin) {
+            verifyAndRedirect(storedEmail, storedPin);
         }
     }, []);
 
-    const verifyAndRedirect = async (userId, pin) => {
+    const verifyAndRedirect = async (email, pin) => {
         try {
             setLoading(true);
             const response = await fetch(`${API_URL}/api/users/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, pin }),
+                body: JSON.stringify({ email, pin }),
             });
-
-            if (!response.ok) {
-                throw new Error('Invalid credentials');
-            }
 
             const data = await response.json();
             
+            if (!response.ok) {
+                console.error('[UserLogin] API Error:', data);
+                throw new Error(data.message || data.error || 'Invalid credentials');
+            }
+
+            console.log('[UserLogin] Login successful:', data);
+            
             // Store credentials for future logins
-            localStorage.setItem('userId', userId);
+            localStorage.setItem('userEmail', email);
             localStorage.setItem('userPin', pin);
             localStorage.setItem('loginSource', 'user');
 
@@ -46,13 +49,14 @@ const UserLogin = () => {
                 navigate(`/${data.masjids[0]}`, { state: { isLoggedIn: true } });
             } else {
                 setError('No masjid access found for this user');
-                localStorage.removeItem('userId');
+                localStorage.removeItem('userEmail');
                 localStorage.removeItem('userPin');
             }
         } catch (err) {
+            console.error('[UserLogin] Error:', err);
             setError(err.message || 'Login failed');
             setLoading(false);
-            localStorage.removeItem('userId');
+            localStorage.removeItem('userEmail');
             localStorage.removeItem('userPin');
         }
     };
@@ -61,8 +65,8 @@ const UserLogin = () => {
         e.preventDefault();
         setError('');
         
-        if (!userId.trim()) {
-            setError('User ID is required');
+        if (!email.trim()) {
+            setError('Email is required');
             return;
         }
         if (!pin.trim()) {
@@ -70,7 +74,7 @@ const UserLogin = () => {
             return;
         }
 
-        verifyAndRedirect(userId.trim(), pin);
+        verifyAndRedirect(email.trim(), pin);
     };
 
     return (
@@ -79,13 +83,13 @@ const UserLogin = () => {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                     <label style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
-                        User ID
+                        Email
                     </label>
                     <input
-                        type="text"
-                        value={userId}
-                        onChange={(e) => setUserId(e.target.value)}
-                        placeholder="Enter user ID"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter email address"
                         style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '4px', border: '1px solid #ccc', width: '100%', boxSizing: 'border-box' }}
                         disabled={loading}
                     />

@@ -75,7 +75,7 @@ Never hardcode `localhost` URLs.
 **Dates** — always use `formatDate()` from `src/utils.js`. Never use `toLocaleDateString()` directly; it causes off-by-one day errors with MongoDB UTC dates. `formatDate` handles MongoDB `{ $date: "..." }` objects, ISO strings, and Date instances.
 
 **localStorage keys**:
-- `userId` — user ID for UserLogin; used for auto-login on PWA launch
+- `userEmail` — user email for UserLogin; used for auto-login on PWA launch
 - `userPin` — user PIN (password) for UserLogin; used for auto-login on PWA launch
 - `loginSource` — `'admin'` (admin login) or `'user'` (user login); used for logout routing
 - `userRole` — `'MarkazAdmin'`, `'MasjidAdmin'`, or `''` (empty = not logged in); replaces old `ADMIN` flag

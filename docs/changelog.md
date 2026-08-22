@@ -9,17 +9,18 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ### Routing & Entry Points
 - **refactor(routing):** Changed home route from `/` to `/admin-home` (admin-only dashboard); `/` now redirects to `/user-login` as new PWA entry point.
-- **feat(auth):** New `/user-login` route enables user login with userid + PIN; credentials stored in localStorage for auto-login on PWA launch; after successful verification, redirects to user's masjid landing page.
+- **feat(auth):** New `/user-login` route enables user login with email + PIN; credentials stored in localStorage for auto-login on PWA launch; after successful verification, redirects to user's masjid landing page.
 - **refactor(auth):** Updated all admin component Home buttons to navigate to `/admin-home` instead of `/`; MasjidLogin and AdminLogin back buttons now point to `/user-login` instead.
 - **feat(pwa):** Updated `public/manifest.json` `start_url` to `/user-login` — PWA app now launches directly to user login page.
 
 ### Components
-- **feat(components):** Created new `UserLogin` component (`src/Components/UserLogin.js`) with userid + PIN input, auto-login on mount if credentials exist, and error handling; button to switch to admin login.
+- **feat(components):** Created new `UserLogin` component (`src/Components/UserLogin.js`) with email + PIN input, auto-login on mount if credentials exist, and error handling; button to switch to admin login.
+- **fix(auth):** Changed UserLogin to use `email` parameter instead of `userId` for API compatibility; stored in `userEmail` localStorage key.
 - **refactor(home):** Simplified `Home.js` — now admin-only dashboard (redirects non-admins to `/user-login`); removed auto-redirect logic for masjid slugs and preferred masjid (that logic no longer applies).
 
 ### Documentation
 - **docs(routing):** Updated `AGENTS.md` routing table with new `/admin-home`, `/user-login` routes and removed obsolete paths.
-- **docs(storage):** Updated `AGENTS.md` localStorage keys to include `userId`, `userPin`, and `loginSource` for user login and PWA auto-login flow.
+- **docs(storage):** Updated `AGENTS.md` localStorage keys to include `userEmail`, `userPin`, and `loginSource` for user login and PWA auto-login flow.
 - **docs(api):** Added user login endpoint to `README.md` API Reference: `POST /api/users/login`.
 - **docs(pwa):** Documented PWA entry point and auto-login flow in `README.md` under "User Login (PWA Entry Point)" section.
 
