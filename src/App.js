@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import MasjidLogin from './Components/MasjidLogin';
 import AdminLogin from './Components/AdminLogin';
+import AdminPasswordLogin from './Components/AdminPasswordLogin';
 import UserLogin from './Components/UserLogin';
 import MasjidLanding from './Components/MasjidLanding';
 import MasjidManagement from './Components/MasjidManagement';
@@ -36,6 +37,7 @@ function App() {
                     <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
                     <Route path="/address/:id" element={<AddressDetail />} />
                     <Route path="/map/:masjidID/:unitID" element={<MapView />} />
+                    <Route path="/admin-login" element={<AdminPasswordLogin />} />
                     <Route path="/admin/login" element={<AdminLogin />} />
                     <Route element={<ProtectedAdminRoute />}>
                         <Route path="/admin/masjids" element={<MasjidManagement />} />

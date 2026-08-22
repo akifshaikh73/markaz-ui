@@ -48,9 +48,9 @@ const Home = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Admin-only page - redirect to user login if not admin
+        // Admin-only page - redirect to admin login if not admin
         if (!getAdmin()) {
-            navigate('/user-login', { replace: true });
+            navigate('/admin-login', { replace: true });
         }
     }, [navigate]);
 
