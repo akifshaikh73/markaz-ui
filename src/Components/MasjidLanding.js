@@ -47,7 +47,6 @@ const MasjidLanding = () => {
 
 
     const handleLogin = () => {
-        setAdmin(false);
         localStorage.setItem('preferredMasjid', masjidSlug);
         navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
