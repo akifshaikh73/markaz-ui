@@ -4,7 +4,22 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-22 (Session 3)
 
+### Route Planning & Visitation Analytics
+- **feat(RouteView):** New `/route` page component for visualizing selected addresses on an interactive map with numbered markers and route polylines. Displays address list with details below map.
+- **feat(VisitationView):** New `/visitation` page component for analyzing visitation patterns across addresses. Allows filtering by unit and neighborhood to identify least-visited addresses and generate metrics.
+- **feat(Landing - routing):** Added "Visitation" button to Landing navbar (green, available to all users) for accessing visitation analytics. Shows "Route" button when addresses are selected for route planning (orange, with count).
+- **refactor(Landing - MapView):** Restricted Map View button to admins only (checks `getAdmin()`). General users now access map visualization through Visitation and Route features.
+- **feat(AddressList - route selection):** Added route selection checkboxes to ID column with orange accent color. Supports select-all-for-route and individual address selection for building custom routes.
+- **feat(AddressRow - route selection):** Added checkbox in ID column to toggle individual address selection for routes. Orange accent matches route theme.
+- **refactor(App):** Added two new protected routes: `/route` (RouteView) and `/visitation` (VisitationView), both protected by ProtectedUserRoute.
+
+### Address List Improvements
+- **feat(AddressList - date sorting):** Made Date column clickable to toggle sort order between oldest-first (↑) and newest-first (↓). Default oldest-first shows unmet addresses at top of each neighborhood group. Addresses still grouped by neighborhood first.
+- **refactor(AddressList - date sorting):** Reorganized sort logic: Neighborhood (primary) → Date (toggleable secondary) → Name → ID, replacing previous hardcoded descending date sort.
+
+---
 ## 2026-08-22 (Session 2 Continued)
 
 ### Navigation & Role System Cleanup
