@@ -79,6 +79,7 @@ const MasjidLanding = () => {
         // Clear user login session
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userPin');
+        localStorage.removeItem('userMasjids');
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
@@ -106,6 +107,23 @@ const MasjidLanding = () => {
                     )}
                 </div>
             </div>
+            {localStorage.getItem('userEmail') && (() => {
+                const userMasjids = JSON.parse(localStorage.getItem('userMasjids') || '[]');
+                const currentMasjidSlug = masjidSlug;
+                const otherMasjids = userMasjids.filter(m => m !== currentMasjidSlug);
+                return otherMasjids.length > 0 ? (
+                    <div style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '4px', border: '1px solid #ddd' }}>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 600, color: '#666' }}>Other Masjids</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            {otherMasjids.map(masjid => (
+                                <a key={masjid} href={`/${masjid}`} style={{ fontSize: '0.9rem', color: '#1976d2', textDecoration: 'none' }}>
+                                    → {masjid}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                ) : null;
+            })()}
             <div>
                 <label>
                     Masjid ID:

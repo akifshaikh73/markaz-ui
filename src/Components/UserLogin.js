@@ -41,6 +41,11 @@ const UserLogin = () => {
             localStorage.setItem('userPin', pin);
             localStorage.setItem('loginSource', 'user');
 
+            // Store list of masjids user has access to
+            if (data.masjids && Array.isArray(data.masjids)) {
+                localStorage.setItem('userMasjids', JSON.stringify(data.masjids));
+            }
+
             // Redirect to user's masjid landing page
             if (data.masjidSlug) {
                 navigate(`/${data.masjidSlug}`, { state: { isLoggedIn: true } });
@@ -51,6 +56,7 @@ const UserLogin = () => {
                 setError('No masjid access found for this user');
                 localStorage.removeItem('userEmail');
                 localStorage.removeItem('userPin');
+                localStorage.removeItem('userMasjids');
             }
         } catch (err) {
             console.error('[UserLogin] Error:', err);
@@ -58,6 +64,7 @@ const UserLogin = () => {
             setLoading(false);
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userPin');
+            localStorage.removeItem('userMasjids');
         }
     };
 
