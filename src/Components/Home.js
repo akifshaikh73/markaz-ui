@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { getAdmin } from '../config';
 
 const card = {
     border: '1px solid #e0e0e0',
@@ -45,57 +46,17 @@ const badge = (color) => ({
 
 const Home = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const hasRedirected = useRef(false);
 
     useEffect(() => {
-        // If intentionally navigating to home page, don't redirect
-        if (location.state?.intentionalHome) {
-            hasRedirected.current = true; // Mark as processed
-            return;
+        // Admin-only page - redirect to user login if not admin
+        if (!getAdmin()) {
+            navigate('/user-login', { replace: true });
         }
-
-        // Only perform redirects once
-        if (hasRedirected.current) {
-            return;
-        }
-
-        // Extract slug from current URL path (e.g., '/di' from pathname='/di')
-        const path = location.pathname;
-        const slug = path.split('/')[1]; // Get first segment after /
-        const reservedRoutes = ['landing', 'map', 'address', 'masjid-login', 'admin'];
-
-        // If user is accessing a masjid slug directly, save it for PWA pinning
-        if (slug && !reservedRoutes.includes(slug)) {
-            localStorage.setItem('preferredMasjid', slug);
-            hasRedirected.current = true;
-            navigate(`/${slug}`, { replace: true });
-            return;
-        }
-
-        // Smart redirect based on user context
-        const preferredMasjid = localStorage.getItem('preferredMasjid');
-        const userRole = localStorage.getItem('userRole');
-
-        // If user has a preferred masjid, redirect there
-        if (preferredMasjid) {
-            hasRedirected.current = true;
-            navigate(`/${preferredMasjid}`, { replace: true });
-            return;
-        }
-
-        // If user is admin, redirect to admin panel
-        if (userRole === 'MarkazAdmin' || userRole === 'MasjidAdmin') {
-            hasRedirected.current = true;
-            navigate('/admin/masjids', { replace: true });
-            return;
-        }
-        // Otherwise show home page
-    }, [navigate, location.pathname, location.state]);
+    }, [navigate]);
 
     return (
         <div style={{ maxWidth: '600px', margin: '3rem auto', padding: '0 1rem' }}>
-            <h1 style={{ marginBottom: '0.25rem' }}>Markaz Visitation</h1>
+            <h1 style={{ marginBottom: '0.25rem' }}>Markaz Visitation - Admin</h1>
             <p style={{ color: '#888', marginTop: 0, marginBottom: '2rem' }}>Select an entry point below.</p>
 
             {/* Admin */}

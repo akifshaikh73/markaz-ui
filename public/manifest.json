@@ -18,7 +18,7 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "/",
+  "start_url": "/user-login",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#1976d2",
