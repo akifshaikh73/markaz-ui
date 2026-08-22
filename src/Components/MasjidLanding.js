@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import { useMasjidConfig } from '../hooks/useMasjids';
+import { setUserRole } from '../config';
 import versionInfo from '../version.json';
 const { version } = versionInfo;
 
@@ -53,6 +54,8 @@ const MasjidLanding = () => {
 
     const handleLogin = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
+        setUserRole('GeneralUser');
+        localStorage.setItem('loginSource', 'masjid-slug');
         navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
