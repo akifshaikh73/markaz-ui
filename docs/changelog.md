@@ -5,6 +5,22 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-08-21
+
+### Address List & Neighborhoods
+- **feat(access):** "Add Address" button now available to general users (non-admin), removed admin-only restriction.
+- **fix(neighborhoods):** Neighborhood dropdown now properly populates when "All units" is selected; always extracts areas from fetched data instead of only when cache is empty.
+
+### Navigation & Home Button
+- **fix(navigation):** Home button fixed across admin pages (Masjid Management, Masjid Detail, User Management, Address Detail, MasjidLogin, AdminLogin) to display home page instead of auto-redirecting to `/admin/masjids`; all Home buttons now pass `intentionalHome: true` state via React Router.
+- **refactor(home):** Home component now uses `useRef` to track redirects and prevent redirect loops; dependency array updated to include `location.state` for proper state tracking.
+- **feat(home):** User Management link added to Home page admin section.
+
+### User Management
+- **feat(users):** User Management and User Detail pages added to admin panel (`/admin/users` and `/admin/users/:id` routes); displays active/disabled user status, role, and masjid association.
+
+---
+
 ## 2026-08-20
 
 - **feat(pwa):** Smart PWA entry point — Home component redirects to preferred masjid on app launch if stored; saves masjid preference on login and clears on logout. Users on returning visits go directly to their last masjid instead of home page.
