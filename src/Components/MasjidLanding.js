@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { setUserRole, getHijriYear } from '../config';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import { useMasjidConfig } from '../hooks/useMasjids';
@@ -17,9 +16,6 @@ const MasjidLanding = () => {
     const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
 
     const [unitID, setUnitID] = useState('');
-    const [showAdminLogin, setShowAdminLogin] = useState(false);
-    const [adminPassword, setAdminPassword] = useState('');
-    const [adminError, setAdminError] = useState('');
     const [showUserMasjids, setShowUserMasjids] = useState(false);
 
     // Set initial unit once masjidConfig is available
@@ -49,19 +45,6 @@ const MasjidLanding = () => {
     const handleLogin = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
         navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
-    };
-
-    const handleAdminLogin = () => {
-        const expectedPassword = `${masjidConfig.landing}${getHijriYear()}`;
-        if (adminPassword === expectedPassword) {
-            setUserRole('MasjidAdmin');
-            localStorage.setItem('preferredMasjid', masjidSlug);
-            setAdminError('');
-            setAdminPassword('');
-            navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
-        } else {
-            setAdminError('Incorrect admin password');
-        }
     };
 
     const handleUserLogout = () => {
@@ -157,28 +140,6 @@ const MasjidLanding = () => {
             <button onClick={handleLogin} style={{ padding: '0.5rem' }}>
                 Login
             </button>
-            <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: 'pointer' }}>
-                {showAdminLogin ? 'Cancel Masjid Admin Login' : 'Masjid Admin Login'}
-            </button>
-            {showAdminLogin && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff8f0' }}>
-                    <label>
-                        Admin Password:
-                        <input
-                            type="password"
-                            value={adminPassword}
-                            onChange={e => { setAdminPassword(e.target.value); setAdminError(''); }}
-                            onKeyPress={e => e.key === 'Enter' && handleAdminLogin()}
-                            style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem', boxSizing: 'border-box' }}
-                            placeholder="Enter admin password"
-                        />
-                    </label>
-                    {adminError && <p style={{ color: '#d32f2f', margin: '0.5rem 0', fontSize: '0.9rem' }}>{adminError}</p>}
-                    <button onClick={handleAdminLogin} disabled={!adminPassword} style={{ padding: '0.5rem', background: '#ff9800', color: 'white', border: 'none', borderRadius: '4px', cursor: adminPassword ? 'pointer' : 'not-allowed', opacity: adminPassword ? 1 : 0.5 }}>
-                        Login as Admin
-                    </button>
-                </div>
-            )}
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
             </div>
