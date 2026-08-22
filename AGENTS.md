@@ -78,6 +78,7 @@ Never hardcode `localhost` URLs.
 **localStorage keys**:
 - `userEmail` — user email for UserLogin; used for auto-login on PWA launch
 - `userPin` — user PIN (password) for UserLogin; used for auto-login on PWA launch
+- `userMasjids` — JSON array of masjid slugs user has access to; displayed as "Other Masjids" links on MasjidLanding page
 - `loginSource` — `'admin'` (admin login) or `'user'` (user login); used for logout routing
 - `userRole` — `'MarkazAdmin'`, `'MasjidAdmin'`, or `''` (empty = not logged in); replaces old `ADMIN` flag
 - `addressList` — working set from last fetch or search (cleared on logout)

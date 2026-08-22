@@ -18,6 +18,8 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 ### Components
 - **feat(components):** Created new `UserLogin` component (`src/Components/UserLogin.js`) with email + PIN input, auto-login on mount if credentials exist, and error handling; button to switch to admin login.
 - **feat(components):** Created new `AdminPasswordLogin` component (`src/Components/AdminPasswordLogin.js`) for Markaz admin password verification; sets `MarkazAdmin` role and redirects to `/admin-home` on success.
+- **feat(masjid-access):** UserLogin now stores `userMasjids` array in localStorage (list of all masjids user has access to); MasjidLanding displays these as clickable "Other Masjids" links for quick switching.
+- **feat(logout):** MasjidLanding now shows user logout button when logged in via UserLogin; clears credentials and redirects to `/user-login`.
 - **fix(auth):** Changed UserLogin to use `email` parameter instead of `userId` for API compatibility; stored in `userEmail` localStorage key.
 - **refactor(home):** Updated `Home.js` — now redirects to `/admin-login` if user lacks admin privileges (instead of `/user-login`).
 
