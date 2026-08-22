@@ -9,6 +9,9 @@ const { version } = versionInfo;
 const Login = ({ lockedMasjidID }) => {
     const location = useLocation();
     const [masjidID, setMasjidID] = useState(lockedMasjidID || location.state?.masjidID || '');
+    const [pin, setPin] = useState('');
+    const [pinError, setPinError] = useState('');
+    const [pinLoading, setPinLoading] = useState(false);
     const [showAdminLogin, setShowAdminLogin] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');
     const [adminError, setAdminError] = useState('');
@@ -20,6 +23,24 @@ const Login = ({ lockedMasjidID }) => {
 
     const handleMasjidChange = (e) => {
         setMasjidID(e.target.value);
+    };
+
+    const handlePinLogin = () => {
+        if (!masjidID) {
+            setPinError('Please enter a Masjid ID first');
+            return;
+        }
+        if (!pin.trim()) {
+            setPinError('PIN is required');
+            return;
+        }
+        setPinLoading(true);
+        setUserRole('GeneralUser');
+        localStorage.setItem('userPin', pin.trim());
+        localStorage.setItem('loginSource', 'pin');
+        setPin('');
+        setPinError('');
+        navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } });
     };
 
     const handleAdminLogin = () => {
@@ -53,6 +74,29 @@ const Login = ({ lockedMasjidID }) => {
                     />
                 </label>
             </div>
+
+            <div>
+                <label>
+                    PIN (Masjid Access):
+                    <input
+                        type="password"
+                        value={pin}
+                        onChange={(e) => { setPin(e.target.value); setPinError(''); }}
+                        onKeyPress={(e) => e.key === 'Enter' && handlePinLogin()}
+                        placeholder="Enter PIN"
+                        disabled={pinLoading || !masjidID}
+                        style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem', boxSizing: 'border-box' }}
+                    />
+                </label>
+            </div>
+            {pinError && <p style={{ color: '#d32f2f', margin: 0, fontSize: '0.9rem' }}>{pinError}</p>}
+            <button 
+                onClick={handlePinLogin}
+                disabled={pinLoading || !masjidID || !pin}
+                style={{ padding: '0.5rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: pinLoading || !masjidID || !pin ? 'not-allowed' : 'pointer', opacity: pinLoading || !masjidID || !pin ? 0.5 : 1 }}
+            >
+                {pinLoading ? 'Logging in...' : 'Login with PIN'}
+            </button>
 
             <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} disabled={!masjidID} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: masjidID ? 'pointer' : 'not-allowed', opacity: masjidID ? 1 : 0.5 }}>
                 {showAdminLogin ? 'Cancel Markaz Admin Login' : 'Markaz Admin Login'}

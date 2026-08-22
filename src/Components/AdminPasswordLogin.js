@@ -24,6 +24,7 @@ const AdminPasswordLogin = () => {
             if (password === ADMIN_PASSWORD) {
                 // Set admin role and redirect to home
                 setUserRole('MarkazAdmin');
+                localStorage.setItem('loginSource', 'markaz-admin');
                 navigate('/admin-home', { replace: true });
             } else {
                 setError('Invalid admin password');

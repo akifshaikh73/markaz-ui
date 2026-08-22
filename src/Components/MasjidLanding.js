@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import { useMasjidConfig } from '../hooks/useMasjids';
@@ -9,6 +9,7 @@ const { version } = versionInfo;
 const MasjidLanding = () => {
     const { masjidSlug } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { getMasjidByLanding, loading: masjidLoading } = useMasjidConfig();
     const apiReady = useApiReady();
 
@@ -26,6 +27,14 @@ const MasjidLanding = () => {
             : (Array.isArray(masjidConfig.units) ? masjidConfig.units[0] : '');
         setUnitID(lastUnit !== undefined && lastUnit !== null && lastUnit !== '' ? lastUnit : '');
     }, [masjidConfig?._id ?? masjidConfig?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Auto-navigate when coming from UserLogin (isLoggedIn flag in route state)
+    useEffect(() => {
+        if (!location.state?.isLoggedIn || !masjidConfig || !unitID) return;
+        const masjidId = masjidConfig._id ?? masjidConfig.id;
+        localStorage.setItem('preferredMasjid', masjidSlug);
+        navigate(`/landing/${masjidId}/${unitID}`, { replace: true, state: { isLoggedIn: true } });
+    }, [location.state?.isLoggedIn, masjidConfig, unitID]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!apiReady || masjidLoading) return <ApiSplash />;
 
@@ -52,6 +61,8 @@ const MasjidLanding = () => {
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userPin');
         localStorage.removeItem('userMasjids');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('loginSource');
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');

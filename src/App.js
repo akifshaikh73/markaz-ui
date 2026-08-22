@@ -16,18 +16,28 @@ import { getAdmin } from './config';
 import Home from './Components/Home';
 import { MasjidProvider } from './hooks/useMasjids';
 
-const ProtectedAdminRoute = () => {
+const ProtectedMarkazAdminRoute = () => {
     const location = useLocation();
-    if (!getAdmin()) {
-        return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'MarkazAdmin') {
+        return <Navigate to="/admin-login" state={{ from: location }} replace />;
+    }
+    return <Outlet />;
+};
+
+const ProtectedMasjidAdminRoute = () => {
+    const location = useLocation();
+    const userRole = localStorage.getItem('userRole');
+    if (!['MasjidAdmin', 'MarkazAdmin'].includes(userRole)) {
+        return <Navigate to="/user-login" state={{ from: location }} replace />;
     }
     return <Outlet />;
 };
 
 const ProtectedUserRoute = () => {
     const location = useLocation();
-    const userEmail = localStorage.getItem('userEmail');
-    if (!userEmail) {
+    const userRole = localStorage.getItem('userRole');
+    if (!['GeneralUser', 'MasjidAdmin', 'MarkazAdmin'].includes(userRole)) {
         return <Navigate to="/user-login" state={{ from: location }} replace />;
     }
     return <Outlet />;
@@ -50,7 +60,7 @@ function App() {
                         <Route path="/address/:id" element={<AddressDetail />} />
                         <Route path="/map/:masjidID/:unitID" element={<MapView />} />
                     </Route>
-                    <Route element={<ProtectedAdminRoute />}>
+                    <Route element={<ProtectedMarkazAdminRoute />}>
                         <Route path="/admin/masjids" element={<MasjidManagement />} />
                         <Route path="/admin/masjids/:id" element={<MasjidDetail />} />
                         <Route path="/admin/users" element={<UserManagement />} />
