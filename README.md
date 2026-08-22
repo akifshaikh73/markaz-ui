@@ -2,44 +2,92 @@
 
 ## Authentication & Role System
 
-The app implements a **three-tier authentication model** with distinct user roles and access paths:
+The app implements a **three-tier role-based authentication system** with distinct user roles and entry points:
 
-### 1. GeneralUser (PIN-Only Access)
-**Route**: `/masjid-login`  
-**Authentication**: Enter Masjid ID + PIN only  
-**Role**: `GeneralUser`  
+### 1. MasjidUser (Lowest — PIN-Only Access)
+**Routes**: `/masjid-login` (primary) or `/:masjidSlug` (public)  
+**Authentication**: Masjid ID + PIN-only  
+**Role**: `MasjidUser`  
 **Access**: Address listings for the selected masjid  
-**Use Case**: Casual visitors or members with PIN distribution
+**No Persistence**: Credentials NOT cached; logout returns to login screen on next session  
+**Use Case**: Volunteers, members, or casual visitors with PIN distribution
 
 **Flow**:
-1. User accesses app or visits `/masjid-login`
-2. Enters Masjid ID (e.g., `111`) and PIN
-3. Role set to `GeneralUser`; redirected to `/landing/:masjidID/:unitID`
-4. Can view address lists, add new addresses
+1. User accesses `/masjid-login` or clicks link to `/:masjidSlug`
+2. Enters Masjid ID (if using `/masjid-login`) + PIN
+3. Role set to `MasjidUser`; `loginSource: 'pin'` or `'masjid-slug'`
+4. Redirected to `/landing/:masjidID/:unitID`
+5. On logout: Credentials cleared; redirected to `/user-login` (main entry point)
 
-### 2. MasjidAdmin (Email + PIN Access)
-**Route**: `/user-login` (PWA Entry Point)  
-**Authentication**: Email + PIN (API verified)  
+### 2. MasjidAdmin (Mid — Email + PIN Access with Auto-Login)
+**Route**: `/user-login` (PWA entry point)  
+**Authentication**: Email + PIN (API-verified against users collection)  
 **Role**: `MasjidAdmin`  
-**Access**: Full address management for assigned masjids  
-**Special**: Credentials auto-saved; auto-login on PWA return visit  
+**Access**: Full address management for all assigned masjids  
+**Persistent**: Credentials cached in localStorage; auto-login on PWA return visit  
 **Use Case**: Official masjid staff or administrators
 
 **Flow**:
 1. User accesses `/user-login` (default PWA entry point)
 2. Enters Email + PIN
-3. API validates and returns list of masjids user manages
-4. Role set to `MasjidAdmin`; stored credentials enable auto-login
-5. Redirected to user's first assigned masjid
-6. Can access full address list, edit addresses, record visits
+3. API validates; returns list of masjids user manages
+4. Role set to `MasjidAdmin`; credentials cached: `userEmail`, `userPin`, `userMasjids`; `loginSource: 'user'`
+5. Auto-redirected to first assigned masjid (`/:masjidSlug`)
+6. MasjidLanding shows collapsible "Other Masjids" section for quick switching
+7. On logout: All credentials AND role cleared; redirected to `/user-login`
 
-**Auto-Login**: If `userEmail` and `userPin` exist in `localStorage`, app automatically verifies and logs user in on PWA launch. Credentials are **only cleared when user explicitly logs out** (not on app close).
+**Auto-Login on PWA Launch**:
+- If `userEmail` and `userPin` exist in localStorage, app auto-verifies and logs in
+- If verification fails, user returns to login screen
+- Credentials only cleared by explicit logout (not on app close)
 
-### 3. MarkazAdmin (Password Access)
+### 3. MarkazAdmin (Highest — Password Access)
 **Route**: `/admin-login`  
 **Authentication**: Markaz admin password (from `REACT_APP_ADMIN_PASSWORD` env var)  
 **Role**: `MarkazAdmin`  
 **Access**: Global admin dashboard; manage all masjids and users  
+**No Persistence**: Password NOT cached; each session requires new login  
+**Use Case**: Markaz-level administrators
+
+**Flow**:
+1. User accesses `/admin-login`
+2. Enters Markaz password
+3. Role set to `MarkazAdmin`; `loginSource: 'markaz-admin'`
+4. Redirected to `/admin-home` (admin dashboard)
+5. Access to `/admin/masjids`, `/admin/users` management pages
+6. On logout: Role cleared; redirected to `/admin-login`
+
+### Public Access (No Authentication)
+**Route**: `/:masjidSlug` (e.g., `/di`)  
+**Entry**: Direct URL or shared link  
+**Auto-Role**: MasjidUser (knowledge of valid slug is sufficient)  
+
+**Flow**:
+1. User navigates to `/:masjidSlug` (e.g., `/di` for Darul Iman)
+2. MasjidLanding page loads with unit selector
+3. User clicks "Go to Listings"
+4. Role auto-set to `MasjidUser`; `loginSource: 'masjid-slug'`
+5. Redirected to `/landing/:masjidID/:unitID`
+
+**Use Case**: Shareable public links (e.g., distribute `https://markaz-ui.onrender.com/di` to volunteers)
+
+### Logout Behavior by Role
+
+**MasjidUser Logout**: Redirects to `/user-login`  
+**MasjidAdmin Logout**: Clears credentials and role; redirects to `/user-login`  
+**MarkazAdmin Logout**: Clears role; redirects to `/admin-login`
+2. Enters Email + PIN
+3. API (`POST /api/users/login`) verifies PIN via bcrypt → returns `masjidSlug`, `masjids[]`
+4. Role set to `MasjidAdmin`; `userEmail`, `userPin`, `userMasjids`, `userMasjidSlug` cached in localStorage
+5. Redirected to primary masjid slug
+
+**Auto-Login**: If `userPin`, `loginSource`, and `userMasjidSlug` exist in `localStorage`, the app navigates directly to the stored slug on next visit — **no API call**. Credentials only cleared on explicit logout.
+
+### 3. MarkazAdmin (Password Access)
+**Route**: `/admin-login`
+**Authentication**: Markaz admin password (from `REACT_APP_ADMIN_PASSWORD` env var)
+**Role**: `MarkazAdmin`
+**Access**: Global admin dashboard; manage all masjids and users
 **Use Case**: Markaz-level administrators
 
 **Flow**:
@@ -48,32 +96,29 @@ The app implements a **three-tier authentication model** with distinct user role
 3. Role set to `MarkazAdmin`; redirected to `/admin-home`
 4. Access to `/admin/masjids`, `/admin/users` management pages
 
-### Direct Masjid Access (No Authentication Required)
-**Route**: `/:masjidSlug` (e.g., `/di` for Darul Iman)  
-**Authentication**: None — valid masjid slug is sufficient  
-**Role**: `GeneralUser` (auto-granted)  
+### Direct Masjid Access (Slug)
+**Route**: `/:masjidSlug` (e.g., `/di` for Darul Iman)
+**Authentication**: Valid masjid slug + clicking Login on the landing page
+**Role**: `MasjidUser` (auto-granted on Login click)
 **Access**: Address listings for that masjid
 
 **Flow**:
-1. User clicks link to `/:masjidSlug` or types in URL bar
-2. System resolves masjid from slug (e.g., `di` → Masjid Darul Iman, ID 111)
-3. Shows "Listings" page with Masjid ID and Unit selector
-4. User clicks "Go to Listings"
-5. Role auto-set to `GeneralUser` with `loginSource: 'masjid-slug'`
-6. Redirected to `/landing/:masjidID/:unitID`
-
-**Use Case**: Shareable public links (e.g., `https://markaz-ui.onrender.com/di`) for visiting lists
+1. User visits `/:masjidSlug`
+2. Selects unit; clicks "Login"
+3. Role set to `MasjidUser` with `loginSource: 'masjid-slug'`
+4. Navigated to `/landing/:masjidID/:unitID`
 
 ### Manifest & PWA
-`public/manifest.json` has `start_url: "/user-login"`, so PWA installations launch directly to the email+PIN login page (`MasjidAdmin` entry point).
+`public/manifest.json` has `start_url: "/"`, so PWA installations launch to `/user-login` (the `UserLogin` component handles `/` and `/user-login`).
 
 ### Logout Behavior
-**MasjidAdmin Logout** (from MasjidLanding or Landing):
-- Clears: `userEmail`, `userPin`, `userMasjids`, `userRole`, `loginSource`
-- Redirects to `/user-login` (requires re-authentication)
+**MasjidUser / MasjidAdmin Logout** (from MasjidLanding):
+- Clears: `userEmail`, `userPin`, `userMasjids`, `userMasjidSlug`, `userRole`, `loginSource`, `preferredMasjid`, `addressList`, `searchParams`, `areaFilter`, `activeFilters`, `landingContext`
+- Clears: `sessionStorage` entirely
+- Redirects to `/user-login`
 
 **MarkazAdmin Logout** (from admin pages):
-- Clears admin session
+- Clears admin session keys
 - Redirects to `/admin-login`
 
 ---
@@ -84,7 +129,8 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 
 | Method | Endpoint | Query Params / Body | Description | Component |
 |--------|----------|----------------------|-------------|-----------|
-| `POST` | `/api/users/login` | Body: `{ userId, pin }` | Authenticate user; returns `{ masjidSlug, masjids[] }` | `UserLogin` |
+| `POST` | `/api/masjids/login` | Body: `{ pin }` | Match 4-digit Masjid PIN → returns `{ masjidSlug, masjidId, name }` | `UserLogin` |
+| `POST` | `/api/users/login` | Body: `{ email, pin }` | Bcrypt-verify user PIN → returns `{ masjidSlug, masjids[], role }` | `UserLogin` |
 | `GET` | `/api/addressList/list` | `masjid_id`, `unit_id` *(optional)* | Fetch address list for a masjid; omit `unit_id` for all units | `Landing` |
 | `POST` | `/api/addressList/filter/search/` | Body: `{ masjidId, unitId?, _id?, name?, address?, city?, showInactive?, filterByStudents? }` | Search/filter addresses | `Landing` |
 | `GET` | `/api/addressList/search/:id` | — | Fetch a single address by ID | `AddressDetail` |

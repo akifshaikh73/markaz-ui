@@ -5,6 +5,26 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-08-22 (Session 2 Continued)
+
+### Navigation & Role System Cleanup
+- **fix(MasjidLogin):** Removed "Markaz Admin Login" form section entirely. MasjidLogin now handles ONLY PIN-only access (MasjidUser role). Admin password authentication belongs exclusively at `/admin-login` → MarkazAdmin role. Prevents role tier crisscross.
+- **fix(Landing):** Updated logout redirect from removed `/admin/login` to `/admin-login` for MarkazAdmin users. Non-admin logout now consistently redirects to `/user-login` (main MasjidAdmin/MasjidUser entry point) instead of masjid slug.
+- **refactor(Home):** Replaced deprecated `getAdmin()` boolean check with role-based check: `getUserRole() === 'MarkazAdmin'`. Added logout button to admin dashboard for MarkazAdmin users. Redirects to `/admin-login` on logout.
+- **chore(App):** Removed legacy `/admin/login` route and AdminLogin component import (was duplicate of `/admin-login` route with AdminPasswordLogin component).
+
+### Documentation Updates (Role Naming)
+- **docs(terminology):** Clarified role naming throughout documentation: `GeneralUser` → `MasjidUser` (lowest tier), `MasjidAdmin` (mid tier), `MarkazAdmin` (highest tier).
+- **docs(AGENTS.md):** Updated routing table with corrected component notes, role checks, and navigation descriptions. Removed references to `/admin/login` route.
+- **docs(README.md):** Comprehensive rewrite of "Authentication & Role System" section with clear MasjidUser/MasjidAdmin/MarkazAdmin tier descriptions, flow diagrams, and per-role logout behavior.
+- **docs(logout):** Documented distinct logout flows: MasjidUser → `/user-login`, MasjidAdmin → `/user-login` (clears all credentials), MarkazAdmin → `/admin-login`.
+
+### UI & Feature Improvements
+- **fix(AddressList):** Removed duplicate Unit column from AddressRow.js that was causing table column misalignment. Data rows now correctly match header column count (9 when isAdmin, 8 when not).
+- **feat(MapView):** Enabled Map View button for all authenticated users (MasjidUser, MasjidAdmin, MarkazAdmin), not just admins. Allows general users to visualize address locations on map.
+
+---
+
 ## 2026-08-22 (Session 2)
 
 ### Three-Tier Role System Implementation
