@@ -8,6 +8,8 @@ import AddressDetail from './Components/AddressDetail';
 import MapView from './Components/MapView';
 import Landing from './Components/Landing';
 import MasjidDetail from './Components/MasjidDetail';
+import UserManagement from './Components/UserManagement';
+import UserDetail from './Components/UserDetail';
 import { getAdmin } from './config';
 import Home from './Components/Home';
 import { MasjidProvider } from './hooks/useMasjids';
@@ -35,6 +37,8 @@ function App() {
                     <Route element={<ProtectedAdminRoute />}>
                         <Route path="/admin/masjids" element={<MasjidManagement />} />
                         <Route path="/admin/masjids/:id" element={<MasjidDetail />} />
+                        <Route path="/admin/users" element={<UserManagement />} />
+                        <Route path="/admin/users/:id" element={<UserDetail />} />
                     </Route>
                 </Routes>
             </BrowserRouter>
