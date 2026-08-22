@@ -35,7 +35,7 @@ const Login = ({ lockedMasjidID }) => {
             return;
         }
         setPinLoading(true);
-        setUserRole('GeneralUser');
+        setUserRole('MasjidUser');
         localStorage.setItem('userPin', pin.trim());
         localStorage.setItem('loginSource', 'pin');
         setPin('');
@@ -97,42 +97,6 @@ const Login = ({ lockedMasjidID }) => {
             >
                 {pinLoading ? 'Logging in...' : 'Login with PIN'}
             </button>
-
-            <button onClick={() => { setShowAdminLogin(!showAdminLogin); setAdminError(''); setAdminPassword(''); }} disabled={!masjidID} style={{ padding: '0.5rem', background: '#f0f0f0', border: '1px solid #ccc', cursor: masjidID ? 'pointer' : 'not-allowed', opacity: masjidID ? 1 : 0.5 }}>
-                {showAdminLogin ? 'Cancel Markaz Admin Login' : 'Markaz Admin Login'}
-            </button>
-            {getAdmin() && masjidID && (
-                <button
-                    onClick={() => { navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } }); }}
-                    style={{ padding: '0.5rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                    Continue as Admin
-                </button>
-            )}
-            {showAdminLogin && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff8f0' }}>
-                    <label>
-                        Admin Password:
-                        <input
-                            type="password"
-                            value={adminPassword}
-                            name="markaz-admin-password"
-                            autoComplete="current-password"
-                            onChange={(e) => {
-                                setAdminPassword(e.target.value);
-                                setAdminError('');
-                            }}
-                            onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
-                            style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem', boxSizing: 'border-box' }}
-                            placeholder="Enter admin password"
-                        />
-                    </label>
-                    {adminError && <p style={{ color: '#d32f2f', margin: '0.5rem 0', fontSize: '0.9rem' }}>{adminError}</p>}
-                    <button onClick={handleAdminLogin} disabled={!adminPassword} style={{ padding: '0.5rem', background: '#ff9800', color: 'white', border: 'none', borderRadius: '4px', cursor: adminPassword ? 'pointer' : 'not-allowed', opacity: adminPassword ? 1 : 0.5 }}>
-                        Login as Admin
-                    </button>
-                </div>
-            )}
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
             </div>

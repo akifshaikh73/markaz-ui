@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import MasjidLogin from './Components/MasjidLogin';
-import AdminLogin from './Components/AdminLogin';
 import AdminPasswordLogin from './Components/AdminPasswordLogin';
 import UserLogin from './Components/UserLogin';
 import MasjidLanding from './Components/MasjidLanding';
@@ -37,7 +36,7 @@ const ProtectedMasjidAdminRoute = () => {
 const ProtectedUserRoute = () => {
     const location = useLocation();
     const userRole = localStorage.getItem('userRole');
-    if (!['GeneralUser', 'MasjidAdmin', 'MarkazAdmin'].includes(userRole)) {
+    if (!['MasjidUser', 'MasjidAdmin', 'MarkazAdmin'].includes(userRole)) {
         return <Navigate to="/user-login" state={{ from: location }} replace />;
     }
     return <Outlet />;
@@ -54,7 +53,6 @@ function App() {
                     <Route path="/masjid-login" element={<MasjidLogin />} />
                     <Route path="/:masjidSlug" element={<MasjidLanding />} />
                     <Route path="/admin-login" element={<AdminPasswordLogin />} />
-                    <Route path="/admin/login" element={<AdminLogin />} />
                     <Route element={<ProtectedUserRoute />}>
                         <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
                         <Route path="/address/:id" element={<AddressDetail />} />

@@ -54,7 +54,7 @@ const MasjidLanding = () => {
 
     const handleLogin = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
-        setUserRole('GeneralUser');
+        setUserRole('MasjidUser');
         localStorage.setItem('loginSource', 'masjid-slug');
         navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
@@ -64,6 +64,7 @@ const MasjidLanding = () => {
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userPin');
         localStorage.removeItem('userMasjids');
+        localStorage.removeItem('userMasjidSlug');
         localStorage.removeItem('userRole');
         localStorage.removeItem('loginSource');
         localStorage.removeItem('addressList');

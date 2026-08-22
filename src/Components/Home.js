@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAdmin } from '../config';
+import { getUserRole } from '../config';
 
 const card = {
     border: '1px solid #e0e0e0',
@@ -48,16 +48,30 @@ const Home = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Admin-only page - redirect to admin login if not admin
-        if (!getAdmin()) {
+        // Admin-only page - redirect to admin login if not MarkazAdmin
+        if (getUserRole() !== 'MarkazAdmin') {
             navigate('/admin-login', { replace: true });
         }
     }, [navigate]);
 
     return (
         <div style={{ maxWidth: '600px', margin: '3rem auto', padding: '0 1rem' }}>
-            <h1 style={{ marginBottom: '0.25rem' }}>Markaz Visitation - Admin</h1>
-            <p style={{ color: '#888', marginTop: 0, marginBottom: '2rem' }}>Select an entry point below.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ marginBottom: '0.25rem' }}>Markaz Visitation - Admin</h1>
+                    <p style={{ color: '#888', marginTop: 0 }}>Select an entry point below.</p>
+                </div>
+                <button 
+                    onClick={() => {
+                        localStorage.removeItem('userRole');
+                        localStorage.removeItem('loginSource');
+                        navigate('/admin-login');
+                    }}
+                    style={{ padding: '0.5rem 1rem', background: '#d32f2f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
+                >
+                    Logout
+                </button>
+            </div>
 
             {/* Admin */}
             <div style={card}>
