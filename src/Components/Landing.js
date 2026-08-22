@@ -207,11 +207,19 @@ function Landing() {
     const onLogout = () => {
         const wasMarkaz = getUserRole() === 'MarkazAdmin';
         setAdmin(false);
+        // Clear user credentials (prevents auto-login)
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userPin');
+        localStorage.removeItem('userMasjids');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('loginSource');
+        // Clear data and context
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
+        localStorage.removeItem('preferredMasjid');
         sessionStorage.clear();
         if (wasMarkaz) {
             navigate('/admin/login');
