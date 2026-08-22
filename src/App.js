@@ -7,6 +7,8 @@ import MasjidLanding from './Components/MasjidLanding';
 import MasjidManagement from './Components/MasjidManagement';
 import AddressDetail from './Components/AddressDetail';
 import MapView from './Components/MapView';
+import RouteView from './Components/RouteView';
+import VisitationView from './Components/VisitationView';
 import Landing from './Components/Landing';
 import MasjidDetail from './Components/MasjidDetail';
 import UserManagement from './Components/UserManagement';
@@ -57,6 +59,8 @@ function App() {
                         <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
                         <Route path="/address/:id" element={<AddressDetail />} />
                         <Route path="/map/:masjidID/:unitID" element={<MapView />} />
+                        <Route path="/route" element={<RouteView />} />
+                        <Route path="/visitation" element={<VisitationView />} />
                     </Route>
                     <Route element={<ProtectedMarkazAdminRoute />}>
                         <Route path="/admin/masjids" element={<MasjidManagement />} />
