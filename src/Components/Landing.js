@@ -234,11 +234,10 @@ function Landing() {
                     const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
                     setAddressList(filtered);
                     localStorage.setItem('addressList', JSON.stringify(filtered));
-                    if (unitAreas.length === 0) {
-                        const areas = [...new Set(data.map(a => a.area).filter(a => a && a.trim()))].sort();
-                        setUnitAreas(areas);
-                        sessionStorage.setItem(unitAreasKey, JSON.stringify(areas));
-                    }
+                    // Always extract and update areas from the fetched data
+                    const areas = [...new Set(filtered.map(a => a.area).filter(a => a && a.trim()))].sort();
+                    setUnitAreas(areas);
+                    sessionStorage.setItem(unitAreasKey, JSON.stringify(areas));
                 });
         }
     }, [masjidID, selectedUnit]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -261,13 +260,13 @@ function Landing() {
                 <StatusBadges />
                 <RoleBadge />
                 {isMarkazAdmin && (
-                    <a href="/" style={{ fontSize: '0.75rem', color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>⌂ Home</a>
+                    <button onClick={() => navigate('/', { state: { intentionalHome: true } })} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                 )}
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
-                {getAdmin() && <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>}
+                <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>
                 <button onClick={onLogout}>Logout</button>
             </div>
             <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} onReset={handleReset} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
