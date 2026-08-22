@@ -75,12 +75,37 @@ const MasjidLanding = () => {
         }
     };
 
+    const handleUserLogout = () => {
+        // Clear user login session
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userPin');
+        localStorage.removeItem('addressList');
+        localStorage.removeItem('searchParams');
+        localStorage.removeItem('areaFilter');
+        localStorage.removeItem('activeFilters');
+        localStorage.removeItem('landingContext');
+        localStorage.removeItem('preferredMasjid');
+        sessionStorage.clear();
+        navigate('/user-login');
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            {cachedContext.masjidID === String(masjidId) && (
-                <button onClick={handleLogout} style={{ alignSelf: 'flex-end', background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>Logout</button>
-            )}
-            <h2>{masjidConfig.name}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0 }}>{masjidConfig.name}</h2>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {localStorage.getItem('userEmail') && (
+                        <button onClick={handleUserLogout} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontWeight: 500 }}>
+                            Logout
+                        </button>
+                    )}
+                    {cachedContext.masjidID === String(masjidId) && (
+                        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontWeight: 500 }}>
+                            Logout
+                        </button>
+                    )}
+                </div>
+            </div>
             <div>
                 <label>
                     Masjid ID:
