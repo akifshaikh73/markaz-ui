@@ -1,18 +1,80 @@
 # Markaz Visitation UI
 
-## User Login (PWA Entry Point)
+## Authentication & Role System
 
-**Route**: `/` and `/user-login` (aliases)
+The app implements a **three-tier authentication model** with distinct user roles and access paths:
 
-The app launches directly to user login (`/user-login`). Users authenticate with:
-- **Email** — user email address
-- **PIN** — password
+### 1. GeneralUser (PIN-Only Access)
+**Route**: `/masjid-login`  
+**Authentication**: Enter Masjid ID + PIN only  
+**Role**: `GeneralUser`  
+**Access**: Address listings for the selected masjid  
+**Use Case**: Casual visitors or members with PIN distribution
 
-On successful login, the user is redirected to their masjid's landing page (`/:masjidSlug`). 
+**Flow**:
+1. User accesses app or visits `/masjid-login`
+2. Enters Masjid ID (e.g., `111`) and PIN
+3. Role set to `GeneralUser`; redirected to `/landing/:masjidID/:unitID`
+4. Can view address lists, add new addresses
 
-**Auto-Login**: Credentials (`userEmail` and `userPin`) are stored in `localStorage`. On PWA launch, if credentials exist, the app automatically verifies them and logs the user back in. If verification fails, the user returns to the login page.
+### 2. MasjidAdmin (Email + PIN Access)
+**Route**: `/user-login` (PWA Entry Point)  
+**Authentication**: Email + PIN (API verified)  
+**Role**: `MasjidAdmin`  
+**Access**: Full address management for assigned masjids  
+**Special**: Credentials auto-saved; auto-login on PWA return visit  
+**Use Case**: Official masjid staff or administrators
 
-**Manifest**: `public/manifest.json` has `start_url: "/user-login"`, so PWA installations launch directly to the user login page.
+**Flow**:
+1. User accesses `/user-login` (default PWA entry point)
+2. Enters Email + PIN
+3. API validates and returns list of masjids user manages
+4. Role set to `MasjidAdmin`; stored credentials enable auto-login
+5. Redirected to user's first assigned masjid
+6. Can access full address list, edit addresses, record visits
+
+**Auto-Login**: If `userEmail` and `userPin` exist in `localStorage`, app automatically verifies and logs user in on PWA launch. Credentials are **only cleared when user explicitly logs out** (not on app close).
+
+### 3. MarkazAdmin (Password Access)
+**Route**: `/admin-login`  
+**Authentication**: Markaz admin password (from `REACT_APP_ADMIN_PASSWORD` env var)  
+**Role**: `MarkazAdmin`  
+**Access**: Global admin dashboard; manage all masjids and users  
+**Use Case**: Markaz-level administrators
+
+**Flow**:
+1. User accesses `/admin-login`
+2. Enters Markaz password
+3. Role set to `MarkazAdmin`; redirected to `/admin-home`
+4. Access to `/admin/masjids`, `/admin/users` management pages
+
+### Direct Masjid Access (No Authentication Required)
+**Route**: `/:masjidSlug` (e.g., `/di` for Darul Iman)  
+**Authentication**: None — valid masjid slug is sufficient  
+**Role**: `GeneralUser` (auto-granted)  
+**Access**: Address listings for that masjid
+
+**Flow**:
+1. User clicks link to `/:masjidSlug` or types in URL bar
+2. System resolves masjid from slug (e.g., `di` → Masjid Darul Iman, ID 111)
+3. Shows "Listings" page with Masjid ID and Unit selector
+4. User clicks "Go to Listings"
+5. Role auto-set to `GeneralUser` with `loginSource: 'masjid-slug'`
+6. Redirected to `/landing/:masjidID/:unitID`
+
+**Use Case**: Shareable public links (e.g., `https://markaz-ui.onrender.com/di`) for visiting lists
+
+### Manifest & PWA
+`public/manifest.json` has `start_url: "/user-login"`, so PWA installations launch directly to the email+PIN login page (`MasjidAdmin` entry point).
+
+### Logout Behavior
+**MasjidAdmin Logout** (from MasjidLanding or Landing):
+- Clears: `userEmail`, `userPin`, `userMasjids`, `userRole`, `loginSource`
+- Redirects to `/user-login` (requires re-authentication)
+
+**MarkazAdmin Logout** (from admin pages):
+- Clears admin session
+- Redirects to `/admin-login`
 
 ---
 

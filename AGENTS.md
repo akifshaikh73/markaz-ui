@@ -1,27 +1,43 @@
 # Markaz Visitation UI — Project Guidelines
 
+## Three-Tier Role System
+
+The app enforces role-based access control with three distinct roles:
+
+| Role | Entry Point | Authentication | Storage | Access Level |
+|------|-------------|-----------------|---------|--------------|
+| `GeneralUser` | `/masjid-login` or `/:masjidSlug` | PIN-only OR masjid slug | `userRole: 'GeneralUser'`; `loginSource: 'pin'` or `'masjid-slug'` | Address listings for selected masjid |
+| `MasjidAdmin` | `/user-login` (PWA default) | Email + PIN (API verified) | `userRole: 'MasjidAdmin'`; `userEmail`, `userPin` cached; `loginSource: 'user'` | Full address management for assigned masjids; auto-login on PWA return |
+| `MarkazAdmin` | `/admin-login` | Markaz password | `userRole: 'MarkazAdmin'`; `loginSource: 'markaz-admin'` | Global admin dashboard; manage all masjids and users |
+
+### Protected Routes & Redirect Behavior
+
+- **`ProtectedUserRoute`** (`/landing/*`, `/address/*`, `/map/*`): Requires `userRole` in `['GeneralUser', 'MasjidAdmin', 'MarkazAdmin']`. Redirects non-authenticated users to `/user-login`.
+- **`ProtectedMasjidAdminRoute`** (currently unused in main flow): Requires `userRole` in `['MasjidAdmin', 'MarkazAdmin']`. Redirects to `/user-login`.
+- **`ProtectedMarkazAdminRoute`** (`/admin/*`): Requires `userRole === 'MarkazAdmin'`. Redirects non-MarkazAdmins to `/admin-login`.
+
 ## Architecture
 
 React 18 SPA (Create React App). All components live in `src/Components/`. Shared utilities in `src/utils.js`. Excel export logic in `src/exportExcel.js`.
 
 **Routing** (react-router-dom v6): When asked to display routes, always read `src/App.js` — it is the single source of truth for all routes.
 
-| Path | Component | Notes |
-|------|-----------|-------|
-| `/` | `UserLogin` | PWA entry point — user login with email + PIN; auto-login if credentials stored |
-| `/user-login` | `UserLogin` | Alias for `/` — user login with email + PIN |
-| `/admin-home` | `Home` | Protected — admin dashboard; requires valid admin session (redirects to `/admin-login` if not) |
-| `/admin-login` | `AdminPasswordLogin` | Markaz admin password prompt; grants `MarkazAdmin` role; redirects to `/admin-home` on success |
-| `/masjid-login` | `MasjidLogin` | Admin login for any masjid (requires Masjid ID) |
-| `/admin/login` | `AdminLogin` | Global Markaz Admin login (password from env var) |
-| `/:masjidSlug` | `MasjidLanding` | Masjid-specific landing page |
-| `/landing/:masjidID/:unitID` | `Landing` | Protected — main address list view; requires user login (redirects to `/user-login` if not) |
-| `/address/:id` | `AddressDetail` | Protected — address detail/edit view; requires user login (redirects to `/user-login` if not) |
-| `/map/:masjidID/:unitID` | `MapView` | Protected — Leaflet map view; requires user login (redirects to `/user-login` if not) |
-| `/admin/masjids` | `MasjidManagement` | Protected — browse/search all masjids |
-| `/admin/masjids/:id` | `MasjidDetail` | Protected — view single masjid by ID |
-| `/admin/users` | `UserManagement` | Protected — browse/search all users |
-| `/admin/users/:id` | `UserDetail` | Protected — view single user by ID |
+| Path | Component | Role Required | Notes |
+|------|-----------|----------------|-------|
+| `/` | `UserLogin` | None | PWA entry point — redirects to `/user-login` |
+| `/user-login` | `UserLogin` | None | MasjidAdmin entry: email + PIN; auto-login if credentials cached |
+| `/masjid-login` | `MasjidLogin` | None | GeneralUser entry: Masjid ID + PIN (GeneralUser) OR Masjid ID + Markaz password (MasjidAdmin) |
+| `/:masjidSlug` | `MasjidLanding` | None | Public landing page; auto-grants GeneralUser role on "Go to Listings" click |
+| `/admin-login` | `AdminPasswordLogin` | None | MarkazAdmin entry: Markaz password prompt; sets `userRole = 'MarkazAdmin'`; redirects to `/admin-home` |
+| `/admin-home` | `Home` | `MarkazAdmin` | Admin dashboard; redirects to `/admin-login` if role not MarkazAdmin |
+| `/admin/login` | `AdminLogin` | — | Legacy (unused) |
+| `/landing/:masjidID/:unitID` | `Landing` | Any authenticated role | Protected — main address list view; requires GeneralUser, MasjidAdmin, or MarkazAdmin role |
+| `/address/:id` | `AddressDetail` | Any authenticated role | Protected — address detail/edit view; requires authenticated role |
+| `/map/:masjidID/:unitID` | `MapView` | Any authenticated role | Protected — Leaflet map view; requires authenticated role |
+| `/admin/masjids` | `MasjidManagement` | `MarkazAdmin` | Protected — browse/search all masjids; only MarkazAdmin |
+| `/admin/masjids/:id` | `MasjidDetail` | `MarkazAdmin` | Protected — view single masjid by ID; only MarkazAdmin |
+| `/admin/users` | `UserManagement` | `MarkazAdmin` | Protected — browse/search all users; only MarkazAdmin |
+| `/admin/users/:id` | `UserDetail` | `MarkazAdmin` | Protected — view single user by ID; only MarkazAdmin |
 
 ## Masjid Config (`src/config.js`)
 
@@ -47,9 +63,23 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 
 **Env var**: `REACT_APP_ADMIN_PASSWORD` — Markaz admin password; used by both `/admin-login` and `/admin/login` routes.
 
-## MasjidLanding Auth Flow
+## Authentication Flows
 
-Route `/:masjidSlug` → resolves `getMasjidByLanding(slug)` → password is `${masjid.landing}${getHijriYear()}` → navigates to `/landing/:id/:unit` with `{ state: { isLoggedIn: true } }`. Unknown slug shows error + "Go to Login" button.
+### GeneralUser Entry (PIN-Only)
+Route `/masjid-login` → User enters Masjid ID + PIN → System validates → `userRole = 'GeneralUser'`; `loginSource = 'pin'` → Navigate to `/landing/:id/:unit`.
+
+### MasjidAdmin Entry (Email + PIN, with Auto-Login)
+Route `/user-login` (PWA default) → User enters Email + PIN → API validates and returns list of assigned masjids → `userRole = 'MasjidAdmin'`; `userEmail`, `userPin`, `userMasjids` cached in localStorage → Navigate to first assigned masjid.
+
+**Auto-Login**: On app launch, if `userEmail` and `userPin` exist in localStorage, system automatically verifies credentials and logs user in. Credentials only cleared when user explicitly logs out.
+
+### MarkazAdmin Entry (Markaz Password)
+Route `/admin-login` → User enters Markaz password (from `REACT_APP_ADMIN_PASSWORD`) → `userRole = 'MarkazAdmin'`; `loginSource = 'markaz-admin'` → Redirect to `/admin-home`.
+
+### Direct Masjid Landing (Public via Slug)
+Route `/:masjidSlug` (e.g., `/di`) → System resolves masjid config from slug → Shows MasjidLanding with Masjid ID selector → User clicks "Go to Listings" → `userRole = 'GeneralUser'` auto-set; `loginSource = 'masjid-slug'` → Navigate to `/landing/:id/:unit`.
+
+**Note**: Knowledge of a valid masjid slug is treated as sufficient authentication (equivalent to PIN entry).
 
 ## API
 
@@ -76,15 +106,23 @@ Never hardcode `localhost` URLs.
 **Dates** — always use `formatDate()` from `src/utils.js`. Never use `toLocaleDateString()` directly; it causes off-by-one day errors with MongoDB UTC dates. `formatDate` handles MongoDB `{ $date: "..." }` objects, ISO strings, and Date instances.
 
 **localStorage keys**:
-- `userEmail` — user email for UserLogin; used for auto-login on PWA launch
-- `userPin` — user PIN (password) for UserLogin; used for auto-login on PWA launch
-- `userMasjids` — JSON array of masjid slugs user has access to; displayed as "Other Masjids" links on MasjidLanding page
-- `loginSource` — `'admin'` (admin login) or `'user'` (user login); used for logout routing
-- `userRole` — `'MarkazAdmin'`, `'MasjidAdmin'`, or `''` (empty = not logged in); replaces old `ADMIN` flag
+
+**Authentication & Role**:
+- `userRole` — Active role: `'GeneralUser'`, `'MasjidAdmin'`, `'MarkazAdmin'`, or `''` (empty = not logged in). Used by route protection components.
+- `loginSource` — Authentication entry point: `'pin'` (PIN-only), `'user'` (email+PIN), `'markaz-admin'` (Markaz password), or `'masjid-slug'` (public masjid link). Guides logout routing.
+
+**MasjidAdmin Credentials** (cached for auto-login):
+- `userEmail` — User email for UserLogin; used to auto-login MasjidAdmin on PWA launch. Cleared on logout.
+- `userPin` — User PIN for UserLogin; used to auto-login MasjidAdmin on PWA launch. Cleared on logout.
+- `userMasjids` — JSON array of masjid slugs MasjidAdmin has access to; displayed as "Other Masjids" collapsible section on MasjidLanding page. Cleared on logout.
+
+**Address List & Filtering**:
 - `addressList` — working set from last fetch or search (cleared on logout)
 - `searchParams` — last search form values (cleared on logout)
 - `areaFilter` — last area filter text (cleared on logout)
 - `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
+
+**Context & Preferences**:
 - `landingContext` — `{ masjidID, unitID }` last visited (cleared on logout; used to restore unit selection)
 - `preferredMasjid` — masjid slug cached for PWA app launch (cleared on logout)
 

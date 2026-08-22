@@ -5,7 +5,37 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
-## 2026-08-22
+## 2026-08-22 (Session 2)
+
+### Three-Tier Role System Implementation
+- **feat(auth):** Implemented comprehensive three-tier authentication and role-based access control system with three distinct user roles and entry points.
+- **feat(auth - GeneralUser):** PIN-only authentication via `/masjid-login` route. Users enter Masjid ID + PIN, granted `GeneralUser` role, access address listings for selected masjid. No credential caching; logout returns to login screen.
+- **feat(auth - MasjidAdmin):** Email + PIN authentication via `/user-login` route (PWA entry point). API verifies credentials and returns list of assigned masjids. Role set to `MasjidAdmin`; credentials cached in localStorage for persistent auto-login on PWA launch. Logout only triggered by explicit user action (button click).
+- **feat(auth - MarkazAdmin):** Markaz password authentication via `/admin-login` route. Password from `REACT_APP_ADMIN_PASSWORD` env var. Role set to `MarkazAdmin`; access to `/admin/masjids` and `/admin/users` management pages. Logout via admin interface.
+- **feat(auth - public access):** Public masjid landing pages (`/:masjidSlug`, e.g., `/di`) now auto-grant `GeneralUser` role on "Go to Listings" click. Knowledge of valid masjid slug treated as equivalent to PIN entry. Enables shareable public links.
+- **refactor(auth):** Updated App.js with three new protected route components: `ProtectedMarkazAdminRoute` (MarkazAdmin-only), `ProtectedMasjidAdminRoute` (MasjidAdmin + MarkazAdmin), `ProtectedUserRoute` (all authenticated roles).
+- **refactor(auth):** Updated `userRole` localStorage key to store explicit role values: `'GeneralUser'`, `'MasjidAdmin'`, `'MarkazAdmin'`, or `''` (not logged in). Replaces previous boolean `ADMIN` flag.
+- **refactor(auth):** Updated `loginSource` localStorage key to distinguish authentication entry points: `'pin'` (GeneralUser PIN-only), `'user'` (MasjidAdmin email+PIN), `'markaz-admin'` (MarkazAdmin password), `'masjid-slug'` (public masjid link).
+
+### Component Updates
+- **feat(MasjidLogin):** Added PIN-only login form with state management; `handlePinLogin()` function sets `GeneralUser` role; stores PIN in localStorage.
+- **feat(MasjidLogin):** Displays collapsible "Markaz Admin Login" toggle for admin password verification (sets `MasjidAdmin` role).
+- **refactor(UserLogin):** Updated to explicitly set `userRole = 'MasjidAdmin'` (was API-based role assignment). Stores `userMasjids` array for "Other Masjids" quick-switch links.
+- **refactor(AdminPasswordLogin):** Verified `userRole = 'MarkazAdmin'` assignment; added `loginSource = 'markaz-admin'` tracking.
+- **refactor(MasjidLanding):** Auto-grants `GeneralUser` role when accessed via valid `/:masjidSlug` and user clicks "Go to Listings"; sets `loginSource = 'masjid-slug'`.
+- **refactor(Landing):** Updated `onLogout()` to clear all authentication credentials (`userRole`, `userEmail`, `userPin`, `userMasjids`, `loginSource`) preventing unwanted auto-login after explicit logout.
+
+### Documentation
+- **docs(auth):** Completely rewrote `README.md` "Authentication & Role System" section documenting all three roles with entry points, authentication flows, access levels, and use cases.
+- **docs(auth):** Added detailed "Manifest & PWA" and "Logout Behavior" subsections explaining auto-login behavior and role-specific logout flows.
+- **docs(routing):** Updated `AGENTS.md` routing table with three-tier role requirements and redirect behavior for each route.
+- **docs(auth):** Added new "Three-Tier Role System" section to `AGENTS.md` with role comparison table and protected route descriptions.
+- **docs(auth):** Documented all four authentication flows in new "Authentication Flows" section: GeneralUser (PIN), MasjidAdmin (Email+PIN with auto-login), MarkazAdmin (password), and public masjid slug access.
+- **docs(storage):** Reorganized and expanded `localStorage keys` documentation with detailed explanations of authentication, credentials, and address-list-related keys.
+
+---
+
+## 2026-08-22 (Session 1)
 
 ### Routing & Entry Points
 - **refactor(routing):** Changed home route from `/` to `/admin-home` (admin-only dashboard); `/` now redirects to `/user-login` as new PWA entry point.
