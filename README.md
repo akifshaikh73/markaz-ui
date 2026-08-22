@@ -1,11 +1,28 @@
 # Markaz Visitation UI
 
+## User Login (PWA Entry Point)
+
+**Route**: `/` and `/user-login` (aliases)
+
+The app launches directly to user login (`/user-login`). Users authenticate with:
+- **User ID** — unique user identifier
+- **PIN** — password
+
+On successful login, the user is redirected to their masjid's landing page (`/:masjidSlug`). 
+
+**Auto-Login**: Credentials (`userId` and `userPin`) are stored in `localStorage`. On PWA launch, if credentials exist, the app automatically verifies them and logs the user back in. If verification fails, the user returns to the login page.
+
+**Manifest**: `public/manifest.json` has `start_url: "/user-login"`, so PWA installations launch directly to the user login page.
+
+---
+
 ## API Reference
 
 All endpoints are relative to `REACT_APP_API_URL` (configured via environment variable).
 
 | Method | Endpoint | Query Params / Body | Description | Component |
 |--------|----------|----------------------|-------------|-----------|
+| `POST` | `/api/users/login` | Body: `{ userId, pin }` | Authenticate user; returns `{ masjidSlug, masjids[] }` | `UserLogin` |
 | `GET` | `/api/addressList/list` | `masjid_id`, `unit_id` *(optional)* | Fetch address list for a masjid; omit `unit_id` for all units | `Landing` |
 | `POST` | `/api/addressList/filter/search/` | Body: `{ masjidId, unitId?, _id?, name?, address?, city?, showInactive?, filterByStudents? }` | Search/filter addresses | `Landing` |
 | `GET` | `/api/addressList/search/:id` | — | Fetch a single address by ID | `AddressDetail` |

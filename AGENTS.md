@@ -8,16 +8,19 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 
 | Path | Component | Notes |
 |------|-----------|-------|
-| `/` | — | Redirects to `/masjid-login` |
-| `/all` | `All` | Protected — requires admin auth (`ProtectedAdminRoute`) |
-| `/masjid-login` | `MasjidLogin` | Entry point for regular users |
-| `/admin-login` | `AdminLogin` | Admin password login; redirects to `/all` on success |
+| `/` | `UserLogin` | PWA entry point — user login with userid + PIN; auto-login if credentials stored |
+| `/user-login` | `UserLogin` | Alias for `/` — user login with userid + PIN |
+| `/admin-home` | `Home` | Protected — admin dashboard; requires valid admin session |
+| `/masjid-login` | `MasjidLogin` | Admin login for any masjid (requires Masjid ID) |
+| `/admin/login` | `AdminLogin` | Global Markaz Admin login (password from env var) |
 | `/:masjidSlug` | `MasjidLanding` | Masjid-specific landing page |
-| `/landing/:masjidID/:unitID` | `Landing` | Main list view |
-| `/address/:id` | `AddressDetail` | Detail/edit view |
+| `/landing/:masjidID/:unitID` | `Landing` | Main address list view |
+| `/address/:id` | `AddressDetail` | Address detail/edit view |
 | `/map/:masjidID/:unitID` | `MapView` | Leaflet map view |
 | `/admin/masjids` | `MasjidManagement` | Protected — browse/search all masjids |
 | `/admin/masjids/:id` | `MasjidDetail` | Protected — view single masjid by ID |
+| `/admin/users` | `UserManagement` | Protected — browse/search all users |
+| `/admin/users/:id` | `UserDetail` | Protected — view single user by ID |
 
 ## Masjid Config (`src/config.js`)
 
@@ -72,12 +75,16 @@ Never hardcode `localhost` URLs.
 **Dates** — always use `formatDate()` from `src/utils.js`. Never use `toLocaleDateString()` directly; it causes off-by-one day errors with MongoDB UTC dates. `formatDate` handles MongoDB `{ $date: "..." }` objects, ISO strings, and Date instances.
 
 **localStorage keys**:
+- `userId` — user ID for UserLogin; used for auto-login on PWA launch
+- `userPin` — user PIN (password) for UserLogin; used for auto-login on PWA launch
+- `loginSource` — `'admin'` (admin login) or `'user'` (user login); used for logout routing
+- `userRole` — `'MarkazAdmin'`, `'MasjidAdmin'`, or `''` (empty = not logged in); replaces old `ADMIN` flag
 - `addressList` — working set from last fetch or search (cleared on logout)
 - `searchParams` — last search form values (cleared on logout)
 - `areaFilter` — last area filter text (cleared on logout)
 - `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
 - `landingContext` — `{ masjidID, unitID }` last visited (cleared on logout; used to restore unit selection)
-- `ADMIN` — `'true'`/`'false'` string; read on init, written by `setAdmin()`
+- `preferredMasjid` — masjid slug cached for PWA app launch (cleared on logout)
 
 **sessionStorage keys** (keyed per masjid+unit; cleared on logout via `sessionStorage.clear()`):
 - `unitAreas_<masjidID>_<unitID>` — sorted unique area/neighborhood strings for the Neighborhood dropdown
