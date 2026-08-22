@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const card = {
@@ -46,8 +46,20 @@ const badge = (color) => ({
 const Home = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const hasRedirected = useRef(false);
 
     useEffect(() => {
+        // If intentionally navigating to home page, don't redirect
+        if (location.state?.intentionalHome) {
+            hasRedirected.current = true; // Mark as processed
+            return;
+        }
+
+        // Only perform redirects once
+        if (hasRedirected.current) {
+            return;
+        }
+
         // Extract slug from current URL path (e.g., '/di' from pathname='/di')
         const path = location.pathname;
         const slug = path.split('/')[1]; // Get first segment after /
@@ -56,6 +68,7 @@ const Home = () => {
         // If user is accessing a masjid slug directly, save it for PWA pinning
         if (slug && !reservedRoutes.includes(slug)) {
             localStorage.setItem('preferredMasjid', slug);
+            hasRedirected.current = true;
             navigate(`/${slug}`, { replace: true });
             return;
         }
@@ -66,17 +79,19 @@ const Home = () => {
 
         // If user has a preferred masjid, redirect there
         if (preferredMasjid) {
+            hasRedirected.current = true;
             navigate(`/${preferredMasjid}`, { replace: true });
             return;
         }
 
         // If user is admin, redirect to admin panel
         if (userRole === 'MarkazAdmin' || userRole === 'MasjidAdmin') {
+            hasRedirected.current = true;
             navigate('/admin/masjids', { replace: true });
             return;
         }
         // Otherwise show home page
-    }, [navigate, location.pathname]);
+    }, [navigate, location.pathname, location.state]);
 
     return (
         <div style={{ maxWidth: '600px', margin: '3rem auto', padding: '0 1rem' }}>
@@ -93,6 +108,10 @@ const Home = () => {
                 </div>
                 <div style={{ ...linkRow, borderBottom: 'none' }}>
                     <Link to="/admin/masjids" style={linkStyle}>Masjid Management</Link>
+                    <span style={badge('#d32f2f')}>Protected</span>
+                </div>
+                <div style={{ ...linkRow, borderBottom: 'none' }}>
+                    <Link to="/admin/users" style={linkStyle}>User Management</Link>
                     <span style={badge('#d32f2f')}>Protected</span>
                 </div>
             </div>
