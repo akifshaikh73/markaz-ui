@@ -31,6 +31,7 @@ function Landing() {
     const [showAddAddress, setShowAddAddress] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [selectedUnitIds, setSelectedUnitIds] = useState([]);
+    const [routeIds, setRouteIds] = useState([]);
     const [newArea, setNewArea] = useState('');
     const [newUnit, setNewUnit] = useState('');
     const [areaUpdateStatus, setAreaUpdateStatus] = useState(null);
@@ -272,7 +273,21 @@ function Landing() {
                 )}
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>
+                <button
+                    onClick={() => navigate('/visitation', { state: { isLoggedIn: true, masjidID } })}
+                    style={{ background: '#2e7d32', color: '#fff', border: 'none', padding: '0.45rem 1.1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', boxShadow: '0 2px 6px rgba(0,0,0,0.18)', letterSpacing: '0.01em' }}
+                >
+                    🕌 Visitation
+                </button>
+                {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
+                {routeIds.length > 0 && (
+                    <button
+                        onClick={() => navigate('/route', { state: { listings: addressList.filter(a => routeIds.includes(a._id)), masjidID, unitID } })}
+                        style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.35rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                        🗺 Route ({routeIds.length})
+                    </button>
+                )}
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
                 <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>
                 <button onClick={onLogout}>Logout</button>
@@ -359,7 +374,7 @@ function Landing() {
                     onCreated={() => {}}
                 />
             )}
-            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} selectedUnitIds={selectedUnitIds} onUnitSelectionChange={setSelectedUnitIds} isAdmin={getAdmin()} />
+            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} selectedUnitIds={selectedUnitIds} onUnitSelectionChange={setSelectedUnitIds} isAdmin={getAdmin()} routeIds={routeIds} onRouteChange={setRouteIds} />
         </>
     );
 }

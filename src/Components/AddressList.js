@@ -4,10 +4,11 @@ import AddressDetail from './AddressDetail';
 import AddressRow from './AddressRow';
 
 
-function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, selectedUnitIds = [], onUnitSelectionChange, isAdmin = false }) {
+function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, selectedUnitIds = [], onUnitSelectionChange, isAdmin = false, routeIds = [], onRouteChange }) {
     console.log(initialAddressList);
     const [addressList, setAddressList] = useState(initialAddressList || []);
     const [selectedAddress, setSelectedAddress] = useState(null);
+    const [dateSortOrder, setDateSortOrder] = useState('asc'); // 'asc' for oldest first, 'desc' for newest first
 
     const handleToggle = (id) => {
         if (selectedIds.includes(id)) {
@@ -44,6 +45,19 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
         }
     };
 
+    const handleRouteToggle = (id) => {
+        if (!onRouteChange) return;
+        if (routeIds.includes(id)) onRouteChange(routeIds.filter(i => i !== id));
+        else onRouteChange([...routeIds, id]);
+    };
+
+    const handleRouteSelectAll = (allIds) => {
+        if (!onRouteChange) return;
+        const allSelected = allIds.every(id => routeIds.includes(id));
+        if (allSelected) onRouteChange(routeIds.filter(id => !allIds.includes(id)));
+        else onRouteChange(Array.from(new Set([...routeIds, ...allIds])));
+    };
+
     const handleClose = () => {
         setSelectedAddress(null);
     };
@@ -58,7 +72,26 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
                 <thead>
                     <tr>
                         <th className="m-u-id-col">M-U-ID</th>
-                        <th>ID</th>
+                        <th>
+                            {(() => {
+                                const allIds = addressList.map(a => a._id);
+                                const allRoute = allIds.length > 0 && allIds.every(id => routeIds.includes(id));
+                                const someRoute = allIds.some(id => routeIds.includes(id));
+                                return (
+                                    <>
+                                        <input
+                                            type="checkbox"
+                                            checked={allRoute}
+                                            ref={el => { if (el) el.indeterminate = someRoute && !allRoute; }}
+                                            onChange={() => handleRouteSelectAll(allIds)}
+                                            title="Select all for Route"
+                                            style={{ marginRight: '4px', cursor: 'pointer', accentColor: '#e65100' }}
+                                        />
+                                        ID
+                                    </>
+                                );
+                            })()}
+                        </th>
                         <th>Name</th>
                         <th>Address</th>
                         {isAdmin && (() => {
@@ -97,7 +130,13 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
                         })()}
                         <th>Comments</th>
                         <th>Last Response</th>
-                        <th>Date</th>
+                        <th 
+                            onClick={() => setDateSortOrder(dateSortOrder === 'asc' ? 'desc' : 'asc')}
+                            style={{ cursor: 'pointer', userSelect: 'none', textDecoration: 'underline' }}
+                            title={`Click to sort by date (${dateSortOrder === 'asc' ? 'oldest first' : 'newest first'})`}
+                        >
+                            Date {dateSortOrder === 'asc' ? '↑' : '↓'}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -108,12 +147,15 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
                             if (aArea < bArea) return -1;
                             if (aArea > bArea) return 1;
                             
-                            // Within same area, sort by date descending
+                            // Within same area, sort by date based on dateSortOrder
                             const dateA = new Date((a.lastModifiedDate?.$date) ?? a.lastModifiedDate);
                             const dateB = new Date((b.lastModifiedDate?.$date) ?? b.lastModifiedDate);
                             const dateATime = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
                             const dateBTime = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
-                            if (dateBTime !== dateATime) return dateBTime - dateATime;
+                            
+                            if (dateATime !== dateBTime) {
+                                return dateSortOrder === 'asc' ? dateATime - dateBTime : dateBTime - dateATime;
+                            }
                             
                             // If same date, sort by name then ID
                             const aName = `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase();
@@ -131,12 +173,12 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
 
                         return Object.entries(groups).flatMap(([area, addresses]) => [
                             <tr key={`group-${area}`}>
-                                <td colSpan={isAdmin ? 9 : 8} style={{ background: '#e8eaf6', fontWeight: 'bold', padding: '6px 8px', fontSize: '1em' }}>
+                                <td colSpan={isAdmin ? 10 : 9} style={{ background: '#e8eaf6', fontWeight: 'bold', padding: '6px 8px', fontSize: '1em' }}>
                                     {area} ({addresses.length})
                                 </td>
                             </tr>,
                             ...addresses.map(address => (
-                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} isUnitSelected={selectedUnitIds.includes(address._id)} onUnitToggle={() => handleUnitToggle(address._id)} isAdmin={isAdmin} />
+                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} isUnitSelected={selectedUnitIds.includes(address._id)} onUnitToggle={() => handleUnitToggle(address._id)} isAdmin={isAdmin} isRouteSelected={routeIds.includes(address._id)} onRouteToggle={() => handleRouteToggle(address._id)} />
                             ))
                         ]);
                     })()}

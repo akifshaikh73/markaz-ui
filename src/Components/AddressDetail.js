@@ -299,10 +299,17 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <p>No students.</p>
                 )}
             </div>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'center' }}>
                 {!isModal && (
                     <button onClick={handleNavigation}>Back to Landing Page</button>
                 )}
+                <button
+                    onClick={() => navigate('/route', { state: { listings: [address] } })}
+                    disabled={!address._id}
+                    style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
+                >
+                    🗺 Route
+                </button>
             </div>
         </div>
     );

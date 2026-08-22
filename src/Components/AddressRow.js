@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../utils';
 
-function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onUnitToggle, isAdmin = false }) {
+function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onUnitToggle, isAdmin = false, isRouteSelected = false, onRouteToggle }) {
     const visitHistory = Array.isArray(address.visitHistory) ? address.visitHistory : [];
 
     const commentsWithDate = [...visitHistory]
@@ -21,6 +21,13 @@ function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onU
                 {address.masjidId}-{address.unitId}-{address._id}
             </td>
             <td>
+                <input
+                    type="checkbox"
+                    checked={!!isRouteSelected}
+                    onChange={onRouteToggle}
+                    title="Add to Route"
+                    style={{ marginRight: '5px', cursor: 'pointer', accentColor: '#e65100' }}
+                />
                 <Link to={{ pathname: `/address/${address._id}`, state: { address } }}>
                     {address._id}
                 </Link>
