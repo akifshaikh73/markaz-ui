@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { setAdmin, setUserRole, getHijriYear } from '../config';
+import { setUserRole, getHijriYear } from '../config';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import { useMasjidConfig } from '../hooks/useMasjids';
@@ -45,17 +45,6 @@ const MasjidLanding = () => {
 
     const masjidId = masjidConfig._id ?? masjidConfig.id;
 
-    const handleLogout = () => {
-        setAdmin(false);
-        localStorage.removeItem('addressList');
-        localStorage.removeItem('searchParams');
-        localStorage.removeItem('areaFilter');
-        localStorage.removeItem('activeFilters');
-        localStorage.removeItem('landingContext');
-        localStorage.removeItem('preferredMasjid');
-        sessionStorage.clear();
-        navigate('/');
-    };
 
     const handleLogin = () => {
         setAdmin(false);
@@ -98,11 +87,6 @@ const MasjidLanding = () => {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {localStorage.getItem('userEmail') && (
                         <button onClick={handleUserLogout} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontWeight: 500 }}>
-                            Logout
-                        </button>
-                    )}
-                    {cachedContext.masjidID === String(masjidId) && (
-                        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontWeight: 500 }}>
                             Logout
                         </button>
                     )}

@@ -138,22 +138,6 @@ const UserLogin = () => {
                 >
                     {loading ? 'Logging in...' : 'Login'}
                 </button>
-
-                <button
-                    type="button"
-                    onClick={() => navigate('/masjid-login')}
-                    style={{
-                        padding: '0.75rem',
-                        fontSize: '1rem',
-                        borderRadius: '4px',
-                        border: '1px solid #ddd',
-                        background: 'none',
-                        color: '#1976d2',
-                        cursor: 'pointer',
-                    }}
-                >
-                    Login as Admin
-                </button>
             </form>
         </div>
     );
