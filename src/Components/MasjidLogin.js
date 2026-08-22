@@ -39,7 +39,7 @@ const Login = ({ lockedMasjidID }) => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <button onClick={() => navigate('/', { state: { intentionalHome: true } })} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>← Home</button>
+            <button onClick={() => navigate('/user-login')} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>← Back to User Login</button>
             <h2>Login</h2>
             <div>
                 <label>

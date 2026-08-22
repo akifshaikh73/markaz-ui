@@ -260,7 +260,7 @@ function Landing() {
                 <StatusBadges />
                 <RoleBadge />
                 {isMarkazAdmin && (
-                    <button onClick={() => navigate('/', { state: { intentionalHome: true } })} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
+                    <button onClick={() => navigate('/admin-home')} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                 )}
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

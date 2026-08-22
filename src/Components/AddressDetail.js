@@ -172,7 +172,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <StatusBadges />
                     <RoleBadge />
                     {localStorage.getItem('loginSource') === 'admin' && getAdmin() && (
-                        <button onClick={() => navigate('/', { state: { intentionalHome: true } })} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
+                        <button onClick={() => navigate('/admin-home')} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                     )}
                 </div>
                 <p><strong>ID:</strong> {address._id}</p>
