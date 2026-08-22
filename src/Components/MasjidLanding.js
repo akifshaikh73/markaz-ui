@@ -20,6 +20,7 @@ const MasjidLanding = () => {
     const [showAdminLogin, setShowAdminLogin] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');
     const [adminError, setAdminError] = useState('');
+    const [showUserMasjids, setShowUserMasjids] = useState(false);
 
     // Set initial unit once masjidConfig is available
     useEffect(() => {
@@ -107,23 +108,6 @@ const MasjidLanding = () => {
                     )}
                 </div>
             </div>
-            {localStorage.getItem('userEmail') && (() => {
-                const userMasjids = JSON.parse(localStorage.getItem('userMasjids') || '[]');
-                const currentMasjidSlug = masjidSlug;
-                const otherMasjids = userMasjids.filter(m => m !== currentMasjidSlug);
-                return otherMasjids.length > 0 ? (
-                    <div style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '4px', border: '1px solid #ddd' }}>
-                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 600, color: '#666' }}>Other Masjids</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            {otherMasjids.map(masjid => (
-                                <a key={masjid} href={`/${masjid}`} style={{ fontSize: '0.9rem', color: '#1976d2', textDecoration: 'none' }}>
-                                    → {masjid}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                ) : null;
-            })()}
             <div>
                 <label>
                     Masjid ID:
@@ -150,6 +134,43 @@ const MasjidLanding = () => {
                     </select>
                 </label>
             </div>
+            {localStorage.getItem('userEmail') && (() => {
+                const userMasjids = JSON.parse(localStorage.getItem('userMasjids') || '[]');
+                const currentMasjidSlug = masjidSlug;
+                const otherMasjids = userMasjids.filter(m => m !== currentMasjidSlug);
+                return otherMasjids.length > 0 ? (
+                    <div style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '4px', border: '1px solid #ddd' }}>
+                        <button 
+                            onClick={() => setShowUserMasjids(!showUserMasjids)}
+                            style={{ 
+                                width: '100%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'space-between',
+                                background: 'none',
+                                border: 'none',
+                                padding: 0,
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                color: '#666'
+                            }}
+                        >
+                            <span>Other Masjids</span>
+                            <span style={{ transform: showUserMasjids ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                        </button>
+                        {showUserMasjids && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                                {otherMasjids.map(masjid => (
+                                    <a key={masjid} href={`/${masjid}`} style={{ fontSize: '0.9rem', color: '#1976d2', textDecoration: 'none' }}>
+                                        → {masjid}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ) : null;
+            })()}
             <button onClick={handleLogin} style={{ padding: '0.5rem' }}>
                 Login
             </button>
