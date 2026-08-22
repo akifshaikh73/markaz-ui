@@ -29,7 +29,7 @@ const AdminLogin = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <button onClick={() => navigate('/')} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>← Home</button>
+            <button onClick={() => navigate('/', { state: { intentionalHome: true } })} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>← Home</button>
             <h2>Admin Login</h2>
             <form onSubmit={e => { e.preventDefault(); handleAdminLogin(); }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {/* hidden username satisfies browser credential-manager requirement */}
