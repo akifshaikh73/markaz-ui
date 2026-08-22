@@ -37,7 +37,6 @@ function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onU
                 <input type="checkbox" checked={!!isSelected} onChange={onToggle} style={{ marginRight: '5px', cursor: 'pointer' }} />
                 {address.area}
             </td>
-            {isAdmin && <td>{address.unitId}</td>}
             <td>
                 {commentsWithDate.map((v, i) => (
                     <div

@@ -222,9 +222,9 @@ function Landing() {
         localStorage.removeItem('preferredMasjid');
         sessionStorage.clear();
         if (wasMarkaz) {
-            navigate('/admin/login');
+            navigate('/admin-login');
         } else {
-            navigate(masjidConfig ? `/${masjidConfig.landing}` : '/masjid-login');
+            navigate('/user-login');
         }
     };
 
@@ -272,7 +272,7 @@ function Landing() {
                 )}
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
+                <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
                 <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>
                 <button onClick={onLogout}>Logout</button>
