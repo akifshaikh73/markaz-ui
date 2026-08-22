@@ -11,6 +11,7 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 - **refactor(routing):** Changed home route from `/` to `/admin-home` (admin-only dashboard); `/` now redirects to `/user-login` as new PWA entry point.
 - **feat(auth):** New `/user-login` route enables user login with email + PIN; credentials stored in localStorage for auto-login on PWA launch; after successful verification, redirects to user's masjid landing page.
 - **feat(auth):** New `/admin-login` route provides password prompt for Markaz admin access; grants `MarkazAdmin` role and redirects to `/admin-home` on success.
+- **feat(security):** Protected `/landing/:masjidID/:unitID`, `/address/:id`, and `/map/:masjidID/:unitID` routes with user login requirement; unauthenticated users redirected to `/user-login`.
 - **refactor(auth):** `/admin-home` now redirects to `/admin-login` if user lacks admin privileges (instead of redirecting to `/user-login`).
 - **refactor(auth):** Updated all admin component Home buttons to navigate to `/admin-home` instead of `/`; MasjidLogin and AdminLogin back buttons now point to `/user-login` instead.
 - **feat(pwa):** Updated `public/manifest.json` `start_url` to `/user-login` — PWA app now launches directly to user login page.

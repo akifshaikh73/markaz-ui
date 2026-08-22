@@ -24,6 +24,15 @@ const ProtectedAdminRoute = () => {
     return <Outlet />;
 };
 
+const ProtectedUserRoute = () => {
+    const location = useLocation();
+    const userEmail = localStorage.getItem('userEmail');
+    if (!userEmail) {
+        return <Navigate to="/user-login" state={{ from: location }} replace />;
+    }
+    return <Outlet />;
+};
+
 function App() {
     return (
         <MasjidProvider>
@@ -34,11 +43,13 @@ function App() {
                     <Route path="/user-login" element={<UserLogin />} />
                     <Route path="/masjid-login" element={<MasjidLogin />} />
                     <Route path="/:masjidSlug" element={<MasjidLanding />} />
-                    <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
-                    <Route path="/address/:id" element={<AddressDetail />} />
-                    <Route path="/map/:masjidID/:unitID" element={<MapView />} />
                     <Route path="/admin-login" element={<AdminPasswordLogin />} />
                     <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route element={<ProtectedUserRoute />}>
+                        <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
+                        <Route path="/address/:id" element={<AddressDetail />} />
+                        <Route path="/map/:masjidID/:unitID" element={<MapView />} />
+                    </Route>
                     <Route element={<ProtectedAdminRoute />}>
                         <Route path="/admin/masjids" element={<MasjidManagement />} />
                         <Route path="/admin/masjids/:id" element={<MasjidDetail />} />

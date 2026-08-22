@@ -15,9 +15,9 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 | `/masjid-login` | `MasjidLogin` | Admin login for any masjid (requires Masjid ID) |
 | `/admin/login` | `AdminLogin` | Global Markaz Admin login (password from env var) |
 | `/:masjidSlug` | `MasjidLanding` | Masjid-specific landing page |
-| `/landing/:masjidID/:unitID` | `Landing` | Main address list view |
-| `/address/:id` | `AddressDetail` | Address detail/edit view |
-| `/map/:masjidID/:unitID` | `MapView` | Leaflet map view |
+| `/landing/:masjidID/:unitID` | `Landing` | Protected — main address list view; requires user login (redirects to `/user-login` if not) |
+| `/address/:id` | `AddressDetail` | Protected — address detail/edit view; requires user login (redirects to `/user-login` if not) |
+| `/map/:masjidID/:unitID` | `MapView` | Protected — Leaflet map view; requires user login (redirects to `/user-login` if not) |
 | `/admin/masjids` | `MasjidManagement` | Protected — browse/search all masjids |
 | `/admin/masjids/:id` | `MasjidDetail` | Protected — view single masjid by ID |
 | `/admin/users` | `UserManagement` | Protected — browse/search all users |
