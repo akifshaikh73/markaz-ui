@@ -149,7 +149,7 @@ const MasjidLanding = () => {
                 ) : null;
             })()}
             <button onClick={handleLogin} style={{ padding: '0.5rem' }}>
-                Login
+                Go to Listings
             </button>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
