@@ -8,9 +8,10 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 
 | Path | Component | Notes |
 |------|-----------|-------|
-| `/` | `UserLogin` | PWA entry point — user login with userid + PIN; auto-login if credentials stored |
-| `/user-login` | `UserLogin` | Alias for `/` — user login with userid + PIN |
-| `/admin-home` | `Home` | Protected — admin dashboard; requires valid admin session |
+| `/` | `UserLogin` | PWA entry point — user login with email + PIN; auto-login if credentials stored |
+| `/user-login` | `UserLogin` | Alias for `/` — user login with email + PIN |
+| `/admin-home` | `Home` | Protected — admin dashboard; requires valid admin session (redirects to `/admin-login` if not) |
+| `/admin-login` | `AdminPasswordLogin` | Markaz admin password prompt; grants `MarkazAdmin` role; redirects to `/admin-home` on success |
 | `/masjid-login` | `MasjidLogin` | Admin login for any masjid (requires Masjid ID) |
 | `/admin/login` | `AdminLogin` | Global Markaz Admin login (password from env var) |
 | `/:masjidSlug` | `MasjidLanding` | Masjid-specific landing page |
@@ -44,7 +45,7 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 
 **Admin flag**: `ADMIN` is stored in `localStorage('ADMIN')`; mutate only via `setAdmin(bool)`.
 
-**Env var**: `REACT_APP_ADMIN_PASSWORD` — admin password for `/admin-login`.
+**Env var**: `REACT_APP_ADMIN_PASSWORD` — Markaz admin password; used by both `/admin-login` and `/admin/login` routes.
 
 ## MasjidLanding Auth Flow
 
