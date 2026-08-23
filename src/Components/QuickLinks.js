@@ -4,6 +4,32 @@ import { useNavigate, useParams } from 'react-router-dom';
 function QuickLinks() {
     const navigate = useNavigate();
     const { masjidID } = useParams();
+    const API_URL = process.env.REACT_APP_API_URL || '';
+
+    const handleRouteClick = async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`);
+            if (!response.ok) throw new Error('Failed to fetch addresses');
+            const addresses = await response.json();
+            
+            // Filter for active addresses
+            const activeAddresses = addresses.filter(a => !a.inactive);
+            
+            if (activeAddresses.length === 0) {
+                alert('No active addresses available for routing');
+                return;
+            }
+            
+            // Select random address
+            const randomAddress = activeAddresses[Math.floor(Math.random() * activeAddresses.length)];
+            
+            // Navigate to route with the random address
+            navigate('/route', { state: { listings: [randomAddress], masjidID } });
+        } catch (error) {
+            console.error('Error fetching random address:', error);
+            alert('Error loading address');
+        }
+    };
 
     const links = [
         {
@@ -15,20 +41,20 @@ function QuickLinks() {
             onClick: () => navigate('/visitation', { state: { isLoggedIn: true, masjidID } })
         },
         {
-            id: 'routes',
-            label: 'Routes',
-            icon: '🗺️',
-            description: 'Plan and optimize routes',
-            enabled: true,
-            onClick: () => navigate('/route', { state: { masjidID } })
-        },
-        {
             id: 'full-list',
             label: 'Full List',
             icon: '📑',
             description: 'View all addresses',
             enabled: true,
             onClick: () => navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } })
+        },
+        {
+            id: 'routes',
+            label: 'Routes',
+            icon: '🗺️',
+            description: 'Plan and optimize routes',
+            enabled: true,
+            onClick: handleRouteClick
         },
         {
             id: 'reports',
@@ -50,15 +76,15 @@ function QuickLinks() {
             id: 'old-workers',
             label: 'Old Workers',
             icon: '⏳',
-            description: 'Manage previous workers',
+            description: 'Active and Inactive Old workers',
             enabled: false,
             onClick: null
         },
         {
             id: 'masturat-work',
             label: 'Masturat Work',
-            icon: '👩‍💼',
-            description: 'Women outreach program',
+            icon: '�',
+            description: 'Families involved in this work',
             enabled: false,
             onClick: null
         }
