@@ -31,7 +31,6 @@ function Landing() {
     const [showAddAddress, setShowAddAddress] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [selectedUnitIds, setSelectedUnitIds] = useState([]);
-    const [routeIds, setRouteIds] = useState([]);
     const [newArea, setNewArea] = useState('');
     const [newUnit, setNewUnit] = useState('');
     const [areaUpdateStatus, setAreaUpdateStatus] = useState(null);
@@ -280,12 +279,12 @@ function Landing() {
                     🕌 Visitation
                 </button>
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
-                {routeIds.length > 0 && (
+                {selectedIds.length > 0 && (
                     <button
-                        onClick={() => navigate('/route', { state: { listings: addressList.filter(a => routeIds.includes(a._id)), masjidID, unitID } })}
+                        onClick={() => navigate('/route', { state: { listings: addressList.filter(a => selectedIds.includes(a._id)), masjidID, unitID } })}
                         style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.35rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
                     >
-                        🗺 Route ({routeIds.length})
+                        🗺 Route ({selectedIds.length})
                     </button>
                 )}
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
@@ -374,7 +373,7 @@ function Landing() {
                     onCreated={() => {}}
                 />
             )}
-            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} selectedUnitIds={selectedUnitIds} onUnitSelectionChange={setSelectedUnitIds} isAdmin={getAdmin()} routeIds={routeIds} onRouteChange={setRouteIds} />
+            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} selectedUnitIds={selectedUnitIds} onUnitSelectionChange={setSelectedUnitIds} isAdmin={getAdmin()} />
         </>
     );
 }

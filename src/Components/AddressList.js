@@ -4,7 +4,7 @@ import AddressDetail from './AddressDetail';
 import AddressRow from './AddressRow';
 
 
-function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, selectedUnitIds = [], onUnitSelectionChange, isAdmin = false, routeIds = [], onRouteChange }) {
+function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, selectedUnitIds = [], onUnitSelectionChange, isAdmin = false }) {
     console.log(initialAddressList);
     const [addressList, setAddressList] = useState(initialAddressList || []);
     const [selectedAddress, setSelectedAddress] = useState(null);
@@ -45,19 +45,6 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
         }
     };
 
-    const handleRouteToggle = (id) => {
-        if (!onRouteChange) return;
-        if (routeIds.includes(id)) onRouteChange(routeIds.filter(i => i !== id));
-        else onRouteChange([...routeIds, id]);
-    };
-
-    const handleRouteSelectAll = (allIds) => {
-        if (!onRouteChange) return;
-        const allSelected = allIds.every(id => routeIds.includes(id));
-        if (allSelected) onRouteChange(routeIds.filter(id => !allIds.includes(id)));
-        else onRouteChange(Array.from(new Set([...routeIds, ...allIds])));
-    };
-
     const handleClose = () => {
         setSelectedAddress(null);
     };
@@ -75,17 +62,17 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
                         <th>
                             {(() => {
                                 const allIds = addressList.map(a => a._id);
-                                const allRoute = allIds.length > 0 && allIds.every(id => routeIds.includes(id));
-                                const someRoute = allIds.some(id => routeIds.includes(id));
+                                const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.includes(id));
+                                const someSelected = allIds.some(id => selectedIds.includes(id));
                                 return (
                                     <>
                                         <input
                                             type="checkbox"
-                                            checked={allRoute}
-                                            ref={el => { if (el) el.indeterminate = someRoute && !allRoute; }}
-                                            onChange={() => handleRouteSelectAll(allIds)}
-                                            title="Select all for Route"
-                                            style={{ marginRight: '4px', cursor: 'pointer', accentColor: '#e65100' }}
+                                            checked={allSelected}
+                                            ref={el => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                                            onChange={() => handleSelectAll(allIds)}
+                                            title="Select all for area assignment"
+                                            style={{ marginRight: '4px', cursor: 'pointer', accentColor: '#1976d2' }}
                                         />
                                         ID
                                     </>
@@ -111,23 +98,7 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
                                 </th>
                             );
                         })()}
-                        {(() => {
-                            const allIds = addressList.map(a => a._id);
-                            const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.includes(id));
-                            const someSelected = allIds.some(id => selectedIds.includes(id));
-                            return (
-                                <th className="neighborhood-col">
-                                    <input
-                                        type="checkbox"
-                                        checked={allSelected}
-                                        ref={el => { if (el) el.indeterminate = someSelected && !allSelected; }}
-                                        onChange={() => handleSelectAll(allIds)}
-                                        style={{ marginRight: '4px', cursor: 'pointer' }}
-                                    />
-                                    Neighborhood
-                                </th>
-                            );
-                        })()}
+                        <th>Area</th>
                         <th>Comments</th>
                         <th>Last Response</th>
                         <th 
@@ -178,7 +149,7 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, 
                                 </td>
                             </tr>,
                             ...addresses.map(address => (
-                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} isUnitSelected={selectedUnitIds.includes(address._id)} onUnitToggle={() => handleUnitToggle(address._id)} isAdmin={isAdmin} isRouteSelected={routeIds.includes(address._id)} onRouteToggle={() => handleRouteToggle(address._id)} />
+                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} isUnitSelected={selectedUnitIds.includes(address._id)} onUnitToggle={() => handleUnitToggle(address._id)} isAdmin={isAdmin} />
                             ))
                         ]);
                     })()}
