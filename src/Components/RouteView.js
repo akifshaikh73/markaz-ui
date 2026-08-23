@@ -30,6 +30,29 @@ function RouteView() {
     const location = useLocation();
     const navigate = useNavigate();
     const API_URL = process.env.REACT_APP_API_URL || '';
+    const [splitPos, setSplitPos] = useState(60); // Map takes 60% by default
+    const [isDragging, setIsDragging] = useState(false);
+
+    // Handle dragging the divider
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isDragging) return;
+            const container = document.getElementById('route-view-container');
+            if (!container) return;
+            const rect = container.getBoundingClientRect();
+            const newPos = Math.max(20, Math.min(80, ((e.clientY - rect.top) / rect.height) * 100));
+            setSplitPos(newPos);
+        };
+        const handleMouseUp = () => setIsDragging(false);
+        if (isDragging) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+    }, [isDragging]);
 
     // listings passed via route state; fall back to localStorage
     const getInitialListings = () => {
@@ -197,7 +220,7 @@ function RouteView() {
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div id="route-view-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             {/* Toolbar */}
             <div style={{ padding: '10px 16px', background: '#f5f5f5', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate(-1)}>← Back to List</button>
@@ -275,8 +298,8 @@ function RouteView() {
                 )}
             </div>
 
-            {/* Map */}
-            <div style={{ flex: 1, minHeight: 0 }}>
+            {/* Resizable Map Pane */}
+            <div style={{ flex: `0 0 ${splitPos}%`, minHeight: 0, overflow: 'hidden' }}>
                 <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -304,8 +327,24 @@ function RouteView() {
                 </MapContainer>
             </div>
 
-            {/* Stop list */}
-            <div style={{ maxHeight: '220px', overflowY: 'auto', borderTop: '1px solid #ddd', background: '#fff' }}>
+            {/* Draggable Divider */}
+            <div
+                onMouseDown={() => setIsDragging(true)}
+                style={{
+                    height: '8px',
+                    background: '#ddd',
+                    cursor: 'row-resize',
+                    borderTop: '1px solid #bbb',
+                    borderBottom: '1px solid #bbb',
+                    transition: isDragging ? 'none' : 'background 0.2s',
+                    ':hover': { background: '#999' }
+                }}
+                onMouseEnter={(e) => (e.target.style.background = '#999')}
+                onMouseLeave={(e) => !isDragging && (e.target.style.background = '#ddd')}
+            />
+
+            {/* Resizable Stop List Pane */}
+            <div style={{ flex: `0 0 ${100 - splitPos}%`, minHeight: 0, overflowY: 'auto', background: '#fff' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                     <thead style={{ position: 'sticky', top: 0, background: '#f0f0f0' }}>
                         <tr>
