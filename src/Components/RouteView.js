@@ -151,6 +151,7 @@ function RouteView() {
     const [routeLoading, setRouteLoading] = useState(false);
     const [areaSelector, setAreaSelector] = useState(null); // { lat1, lng1, lat2, lng2 }
     const [isDrawingArea, setIsDrawingArea] = useState(false);
+    const [showRoute, setShowRoute] = useState(false); // Flag to show/hide route polyline
     const [totalDistance, setTotalDistance] = useState(null);
     const [totalDuration, setTotalDuration] = useState(null);
     const [nearbyCount, setNearbyCount] = useState(5);
@@ -173,6 +174,7 @@ function RouteView() {
                 // Merge source + nearby, deduplicating by _id
                 const merged = [source, ...data.filter(l => l._id !== source._id)];
                 setListings(merged);
+                setShowRoute(false); // Reset route when addresses change
             })
             .catch(() => setNearbyError('Failed to fetch nearby listings'))
             .finally(() => setNearbyLoading(false));
@@ -263,6 +265,7 @@ function RouteView() {
             ));
             setSelectedIds([]);
             setSelectedArea('');
+            setShowRoute(false); // Reset route when addresses are modified
         })
         .catch(() => setUpdateAreaError('Failed to update area'))
         .finally(() => setUpdateAreaLoading(false));
@@ -279,6 +282,7 @@ function RouteView() {
         setSelectedIds([]);
         setSelectedArea('');
         setAreaSelector(null);
+        setShowRoute(false);
     };
 
     const plotted = listings.filter(l => l.latitude && l.longitude);
@@ -326,9 +330,12 @@ function RouteView() {
         console.log('[RouteView] Listings count:', listings.length, 'Unique areas found:', uniqueAreas, 'Sample listing area:', listings[0]?.area);
     }
 
-    // Fetch OSRM route whenever plotted points change
-    useEffect(() => {
-        if (plotted.length < 2) { setRoutePolyline(null); return; }
+    // Calculate route on demand (when user clicks "Optimize Route" button)
+    const handleCalculateRoute = () => {
+        if (plotted.length < 2) {
+            alert('Need at least 2 addresses with coordinates to create a route');
+            return;
+        }
         setRouteLoading(true);
         const coords = plotted.map(l => `${l.longitude},${l.latitude}`).join(';');
         fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
@@ -339,11 +346,12 @@ function RouteView() {
                     setRoutePolyline(route.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
                     setTotalDistance((route.distance / 1609.34).toFixed(1)); // metres → miles
                     setTotalDuration(Math.round(route.duration / 60));       // seconds → minutes
+                    setShowRoute(true);
                 }
             })
-            .catch(() => {})
+            .catch(() => alert('Failed to fetch route'))
             .finally(() => setRouteLoading(false));
-    }, [listings]); // eslint-disable-line react-hooks/exhaustive-deps
+    };
 
     const center = plotted.length > 0
         ? [plotted[0].latitude, plotted[0].longitude]
@@ -457,13 +465,22 @@ function RouteView() {
             <div style={{ padding: '10px 16px', background: '#f5f5f5', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate(-1)}>← Back to List</button>
                 <button onClick={handleClearRoute} style={{ padding: '4px 12px', background: '#ff5252', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}>✕ Clear Route</button>
+                {plotted.length >= 2 && (
+                    <button
+                        onClick={handleCalculateRoute}
+                        disabled={routeLoading || showRoute}
+                        style={{ padding: '4px 12px', background: showRoute ? '#4caf50' : '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}
+                    >
+                        {routeLoading ? '⟳ Optimizing…' : showRoute ? '✓ Route Optimized' : '🗺️ Optimize Route'}
+                    </button>
+                )}
                 <strong>Route</strong>
                 <span style={{ color: '#555', fontSize: '0.9em' }}>
                     {plotted.length} stop{plotted.length !== 1 ? 's' : ''} plotted
                     {listings.length - plotted.length > 0 && ` · ${listings.length - plotted.length} without coordinates`}
                 </span>
                 {routeLoading && <span style={{ color: '#888', fontSize: '0.85em' }}>Fetching route…</span>}
-                {totalDistance && !routeLoading && (
+                {totalDistance && !routeLoading && showRoute && (
                     <span style={{ color: '#1976d2', fontWeight: 500, fontSize: '0.9em' }}>
                         ~{totalDistance} mi · ~{totalDuration} min driving
                     </span>
@@ -541,7 +558,7 @@ function RouteView() {
                     {plotted.length > 0 && (
                         <FitBounds positions={plotted.map(l => [l.latitude, l.longitude])} />
                     )}
-                    {routePolyline && (
+                    {routePolyline && showRoute && (
                         <Polyline positions={routePolyline} color="#1976d2" weight={4} opacity={0.8} dashArray="8 4" />
                     )}
                     {plotted.map((l, i) => (
