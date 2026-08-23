@@ -4,6 +4,14 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-23 (Session 4 - Part 4 Final)
+
+### Login Navigation Choice Screen
+- **feat(MasjidLanding):** Added navigation choice screen after login. Upon successful authentication (via masjid PIN or email+PIN), users now see three navigation buttons instead of auto-redirecting: **Visitations** (📊), **Full Listings** (📋), and **Quick Links** (⚡). Users can choose their desired destination, improving user agency and workflow flexibility.
+- **refactor(MasjidLanding):** Unit selector now hidden when logged in; only shown for direct slug access (e.g., `/msi`, `/muthman`). This streamlines the post-login UX by separating unit selection from destination choice.
+- **fix(MasjidLanding):** Properly stores landingContext with masjidID for filter persistence in Visitation and Landing views.
+
+---
 ## 2026-08-23 (Session 4 - Part 4 Continued)
 
 ### Filter Persistence Across Navigation
