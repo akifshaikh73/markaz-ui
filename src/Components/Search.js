@@ -50,6 +50,20 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
                     </select>
                 </label>
             )}
+            <label style={{ marginLeft: '1rem' }}>
+                Neighborhood:
+                <select
+                    value={areaValue}
+                    onChange={onAreaChange}
+                    style={{ width: '200px', marginLeft: '0.5rem' }}
+                >
+                    <option value="">— All Neighborhoods —</option>
+                    <option value="__NO_AREA__">— No Area —</option>
+                    {areaOptions.map(a => (
+                        <option key={a} value={a}>{a}</option>
+                    ))}
+                </select>
+            </label>
             </div>
             <div>
             
@@ -71,23 +85,6 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
                 City:
                 <input type="text" placeholder="City" value={city} onChange={e => setCity(e.target.value)} />
             </label>
-            </div>
-
-            <div>
-                <label>
-                    Neighborhood:
-                    <select
-                        value={areaValue}
-                        onChange={onAreaChange}
-                        style={{ width: '300px', marginLeft: '0.5rem' }}
-                    >
-                        <option value="">— All Neighborhoods —</option>
-                        <option value="__NO_AREA__">— No Area —</option>
-                        {areaOptions.map(a => (
-                            <option key={a} value={a}>{a}</option>
-                        ))}
-                    </select>
-                </label>
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>

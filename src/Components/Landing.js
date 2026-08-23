@@ -249,17 +249,17 @@ function Landing() {
             <div style={{ position: 'fixed', top: '10px', left: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center', zIndex: 1000 }}>
                 <StatusBadges />
                 <RoleBadge />
+                <button
+                    onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
+                    style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', boxShadow: '0 1px 3px rgba(0,0,0,0.15)', letterSpacing: '0em' }}
+                >
+                    ⚡
+                </button>
                 {isMarkazAdmin && (
                     <button onClick={() => navigate('/admin-home')} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                 )}
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button
-                    onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
-                    style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.45rem 1.1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', boxShadow: '0 2px 6px rgba(0,0,0,0.18)', letterSpacing: '0.01em' }}
-                >
-                    ⚡ Quick Links
-                </button>
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
                 {selectedIds.length > 0 && (
                     <button
