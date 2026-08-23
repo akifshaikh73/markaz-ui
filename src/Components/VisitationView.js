@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { formatDate } from '../utils';
+import StatusBadges from './StatusBadges';
 
 function VisitationView() {
     const navigate = useNavigate();
@@ -20,7 +21,9 @@ function VisitationView() {
     
     const masjidID = getMasjidID();
 
-    const [total, setTotal] = useState(5);
+    const [total, setTotal] = useState(10);
+    const [countMode, setCountMode] = useState('10'); // '5', '10', '25', 'custom'
+    const [customCount, setCustomCount] = useState(10);
     const [filterUnit, setFilterUnit] = useState('');
     const [filterArea, setFilterArea] = useState('');
     const [applied, setApplied] = useState(null);
@@ -28,8 +31,8 @@ function VisitationView() {
     const [loading, setLoading] = useState(false);
     const [fetchError, setFetchError] = useState('');
     const [sortMode, setSortMode] = useState('leastRecent'); // 'leastRecent' or 'mostRecent'
-    const [timePeriod, setTimePeriod] = useState('last7days'); // 'last7days' or 'last1month'
     const [selectedIds, setSelectedIds] = useState([]);
+    const [unitAutoSelected, setUnitAutoSelected] = useState(false);
 
     // On mount — fetch all listings for the masjid (no unit filter)
     useEffect(() => {
@@ -41,10 +44,37 @@ function VisitationView() {
         setFetchError('');
         fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`)
             .then(r => r.json())
-            .then(data => setAllListings(Array.isArray(data) ? data : []))
+            .then(data => {
+                const listings = Array.isArray(data) ? data : [];
+                setAllListings(listings);
+                // Trigger compute after loading listings
+                setApplied(null); // Reset applied to show loading state
+            })
             .catch(() => setFetchError('Failed to load listings'))
             .finally(() => setLoading(false));
     }, [masjidID, API_URL]);
+
+    // Sync total with countMode
+    useEffect(() => {
+        if (countMode === 'custom') {
+            setTotal(customCount);
+        } else {
+            setTotal(parseInt(countMode));
+        }
+    }, [countMode, customCount]);
+
+    // Auto-select a random unit on first load (excluding '0' and '—')
+    useEffect(() => {
+        if (!unitAutoSelected && filterUnit === '' && allListings.length > 0) {
+            const active = allListings.filter(a => !a.inactive);
+            const validUnits = [...new Set(active.map(a => String(a.unitId ?? '—')))].filter(u => u !== '0' && u !== '—').sort();
+            if (validUnits.length > 0) {
+                const randomUnit = validUnits[Math.floor(Math.random() * validUnits.length)];
+                setFilterUnit(randomUnit);
+                setUnitAutoSelected(true);
+            }
+        }
+    }, [unitAutoSelected, filterUnit, allListings]);
 
     // Derive unique unit and area options from active listings
     const { unitOptions, areaOptions } = useMemo(() => {
@@ -61,20 +91,7 @@ function VisitationView() {
         return [...new Set(active.map(a => (a.area && a.area.trim()) ? a.area.trim() : '(No Area)'))].sort();
     }, [filterUnit, allListings, areaOptions]);
 
-    // Helper function to check if a date falls within the time period
-    const isWithinTimePeriod = (dateStr) => {
-        const d = new Date((dateStr?.$date) ?? dateStr ?? 0);
-        if (isNaN(d.getTime())) return false;
-        const now = Date.now();
-        const diffMs = now - d.getTime();
-        const diffDays = diffMs / (1000 * 60 * 60 * 24);
-        
-        if (timePeriod === 'last7days') return diffDays <= 7;
-        if (timePeriod === 'last1month') return diffDays <= 30;
-        return true;
-    };
-
-    const compute = () => {
+    const compute = useCallback(() => {
         const active = allListings.filter(a => {
             if (a.inactive) return false;
             if (filterUnit && String(a.unitId ?? '—') !== filterUnit) return false;
@@ -82,8 +99,6 @@ function VisitationView() {
                 const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
                 if (area !== filterArea) return false;
             }
-            // Only apply time period filter for 'mostRecent' mode
-            if (sortMode === 'mostRecent' && !isWithinTimePeriod(a.lastModifiedDate)) return false;
             return true;
         });
 
@@ -134,7 +149,14 @@ function VisitationView() {
         }
 
         setApplied({ grouped, total: picked.length });
-    };
+    }, [allListings, filterUnit, filterArea, sortMode, total]);
+
+    // Auto-compute when filters, sort mode, or total changes
+    useEffect(() => {
+        if (allListings.length > 0) {
+            compute();
+        }
+    }, [compute, allListings]);
 
     const handleRoute = (listings) => navigate('/route', { state: { listings } });
 
@@ -158,7 +180,14 @@ function VisitationView() {
         <div style={{ padding: '1rem 1.5rem', maxWidth: '1100px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate(-1)}>← Back</button>
+                <StatusBadges />
                 <h2 style={{ margin: 0 }}>Visitation View</h2>
+                <button
+                    onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
+                    style={{ marginLeft: 'auto', background: '#1976d2', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+                >
+                    ⚡ Quick Links
+                </button>
             </div>
 
             {/* All selectors in one row at top */}
@@ -170,36 +199,33 @@ function VisitationView() {
                         { label: 'Least Recently', value: 'leastRecent' },
                         { label: 'Most Recently', value: 'mostRecent' }
                     ].map(({ label, value }) => (
-                        <button key={value} onClick={() => { setSortMode(value); if (value === 'leastRecent') setTimePeriod('last7days'); }}
+                        <button key={value} onClick={() => setSortMode(value)}
                             style={{ padding: '0.35rem 0.9rem', borderRadius: '5px', border: '1px solid #f57c00', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem', background: sortMode === value ? '#f57c00' : '#fff', color: sortMode === value ? '#fff' : '#f57c00' }}>
                             {label}
                         </button>
                     ))}
                 </div>
 
-                {/* Time period selector */}
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', opacity: sortMode === 'leastRecent' ? 0.5 : 1 }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#555' }}>Time:</span>
-                    {[
-                        { label: '7 Days', value: 'last7days' },
-                        { label: '1 Month', value: 'last1month' }
-                    ].map(({ label, value }) => (
-                        <button key={value} disabled={sortMode === 'leastRecent'} onClick={() => setTimePeriod(value)}
-                            style={{ padding: '0.35rem 0.9rem', borderRadius: '5px', border: '1px solid #7b1fa2', cursor: sortMode === 'leastRecent' ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '0.88rem', background: timePeriod === value ? '#7b1fa2' : '#fff', color: timePeriod === value ? '#fff' : '#7b1fa2' }}>
-                            {label}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Count selector */}
+                {/* Count selector dropdown */}
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#555' }}>Count:</span>
-                    {[{ label: '📅 Daily', count: 5 }, { label: '🗓 Weekly', count: 10 }].map(({ label, count }) => (
-                        <button key={label} onClick={() => setTotal(count)}
-                            style={{ padding: '0.35rem 0.9rem', borderRadius: '5px', border: '1px solid #1976d2', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem', background: total === count ? '#1976d2' : '#fff', color: total === count ? '#fff' : '#1976d2' }}>
-                            {label}
-                        </button>
-                    ))}
+                    <select value={countMode} onChange={e => setCountMode(e.target.value)}
+                        style={{ padding: '0.35rem 0.7rem', borderRadius: '5px', border: '1px solid #1976d2', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="custom">Other</option>
+                    </select>
+                    {countMode === 'custom' && (
+                        <input 
+                            type="number" 
+                            min="1" 
+                            max="500" 
+                            value={customCount}
+                            onChange={e => setCustomCount(Math.max(1, parseInt(e.target.value) || 1))}
+                            style={{ width: '60px', padding: '0.35rem 0.5rem', textAlign: 'center', fontSize: '0.88rem', border: '1px solid #1976d2', borderRadius: '5px' }} 
+                        />
+                    )}
                 </div>
             </div>
 
@@ -207,7 +233,7 @@ function VisitationView() {
             <p style={{ color: '#555', marginTop: 0, marginBottom: '1rem' }}>
                 {sortMode === 'leastRecent' 
                     ? 'Least-recently-visited' 
-                    : 'Most-recently-visited'} <strong>active</strong> addresses{sortMode === 'mostRecent' ? ` ${timePeriod === 'last7days' ? 'from the last 7 days' : 'from the last 1 month'}` : ' (all time)'}, distributed evenly across units and neighborhoods.
+                    : 'Most-recently-visited'} <strong>active</strong> addresses, distributed evenly across units and neighborhoods.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', background: '#e3f2fd', borderRadius: '6px', flexWrap: 'wrap' }}>
                 <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -226,16 +252,6 @@ function VisitationView() {
                         {filteredAreaOptions.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                 </label>
-                <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    Count:
-                    <input type="number" min="1" max="500" value={total}
-                        onChange={e => setTotal(Math.max(1, parseInt(e.target.value) || 1))}
-                        style={{ width: '72px', padding: '0.3rem 0.5rem', textAlign: 'center' }} />
-                </label>
-                <button onClick={compute}
-                    style={{ padding: '0.35rem 1.1rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
-                    Load
-                </button>
                 {applied && (
                     <>
                         <span style={{ color: '#555', fontSize: '0.9em' }}>{applied.total} addresses loaded</span>
