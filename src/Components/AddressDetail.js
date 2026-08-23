@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { formatDate, localDateString, RoleBadge } from '../utils';
+import { formatDate, localDateString } from '../utils';
 import { getAdmin } from '../config';
 import { useMasjidConfig } from '../hooks/useMasjids';
 import StatusBadges from './StatusBadges';
@@ -170,7 +170,6 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 <h2>Address Detail</h2>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                     <StatusBadges />
-                    <RoleBadge />
                     {localStorage.getItem('loginSource') === 'admin' && getAdmin() && (
                         <button onClick={() => navigate('/admin-home')} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                     )}

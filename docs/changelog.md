@@ -16,6 +16,10 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 - **fix(VisitationView):** Removed unused `handleToggleArea()` function that was only used by removed area sub-headers.
 - **fix(VisitationView):** Added `total` to useEffect dependencies to ensure list refreshes when count is changed.
 
+### StatusBadges Enhancement & RoleBadge Consolidation
+- **refactor(StatusBadges):** Updated Role badge to display full role name "MarkazAdmin" instead of abbreviated "KA" for improved clarity. Maintains abbreviations for other roles: "MU" for MasjidUser, "MA" for MasjidAdmin.
+- **refactor(Landing, AddressDetail):** Removed redundant `RoleBadge` component from both pages since role information is now displayed in StatusBadges header. Eliminates duplicate role display in header UI.
+
 ### AddressDetail Navigation
 - **fix(AddressDetail):** Changed back button to use `navigate(-1)` instead of hardcoded Landing page navigation. Back button now correctly returns to the original source page (Landing, Visitation View, Route View, etc.) by using browser history.
 - **style(AddressDetail):** Updated back button label from "Back to Landing Page" to "← Back" for consistency with other components.

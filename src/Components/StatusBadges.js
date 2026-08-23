@@ -18,7 +18,7 @@ function Badge({ label, value }) {
     if (label === 'Role') {
         if (value === 'MasjidUser') display = 'MU';
         else if (value === 'MasjidAdmin') display = 'MA';
-        else if (value === 'MarkazAdmin') display = 'KA';
+        else if (value === 'MarkazAdmin') display = 'MarkazAdmin';
         else display = value ? value.substring(0, 2).toUpperCase() : 'Unknown';
     } else {
         display = isUnknown ? value || 'Unknown' : value.charAt(0).toUpperCase();

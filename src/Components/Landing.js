@@ -6,7 +6,6 @@ import AddAddress from './AddAddress';
 import { exportToExcel } from '../exportExcel';
 import { setAdmin, getAdmin, getUserRole } from '../config';
 import StatusBadges from './StatusBadges';
-import { RoleBadge } from '../utils';
 import { useMasjidConfig } from '../hooks/useMasjids';
 
 function Landing() {
@@ -248,7 +247,6 @@ function Landing() {
         <>
             <div style={{ position: 'fixed', top: '10px', left: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center', zIndex: 1000 }}>
                 <StatusBadges />
-                <RoleBadge />
                 <button
                     onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
                     style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', boxShadow: '0 1px 3px rgba(0,0,0,0.15)', letterSpacing: '0em' }}
