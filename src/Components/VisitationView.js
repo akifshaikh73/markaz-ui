@@ -102,53 +102,37 @@ function VisitationView() {
             return true;
         });
 
-        // Build map: unitId → area → [listings sorted by date asc]
-        const byUnit = {};
-        for (const a of active) {
-            const unit = String(a.unitId ?? '—');
-            const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
-            if (!byUnit[unit]) byUnit[unit] = {};
-            if (!byUnit[unit][area]) byUnit[unit][area] = [];
-            byUnit[unit][area].push(a);
-        }
-
         const getDate = (a) => {
             const d = new Date((a.lastModifiedDate?.$date) ?? a.lastModifiedDate ?? 0);
             return isNaN(d.getTime()) ? 0 : d.getTime();
         };
-        for (const unit of Object.keys(byUnit))
-            for (const area of Object.keys(byUnit[unit]))
-                byUnit[unit][area].sort((x, y) => 
-                    sortMode === 'leastRecent' 
-                        ? getDate(x) - getDate(y)  // oldest first
-                        : getDate(y) - getDate(x)  // newest first
-                );
 
-        const buckets = [];
-        for (const unit of Object.keys(byUnit).sort())
-            for (const area of Object.keys(byUnit[unit]).sort())
-                buckets.push({ unit, area, items: byUnit[unit][area], idx: 0 });
-
-        const picked = [];
-        let added = true;
-        while (picked.length < total && added) {
-            added = false;
-            for (const b of buckets) {
-                if (picked.length >= total) break;
-                if (b.idx < b.items.length) { picked.push(b.items[b.idx++]); added = true; }
-            }
-        }
-
-        const grouped = {};
-        for (const a of picked) {
+        // Group by unit first
+        const byUnit = {};
+        for (const a of active) {
             const unit = String(a.unitId ?? '—');
-            const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
-            if (!grouped[unit]) grouped[unit] = {};
-            if (!grouped[unit][area]) grouped[unit][area] = [];
-            grouped[unit][area].push(a);
+            if (!byUnit[unit]) byUnit[unit] = [];
+            byUnit[unit].push(a);
         }
 
-        setApplied({ grouped, total: picked.length });
+        // Sort each unit's addresses by date
+        for (const unit of Object.keys(byUnit)) {
+            byUnit[unit].sort((x, y) => 
+                sortMode === 'leastRecent' 
+                    ? getDate(x) - getDate(y)  // oldest first
+                    : getDate(y) - getDate(x)  // newest first
+            );
+        }
+
+        // Pick 'total' addresses from each unit
+        const result = {};
+        let grandTotal = 0;
+        for (const unit of Object.keys(byUnit).sort()) {
+            result[unit] = byUnit[unit].slice(0, total);
+            grandTotal += result[unit].length;
+        }
+
+        setApplied({ grouped: result, total: grandTotal });
     }, [allListings, filterUnit, filterArea, sortMode, total]);
 
     // Auto-compute when filters, sort mode, or total changes
@@ -156,7 +140,7 @@ function VisitationView() {
         if (allListings.length > 0) {
             compute();
         }
-    }, [compute, allListings]);
+    }, [compute, allListings, total]);
 
     const handleRoute = (listings) => navigate('/route', { state: { listings } });
 
@@ -164,16 +148,6 @@ function VisitationView() {
         setSelectedIds(prev => 
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );
-    };
-
-    const handleToggleArea = (listings) => {
-        const areaIds = listings.map(a => a._id);
-        const allSelected = areaIds.every(id => selectedIds.includes(id));
-        if (allSelected) {
-            setSelectedIds(prev => prev.filter(id => !areaIds.includes(id)));
-        } else {
-            setSelectedIds(prev => Array.from(new Set([...prev, ...areaIds])));
-        }
     };
 
     return (
@@ -233,7 +207,7 @@ function VisitationView() {
             <p style={{ color: '#555', marginTop: 0, marginBottom: '1rem' }}>
                 {sortMode === 'leastRecent' 
                     ? 'Least-recently-visited' 
-                    : 'Most-recently-visited'} <strong>active</strong> addresses, distributed evenly across units and neighborhoods.
+                    : 'Most-recently-visited'} <strong>active</strong> addresses. Count is applied per unit.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', background: '#e3f2fd', borderRadius: '6px', flexWrap: 'wrap' }}>
                 <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -256,7 +230,7 @@ function VisitationView() {
                     <>
                         <span style={{ color: '#555', fontSize: '0.9em' }}>{applied.total} addresses loaded</span>
                         <button
-                            onClick={() => handleRoute(Object.values(applied.grouped).flatMap(byArea => Object.values(byArea).flat()))}
+                            onClick={() => handleRoute(Object.values(applied.grouped).flatMap(listings => listings))}
                             style={{ padding: '0.35rem 1rem', background: '#e65100', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
                             🗺 Route All
                         </button>
@@ -277,7 +251,7 @@ function VisitationView() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', padding: '0.75rem 1rem', background: '#fff3e0', border: '1px solid #ffb74d', borderRadius: '6px', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 600, color: '#f57c00' }}>{selectedIds.length} address{selectedIds.length !== 1 ? 'es' : ''} selected</span>
                     <button 
-                        onClick={() => handleRoute(applied ? Object.values(applied.grouped).flatMap(byUnit => Object.values(byUnit).flat()).filter(a => selectedIds.includes(a._id)) : [])}
+                        onClick={() => handleRoute(applied ? Object.values(applied.grouped).flatMap(listings => listings).filter(a => selectedIds.includes(a._id)) : [])}
                         style={{ padding: '0.35rem 1rem', background: '#e65100', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}>
                         🗺 Route Selected
                     </button>
@@ -289,79 +263,55 @@ function VisitationView() {
                 </div>
             )}
 
-            {applied && Object.entries(applied.grouped).sort(([a], [b]) => a.localeCompare(b)).map(([unit, byArea]) => {
-                const unitListings = Object.values(byArea).flat();
+            {applied && Object.entries(applied.grouped).sort(([a], [b]) => a.localeCompare(b)).map(([unit, listings]) => {
                 return (
                     <div key={unit} style={{ marginBottom: '1.5rem', border: '1px solid #c5cae9', borderRadius: '8px', overflow: 'hidden' }}>
                         <div style={{ background: '#3f51b5', color: '#fff', padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <strong>Unit {unit} — {unitListings.length} address{unitListings.length !== 1 ? 'es' : ''}</strong>
-                            <button onClick={() => handleRoute(unitListings)}
+                            <strong>Unit {unit} — {listings.length} address{listings.length !== 1 ? 'es' : ''}</strong>
+                            <button onClick={() => handleRoute(listings)}
                                 style={{ padding: '3px 10px', background: '#e65100', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}>
                                 🗺 Route Unit
                             </button>
                         </div>
-                        {Object.entries(byArea).sort(([a], [b]) => a.localeCompare(b)).map(([area, listings]) => {
-                            const areaIds = listings.map(l => l._id);
-                            const allSelected = areaIds.every(id => selectedIds.includes(id));
-                            const someSelected = areaIds.some(id => selectedIds.includes(id));
-                            return (
-                                <div key={area}>
-                                    <div style={{ background: '#e8eaf6', padding: '5px 14px', fontWeight: 600, fontSize: '0.9em', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <input 
-                                                type="checkbox" 
-                                                checked={allSelected}
-                                                ref={el => { if (el) el.indeterminate = someSelected && !allSelected; }}
-                                                onChange={() => handleToggleArea(listings)}
-                                                style={{ cursor: 'pointer', accentColor: '#7b1fa2' }}
-                                                title="Select all in this neighborhood"
-                                            />
-                                            {area} ({listings.length})
-                                        </span>
-                                        <button onClick={() => handleRoute(listings)}
-                                            style={{ padding: '2px 8px', background: '#e65100', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8em', fontWeight: 600 }}>
-                                            🗺 Route Area
-                                        </button>
-                                    </div>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
-                                    <thead>
-                                        <tr style={{ background: '#f5f5f5' }}>
-                                            <th style={{ ...th, width: '30px' }}></th>
-                                            <th style={th}>ID</th>
-                                            <th style={th}>Name</th>
-                                            <th style={th}>Address</th>
-                                            <th style={th}>Last Visited</th>
-                                            <th style={th}>Last Response</th>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                            <thead>
+                                <tr style={{ background: '#f5f5f5' }}>
+                                    <th style={{ ...th, width: '30px' }}></th>
+                                    <th style={th}>ID</th>
+                                    <th style={th}>Name</th>
+                                    <th style={th}>Address</th>
+                                    <th style={th}>Area</th>
+                                    <th style={th}>Last Visited</th>
+                                    <th style={th}>Last Response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {listings.map(a => {
+                                    const lastVisit = (a.visitHistory || []).slice(-1)[0];
+                                    const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
+                                    return (
+                                        <tr key={a._id} style={{ borderBottom: '1px solid #eee' }}>
+                                            <td style={{ ...td, width: '30px', textAlign: 'center' }}>
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(a._id)}
+                                                    onChange={() => handleToggleId(a._id)}
+                                                    style={{ cursor: 'pointer', accentColor: '#e65100' }}
+                                                />
+                                            </td>
+                                            <td style={td}><Link to={`/address/${a._id}`} style={{ color: '#1976d2' }}>{a._id}</Link></td>
+                                            <td style={td}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
+                                            <td style={td}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
+                                            <td style={td}><em style={{ color: '#555' }}>{area}</em></td>
+                                            <td style={{ ...td, color: !a.lastModifiedDate ? '#b71c1c' : '#333' }}>
+                                                {a.lastModifiedDate ? formatDate(a.lastModifiedDate) : 'Never'}
+                                            </td>
+                                            <td style={td}>{lastVisit?.response || '—'}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {listings.map(a => {
-                                            const lastVisit = (a.visitHistory || []).slice(-1)[0];
-                                            return (
-                                                <tr key={a._id} style={{ borderBottom: '1px solid #eee' }}>
-                                                    <td style={{ ...td, width: '30px', textAlign: 'center' }}>
-                                                        <input 
-                                                            type="checkbox"
-                                                            checked={selectedIds.includes(a._id)}
-                                                            onChange={() => handleToggleId(a._id)}
-                                                            style={{ cursor: 'pointer', accentColor: '#e65100' }}
-                                                        />
-                                                    </td>
-                                                    <td style={td}><Link to={`/address/${a._id}`} style={{ color: '#1976d2' }}>{a._id}</Link></td>
-                                                    <td style={td}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
-                                                    <td style={td}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
-                                                    <td style={{ ...td, color: !a.lastModifiedDate ? '#b71c1c' : '#333' }}>
-                                                        {a.lastModifiedDate ? formatDate(a.lastModifiedDate) : 'Never'}
-                                                    </td>
-                                                    <td style={td}>{lastVisit?.response || '—'}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        );
-                        })}
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
                 );
             })}
