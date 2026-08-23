@@ -6,6 +6,13 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 ---
 ## 2026-08-23 (Session 4 - Part 3)
 
+### UI Refinement & Compact Layout
+- **refactor(Landing):** Repositioned "Quick Links" button from top-right to top-left (next to StatusBadges and RoleBadge) for improved visual hierarchy and accessibility. Changed button styling to icon-only (⚡) with reduced padding and font size (0.8rem) for compact header layout.
+- **refactor(Search):** Moved Neighborhood dropdown inline with Unit dropdown into the same flex row for improved form compaction and better use of horizontal space.
+
+### API Fix
+- **fix(MasjidDetail):** Changed HTTP method from `PUT` to `POST` for masjid PIN update endpoint (`/api/masjids/{id}/pin`) to match backend API contract.
+
 ### VisitationView Enhancements
 - **feat(VisitationView):** Added StatusBadges component to header displaying API/DB/Role status indicators for real-time system health visibility.
 - **feat(VisitationView - default count):** Changed default address count from 5 to 10 for improved initial data visibility.
