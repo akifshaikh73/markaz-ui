@@ -34,12 +34,18 @@ function RouteView() {
     // listings passed via route state; fall back to localStorage
     const getInitialListings = () => {
         if (location.state?.listings && Array.isArray(location.state.listings)) {
+            console.log('[RouteView] Listings from location.state:', location.state.listings);
             return location.state.listings;
         }
         try {
             const saved = localStorage.getItem('addressList');
-            return Array.isArray(saved) ? saved : [];
-        } catch {
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+            return [];
+        } catch (err) {
+            console.error('[RouteView] Error parsing addressList from localStorage:', err);
             return [];
         }
     };
@@ -118,6 +124,10 @@ function RouteView() {
     const uniqueAreas = Array.from(new Set(
         listings.map(l => l.area).filter(a => a && a.trim())
     )).sort();
+
+    if (listings.length > 0) {
+        console.log('[RouteView] Listings count:', listings.length, 'Unique areas found:', uniqueAreas, 'Sample listing area:', listings[0]?.area);
+    }
 
     // Fetch OSRM route whenever plotted points change
     useEffect(() => {
@@ -198,16 +208,21 @@ function RouteView() {
                         <input
                             type="text"
                             list="areaList"
-                            placeholder="Select or type area"
+                            placeholder={uniqueAreas.length > 0 ? "Select or type area" : "Type new area (no existing areas)"}
                             value={selectedArea}
                             onChange={e => setSelectedArea(e.target.value)}
-                            style={{ padding: '4px 6px', fontSize: '0.88em', border: '1px solid #90caf9', borderRadius: '3px' }}
+                            style={{ padding: '4px 6px', fontSize: '0.88em', border: '1px solid #90caf9', borderRadius: '3px', minWidth: '140px' }}
                         />
                         <datalist id="areaList">
                             {uniqueAreas.map(area => (
                                 <option key={area} value={area} />
                             ))}
                         </datalist>
+                        {uniqueAreas.length > 0 && (
+                            <span style={{ fontSize: '0.75em', color: '#666', background: '#fff', padding: '2px 4px', borderRadius: '2px', border: '1px solid #ccc' }}>
+                                {uniqueAreas.length} area{uniqueAreas.length !== 1 ? 's' : ''}
+                            </span>
+                        )}
                         <button
                             onClick={handleUpdateArea}
                             disabled={!selectedArea.trim() || updateAreaLoading}
