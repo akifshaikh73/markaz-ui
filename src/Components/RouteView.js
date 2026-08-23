@@ -182,18 +182,35 @@ function RouteView() {
     useEffect(() => {
         const loadAllAddresses = async () => {
             try {
-                const response = await fetch(`${API_URL}/api/addressList`);
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setAllAvailableAddresses(data);
-                    console.log('[RouteView] Loaded all available addresses:', data.length);
+                // Try to get masjidID from location.state or localStorage
+                let masjidID = passedMasjidID;
+                if (!masjidID) {
+                    const stored = localStorage.getItem('userMasjidSlug');
+                    if (stored) {
+                        // userMasjidSlug might be slug, not ID. Need to use it as-is or find ID
+                        // For now, check if we have it in another way
+                        console.log('[RouteView] Using stored masjid slug:', stored);
+                    }
+                }
+                
+                // Try the endpoint with masjid_id parameter
+                if (masjidID) {
+                    const response = await fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`);
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        setAllAvailableAddresses(data);
+                        console.log('[RouteView] Loaded addresses for masjid:', masjidID, 'Count:', data.length);
+                    }
+                } else {
+                    // Fallback: try without masjid_id
+                    console.log('[RouteView] No masjidID available, addresses will load when addresses are selected');
                 }
             } catch (err) {
                 console.error('[RouteView] Error loading addresses:', err);
             }
         };
         loadAllAddresses();
-    }, [API_URL]);
+    }, [API_URL, passedMasjidID]);
 
     // Area selector: addresses within the selected bounding box
     const getAddressesInArea = () => {
