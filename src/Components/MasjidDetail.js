@@ -23,6 +23,9 @@ const MasjidDetail = () => {
     const [pin, setPin] = useState(null);
     const [pinResetting, setPinResetting] = useState(false);
     const [pinResetMsg, setPinResetMsg] = useState('');
+    const [pinEditMode, setPinEditMode] = useState(false);
+    const [pinEditValue, setPinEditValue] = useState('');
+    const [pinSaving, setPinSaving] = useState(false);
 
     useEffect(() => {
         setLoading(true);
@@ -46,6 +49,41 @@ const MasjidDetail = () => {
             .then(data => { setPin(data.pin); setPinResetMsg(`New PIN saved: ${data.pin}`); })
             .catch(err => setPinResetMsg(`Error: ${err.message}`))
             .finally(() => setPinResetting(false));
+    };
+
+    const handleEditPin = () => {
+        setPinEditMode(true);
+        setPinEditValue(pin || '');
+        setPinResetMsg('');
+    };
+
+    const handleCancelEditPin = () => {
+        setPinEditMode(false);
+        setPinEditValue('');
+        setPinResetMsg('');
+    };
+
+    const handleSavePin = () => {
+        if (!pinEditValue.trim()) {
+            setPinResetMsg('Error: PIN cannot be empty');
+            return;
+        }
+        setPinSaving(true);
+        setPinResetMsg('');
+        fetch(`${API_URL}/api/masjids/${encodeURIComponent(id)}/pin`, { 
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: pinEditValue })
+        })
+            .then(r => { if (!r.ok) throw new Error(`Server error ${r.status}`); return r.json(); })
+            .then(data => { 
+                setPin(data.pin); 
+                setPinResetMsg(`PIN updated: ${data.pin}`);
+                setPinEditMode(false);
+                setPinEditValue('');
+            })
+            .catch(err => setPinResetMsg(`Error: ${err.message}`))
+            .finally(() => setPinSaving(false));
     };
 
     return (
@@ -75,19 +113,54 @@ const MasjidDetail = () => {
                     />
                     <Field label="Units" value={Array.isArray(masjid.units) ? masjid.units.join(', ') : masjid.units} />
 
-                    {/* Masjid PIN row with inline reset */}
+                    {/* Masjid PIN row with inline reset and edit */}
                     <div style={{ display: 'flex', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0', alignItems: 'center', flexWrap: 'wrap' }}>
                         <span style={labelStyle}>Masjid PIN</span>
-                        <span style={{ fontFamily: 'monospace', fontSize: '1.15rem', letterSpacing: '0.2em', color: '#222', minWidth: '48px' }}>
-                            {pin ?? <em style={{ fontFamily: 'inherit', fontSize: '0.95rem', letterSpacing: 'normal', color: '#aaa' }}>not set</em>}
-                        </span>
-                        <button
-                            onClick={handleResetPin}
-                            disabled={pinResetting}
-                            style={{ ...btnStyle, background: '#f57c00', color: '#fff', fontSize: '0.85rem', padding: '0.3rem 0.9rem', opacity: pinResetting ? 0.6 : 1 }}
-                        >
-                            {pinResetting ? 'Generating...' : pin ? 'Reset PIN' : 'Generate PIN'}
-                        </button>
+                        {pinEditMode ? (
+                            <>
+                                <input
+                                    type="text"
+                                    value={pinEditValue}
+                                    onChange={(e) => setPinEditValue(e.target.value)}
+                                    style={{ fontFamily: 'monospace', fontSize: '1.15rem', letterSpacing: '0.2em', padding: '0.4rem 0.6rem', border: '2px solid #1976d2', borderRadius: '4px', width: '100px' }}
+                                    placeholder="Enter PIN"
+                                    autoFocus
+                                />
+                                <button
+                                    onClick={handleSavePin}
+                                    disabled={pinSaving}
+                                    style={{ ...btnStyle, background: '#2e7d32', color: '#fff', fontSize: '0.85rem', padding: '0.3rem 0.8rem', opacity: pinSaving ? 0.6 : 1 }}
+                                >
+                                    {pinSaving ? 'Saving...' : 'Save'}
+                                </button>
+                                <button
+                                    onClick={handleCancelEditPin}
+                                    disabled={pinSaving}
+                                    style={{ ...btnStyle, background: '#757575', color: '#fff', fontSize: '0.85rem', padding: '0.3rem 0.8rem' }}
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <span style={{ fontFamily: 'monospace', fontSize: '1.15rem', letterSpacing: '0.2em', color: '#222', minWidth: '48px' }}>
+                                    {pin ?? <em style={{ fontFamily: 'inherit', fontSize: '0.95rem', letterSpacing: 'normal', color: '#aaa' }}>not set</em>}
+                                </span>
+                                <button
+                                    onClick={handleEditPin}
+                                    style={{ ...btnStyle, background: '#1976d2', color: '#fff', fontSize: '0.85rem', padding: '0.3rem 0.8rem' }}
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={handleResetPin}
+                                    disabled={pinResetting}
+                                    style={{ ...btnStyle, background: '#f57c00', color: '#fff', fontSize: '0.85rem', padding: '0.3rem 0.9rem', opacity: pinResetting ? 0.6 : 1 }}
+                                >
+                                    {pinResetting ? 'Generating...' : pin ? 'Reset PIN' : 'Generate PIN'}
+                                </button>
+                            </>
+                        )}
                         {pinResetMsg && (
                             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: pinResetMsg.startsWith('Error') ? '#d32f2f' : '#2e7d32' }}>
                                 {pinResetMsg}

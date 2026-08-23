@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { setAdmin, getAdmin, setUserRole, ADMIN_PASSWORD } from '../config';
+import { setUserRole } from '../config';
 import StatusBadges from './StatusBadges';
 import { useApiReady, ApiSplash } from '../hooks/useApiReady';
 import versionInfo from '../version.json';
@@ -12,9 +12,6 @@ const Login = ({ lockedMasjidID }) => {
     const [pin, setPin] = useState('');
     const [pinError, setPinError] = useState('');
     const [pinLoading, setPinLoading] = useState(false);
-    const [showAdminLogin, setShowAdminLogin] = useState(false);
-    const [adminPassword, setAdminPassword] = useState('');
-    const [adminError, setAdminError] = useState('');
     const apiReady = useApiReady();
 
     const navigate = useNavigate();
@@ -43,20 +40,7 @@ const Login = ({ lockedMasjidID }) => {
         navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } });
     };
 
-    const handleAdminLogin = () => {
-        if (!masjidID) {
-            setAdminError('Please enter a Masjid ID first');
-            return;
-        }
-        if (adminPassword === ADMIN_PASSWORD) {
-            setUserRole('MasjidAdmin');
-            setAdminError('');
-            setAdminPassword('');
-            navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } });
-        } else {
-            setAdminError('Incorrect admin password');
-        }
-    };
+
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>

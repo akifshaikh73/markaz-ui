@@ -13,7 +13,6 @@ import Landing from './Components/Landing';
 import MasjidDetail from './Components/MasjidDetail';
 import UserManagement from './Components/UserManagement';
 import UserDetail from './Components/UserDetail';
-import { getAdmin } from './config';
 import Home from './Components/Home';
 import { MasjidProvider } from './hooks/useMasjids';
 
@@ -22,15 +21,6 @@ const ProtectedMarkazAdminRoute = () => {
     const userRole = localStorage.getItem('userRole');
     if (userRole !== 'MarkazAdmin') {
         return <Navigate to="/admin-login" state={{ from: location }} replace />;
-    }
-    return <Outlet />;
-};
-
-const ProtectedMasjidAdminRoute = () => {
-    const location = useLocation();
-    const userRole = localStorage.getItem('userRole');
-    if (!['MasjidAdmin', 'MarkazAdmin'].includes(userRole)) {
-        return <Navigate to="/user-login" state={{ from: location }} replace />;
     }
     return <Outlet />;
 };
