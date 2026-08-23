@@ -71,7 +71,7 @@ const MasjidDetail = () => {
         setPinSaving(true);
         setPinResetMsg('');
         fetch(`${API_URL}/api/masjids/${encodeURIComponent(id)}/pin`, { 
-            method: 'PUT',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pin: pinEditValue })
         })
