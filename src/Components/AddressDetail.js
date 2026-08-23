@@ -152,7 +152,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     };
 
     const handleNavigation = () => {
-        navigate(`/landing/${address.masjidId}/${address.unitId}`, { state: { isLoggedIn: true } });
+        navigate(-1);
     };
 
     if (accessDenied) {
@@ -301,7 +301,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'center' }}>
                 {!isModal && (
-                    <button onClick={handleNavigation}>Back to Landing Page</button>
+                    <button onClick={handleNavigation}>← Back</button>
                 )}
                 <button
                     onClick={() => navigate('/route', { state: { listings: [address] } })}
