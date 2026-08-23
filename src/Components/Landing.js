@@ -20,7 +20,13 @@ function Landing() {
     const [searchParams, setSearchParams] = useState(
         cacheValid ? (JSON.parse(localStorage.getItem('searchParams')) || {}) : {}
     );
-    const [areaFilter, setAreaFilter] = useState(cacheValid ? (localStorage.getItem('areaFilter') || '') : '');
+    const landingFiltersKey = `landingFilters_${masjidID}_${unitID}`;
+    const [areaFilter, setAreaFilter] = useState(() => {
+        if (cacheValid) {
+            return localStorage.getItem('areaFilter') || sessionStorage.getItem(landingFiltersKey) || '';
+        }
+        return sessionStorage.getItem(landingFiltersKey) || '';
+    });
     const unitAreasKey = `unitAreas_${masjidID}_${unitID}`;
     const [unitAreas, setUnitAreas] = useState(() => {
         const cached = sessionStorage.getItem(unitAreasKey);
@@ -59,8 +65,10 @@ function Landing() {
             : addressList;
 
     const handleAreaChange = (e) => {
-        setAreaFilter(e.target.value);
-        localStorage.setItem('areaFilter', e.target.value);
+        const value = e.target.value;
+        setAreaFilter(value);
+        localStorage.setItem('areaFilter', value);
+        sessionStorage.setItem(landingFiltersKey, value);
     };
 
     const handleUnitChange = (e) => {
@@ -242,6 +250,11 @@ function Landing() {
             })
             .catch(() => {});
     }, [masjidID]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Sync areaFilter to sessionStorage whenever it changes
+    useEffect(() => {
+        sessionStorage.setItem(landingFiltersKey, areaFilter);
+    }, [areaFilter, landingFiltersKey]);
 
     return (
         <>

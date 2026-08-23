@@ -24,8 +24,15 @@ function VisitationView() {
     const [total, setTotal] = useState(10);
     const [countMode, setCountMode] = useState('10'); // '5', '10', '25', 'custom'
     const [customCount, setCustomCount] = useState(10);
-    const [filterUnit, setFilterUnit] = useState('');
-    const [filterArea, setFilterArea] = useState('');
+    const visitationStorageKey = `visitationFilters_${masjidID}`;
+    const [filterUnit, setFilterUnit] = useState(() => {
+        const saved = sessionStorage.getItem(visitationStorageKey);
+        return saved ? JSON.parse(saved).unit : '';
+    });
+    const [filterArea, setFilterArea] = useState(() => {
+        const saved = sessionStorage.getItem(visitationStorageKey);
+        return saved ? JSON.parse(saved).area : '';
+    });
     const [applied, setApplied] = useState(null);
     const [allListings, setAllListings] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -75,6 +82,13 @@ function VisitationView() {
             }
         }
     }, [unitAutoSelected, filterUnit, allListings]);
+
+    // Save filterUnit and filterArea to sessionStorage whenever they change
+    useEffect(() => {
+        if (masjidID) {
+            sessionStorage.setItem(visitationStorageKey, JSON.stringify({ unit: filterUnit, area: filterArea }));
+        }
+    }, [filterUnit, filterArea, masjidID, visitationStorageKey]);
 
     // Derive unique unit and area options from active listings
     const { unitOptions, areaOptions } = useMemo(() => {
