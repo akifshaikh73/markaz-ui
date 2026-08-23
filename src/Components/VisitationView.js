@@ -26,6 +26,9 @@ function VisitationView() {
     const [customCount, setCustomCount] = useState(10);
     const visitationStorageKey = `visitationFilters_${masjidID}`;
     const [filterUnit, setFilterUnit] = useState(() => {
+        // First priority: unitID from location state (passed from MasjidLanding)
+        if (location.state?.unitID) return String(location.state.unitID);
+        // Second priority: saved filters from sessionStorage
         const saved = sessionStorage.getItem(visitationStorageKey);
         return saved ? JSON.parse(saved).unit : '';
     });
@@ -70,9 +73,9 @@ function VisitationView() {
         }
     }, [countMode, customCount]);
 
-    // Auto-select a random unit on first load (excluding '0' and '—')
+    // Auto-select a random unit on first load only if no unitID was passed from MasjidLanding
     useEffect(() => {
-        if (!unitAutoSelected && filterUnit === '' && allListings.length > 0) {
+        if (!unitAutoSelected && filterUnit === '' && allListings.length > 0 && !location.state?.unitID) {
             const active = allListings.filter(a => !a.inactive);
             const validUnits = [...new Set(active.map(a => String(a.unitId ?? '—')))].filter(u => u !== '0' && u !== '—').sort();
             if (validUnits.length > 0) {
@@ -81,7 +84,7 @@ function VisitationView() {
                 setUnitAutoSelected(true);
             }
         }
-    }, [unitAutoSelected, filterUnit, allListings]);
+    }, [unitAutoSelected, filterUnit, allListings, location.state?.unitID]);
 
     // Save filterUnit and filterArea to sessionStorage whenever they change
     useEffect(() => {

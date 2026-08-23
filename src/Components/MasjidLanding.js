@@ -53,29 +53,21 @@ const MasjidLanding = () => {
 
     const masjidId = masjidConfig._id ?? masjidConfig.id;
 
-
-    const handleLogin = () => {
-        localStorage.setItem('preferredMasjid', masjidSlug);
-        setUserRole('MasjidUser');
-        localStorage.setItem('loginSource', 'masjid-slug');
-        localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
-        navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
-    };
-
     const handleNavigateVisitations = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
-        navigate(`/visitation`, { state: { isLoggedIn: true, masjidID: masjidId } });
+        localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
+        navigate(`/visitation`, { state: { isLoggedIn: true, masjidID: masjidId, unitID } });
     };
 
     const handleNavigateListings = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
-        const unit = unitID || (Array.isArray(masjidConfig.units) ? masjidConfig.units[0] : '');
-        localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID: unit }));
-        navigate(`/landing/${masjidId}/${unit}`, { state: { isLoggedIn: true } });
+        localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
+        navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
     const handleNavigateQuickLinks = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
+        localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
         navigate(`/quick-links/${masjidId}`, { state: { isLoggedIn: true, masjidID: masjidId } });
     };
 
@@ -120,23 +112,21 @@ const MasjidLanding = () => {
                     />
                 </label>
             </div>
-            {!location.state?.isLoggedIn && (
-                <div>
-                    <label>
-                        Unit ID:
-                        <select
-                            value={unitID}
-                            onChange={e => setUnitID(e.target.value)}
-                            style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
-                        >
-                            {(Array.isArray(masjidConfig.units) ? masjidConfig.units : []).map(u => (
-                                <option key={u} value={u}>{u}</option>
-                            ))}
-                            <option key="all" value="all">All</option>
-                        </select>
-                    </label>
-                </div>
-            )}
+            <div>
+                <label>
+                    Unit ID:
+                    <select
+                        value={unitID}
+                        onChange={e => setUnitID(e.target.value)}
+                        style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
+                    >
+                        {(Array.isArray(masjidConfig.units) ? masjidConfig.units : []).map(u => (
+                            <option key={u} value={u}>{u}</option>
+                        ))}
+                        <option key="all" value="all">All</option>
+                    </select>
+                </label>
+            </div>
             {localStorage.getItem('userEmail') && (() => {
                 const userMasjids = JSON.parse(localStorage.getItem('userMasjids') || '[]');
                 const currentMasjidSlug = masjidSlug;
@@ -174,32 +164,26 @@ const MasjidLanding = () => {
                     </div>
                 ) : null;
             })()}
-            {location.state?.isLoggedIn ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <button 
-                        onClick={handleNavigateVisitations}
-                        style={{ padding: '0.75rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
-                    >
-                        📊 Visitations
-                    </button>
-                    <button 
-                        onClick={handleNavigateListings}
-                        style={{ padding: '0.75rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
-                    >
-                        📋 Full Listings
-                    </button>
-                    <button 
-                        onClick={handleNavigateQuickLinks}
-                        style={{ padding: '0.75rem', background: '#388e3c', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
-                    >
-                        ⚡ Quick Links
-                    </button>
-                </div>
-            ) : (
-                <button onClick={handleLogin} style={{ padding: '0.5rem' }}>
-                    Go to Listings
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <button 
+                    onClick={handleNavigateVisitations}
+                    style={{ padding: '0.75rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                >
+                    📊 Visitations
                 </button>
-            )}
+                <button 
+                    onClick={handleNavigateListings}
+                    style={{ padding: '0.75rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                >
+                    📋 Full Listings
+                </button>
+                <button 
+                    onClick={handleNavigateQuickLinks}
+                    style={{ padding: '0.75rem', background: '#388e3c', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                >
+                    ⚡ Quick Links
+                </button>
+            </div>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
             </div>

@@ -6,10 +6,12 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 ---
 ## 2026-08-23 (Session 4 - Part 4 Final)
 
-### Login Navigation Choice Screen
-- **feat(MasjidLanding):** Added navigation choice screen after login. Upon successful authentication (via masjid PIN or email+PIN), users now see three navigation buttons instead of auto-redirecting: **Visitations** (📊), **Full Listings** (📋), and **Quick Links** (⚡). Users can choose their desired destination, improving user agency and workflow flexibility.
-- **refactor(MasjidLanding):** Unit selector now hidden when logged in; only shown for direct slug access (e.g., `/msi`, `/muthman`). This streamlines the post-login UX by separating unit selection from destination choice.
-- **fix(MasjidLanding):** Properly stores landingContext with masjidID for filter persistence in Visitation and Landing views.
+### Login Navigation Choice Screen & Simplified MasjidLanding
+- **feat(MasjidLanding):** Simplified component by removing redundant `handleLogin` function. Now displays three navigation buttons (Visitations, Full Listings, Quick Links) directly without conditional logic.
+- **refactor(MasjidLanding):** Unit selector now always visible and functional. Users select their desired unit before clicking any navigation button. Each button properly passes the selected `unitID` to its destination page.
+- **feat(VisitationView):** Changed unit selection logic to prioritize `unitID` from location state (passed by MasjidLanding). Only falls back to random selection if no `unitID` is provided and no saved filters exist.
+- **refactor(VisitationView):** Unit auto-selection now only occurs when navigating directly to VisitationView without specifying a unit, maintaining user's explicit choice from MasjidLanding.
+- **fix(MasjidLanding):** All three button handlers now properly store landingContext with masjidID and unitID for filter persistence in VisitationView and Landing views.
 
 ---
 ## 2026-08-23 (Session 4 - Part 4 Continued)
