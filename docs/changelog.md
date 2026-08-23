@@ -4,6 +4,17 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-23 (Session 4 - Part 3)
+
+### VisitationView Enhancements
+- **feat(VisitationView):** Added StatusBadges component to header displaying API/DB/Role status indicators for real-time system health visibility.
+- **feat(VisitationView - default count):** Changed default address count from 5 to 10 for improved initial data visibility.
+- **feat(VisitationView - unit auto-selection):** Implemented random unit auto-selection on first load (excludes units "0" and "—"). Selection persists for entire session unless manually changed by user, improving workflow efficiency.
+
+### Documentation
+- **docs(copilot-instructions):** Added "ESLint Error Handling" section with guidelines for treating ESLint errors as bugs to fix rather than simply suppressing warnings or deleting unused code. Includes concrete examples for common patterns.
+
+---
 ## 2026-08-22 (Session 4 - Part 2)
 
 ### Navigation Reorganization
