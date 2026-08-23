@@ -120,10 +120,44 @@ function RouteView() {
 
     const plotted = listings.filter(l => l.latitude && l.longitude);
 
-    // Get unique areas from listings
-    const uniqueAreas = Array.from(new Set(
-        listings.map(l => l.area).filter(a => a && a.trim())
-    )).sort();
+    // Get unique areas: first from sessionStorage (Landing page cache), then from current listings
+    const getMasjidAndUnitFromState = () => {
+        if (location.state?.masjidID && location.state?.unitID) {
+            return { masjidID: location.state.masjidID, unitID: location.state.unitID };
+        }
+        return { masjidID: null, unitID: null };
+    };
+
+    const { masjidID, unitID } = getMasjidAndUnitFromState();
+    const unitAreasKey = masjidID && unitID ? `unitAreas_${masjidID}_${unitID}` : null;
+    
+    // Try to get areas from sessionStorage (shared with Landing page), fallback to listings
+    const getCachedAreas = () => {
+        if (unitAreasKey) {
+            try {
+                const cached = sessionStorage.getItem(unitAreasKey);
+                if (cached) {
+                    const areas = JSON.parse(cached);
+                    if (Array.isArray(areas) && areas.length > 0) {
+                        console.log('[RouteView] Loaded areas from sessionStorage:', areas);
+                        return areas;
+                    }
+                }
+            } catch (err) {
+                console.error('[RouteView] Error loading areas from sessionStorage:', err);
+            }
+        }
+        // Fallback: extract from listings
+        const fromListings = Array.from(new Set(
+            listings.map(l => l.area).filter(a => a && a.trim())
+        )).sort();
+        if (fromListings.length > 0) {
+            console.log('[RouteView] Loaded areas from listings:', fromListings);
+        }
+        return fromListings;
+    };
+
+    const uniqueAreas = getCachedAreas();
 
     if (listings.length > 0) {
         console.log('[RouteView] Listings count:', listings.length, 'Unique areas found:', uniqueAreas, 'Sample listing area:', listings[0]?.area);
