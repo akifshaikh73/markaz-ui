@@ -330,18 +330,26 @@ function RouteView() {
             {/* Draggable Divider */}
             <div
                 onMouseDown={() => setIsDragging(true)}
+                onMouseEnter={(e) => (e.target.style.background = '#999')}
+                onMouseLeave={(e) => !isDragging && (e.target.style.background = '#ff0000')}
                 style={{
-                    height: '8px',
-                    background: '#ddd',
+                    height: '20px',
+                    background: '#ff0000',
                     cursor: 'row-resize',
                     borderTop: '1px solid #bbb',
                     borderBottom: '1px solid #bbb',
                     transition: isDragging ? 'none' : 'background 0.2s',
-                    ':hover': { background: '#999' }
+                    userSelect: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    color: '#fff',
+                    fontWeight: 'bold'
                 }}
-                onMouseEnter={(e) => (e.target.style.background = '#999')}
-                onMouseLeave={(e) => !isDragging && (e.target.style.background = '#ddd')}
-            />
+            >
+                ↕ DRAG TO RESIZE ↕
+            </div>
 
             {/* Resizable Stop List Pane */}
             <div style={{ flex: `0 0 ${100 - splitPos}%`, minHeight: 0, overflowY: 'auto', background: '#fff' }}>
