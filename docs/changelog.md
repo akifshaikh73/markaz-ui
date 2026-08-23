@@ -4,6 +4,23 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-23 (Session 4 - Part 4)
+
+### RouteView Simplification
+- **refactor(RouteView):** Removed Draw Area and crosshair functionality. Deleted `CursorHandler`, `SelectionMapContainer` components and all area-drawing related state (isDrawingArea, areaSelector, drawStart, dragRect).
+- **fix(RouteView):** Removed unused `allAvailableAddresses` state and associated useEffect that was only used by the Draw Area feature.
+
+### VisitationView Simplification & Enhancement
+- **refactor(VisitationView):** Simplified data structure from nested grouping (unit → area → addresses) to flat grouping by unit only. All addresses from a unit now display in a single table with "Area" as a column.
+- **feat(VisitationView - per-unit count):** Changed count logic to apply per unit instead of globally. When viewing "All Units", each unit independently shows the selected count (5, 10, 25, etc.) of least/most-recently-visited addresses. Total count now represents sum across all units.
+- **fix(VisitationView):** Removed unused `handleToggleArea()` function that was only used by removed area sub-headers.
+- **fix(VisitationView):** Added `total` to useEffect dependencies to ensure list refreshes when count is changed.
+
+### AddressDetail Navigation
+- **fix(AddressDetail):** Changed back button to use `navigate(-1)` instead of hardcoded Landing page navigation. Back button now correctly returns to the original source page (Landing, Visitation View, Route View, etc.) by using browser history.
+- **style(AddressDetail):** Updated back button label from "Back to Landing Page" to "← Back" for consistency with other components.
+
+---
 ## 2026-08-23 (Session 4 - Part 3)
 
 ### UI Refinement & Compact Layout

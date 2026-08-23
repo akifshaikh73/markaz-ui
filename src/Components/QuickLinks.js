@@ -1,6 +1,22 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+const MASJID_CACHE_PREFIX = 'masjidDoc_';
+
+async function getMasjidDoc(masjidID, apiUrl) {
+    const cacheKey = `${MASJID_CACHE_PREFIX}${masjidID}`;
+    try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) return JSON.parse(cached);
+    } catch {}
+
+    const r = await fetch(`${apiUrl}/api/masjids/${encodeURIComponent(masjidID)}`);
+    if (!r.ok) return null;
+    const doc = await r.json();
+    try { sessionStorage.setItem(cacheKey, JSON.stringify(doc)); } catch {}
+    return doc;
+}
+
 function QuickLinks() {
     const navigate = useNavigate();
     const { masjidID } = useParams();
@@ -8,26 +24,13 @@ function QuickLinks() {
 
     const handleRouteClick = async () => {
         try {
-            const response = await fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`);
-            if (!response.ok) throw new Error('Failed to fetch addresses');
-            const addresses = await response.json();
-            
-            // Filter for active addresses
-            const activeAddresses = addresses.filter(a => !a.inactive);
-            
-            if (activeAddresses.length === 0) {
-                alert('No active addresses available for routing');
-                return;
-            }
-            
-            // Select random address
-            const randomAddress = activeAddresses[Math.floor(Math.random() * activeAddresses.length)];
-            
-            // Navigate to route with the random address
-            navigate('/route', { state: { listings: [randomAddress], masjidID } });
+            // Fetch masjid doc (cached in sessionStorage) for reference point
+            const masjidDoc = await getMasjidDoc(masjidID, API_URL);
+            // Open route with no pre-selected addresses — masjid is the reference origin
+            navigate('/route', { state: { listings: [], masjidID, masjidRef: masjidDoc } });
         } catch (error) {
-            console.error('Error fetching random address:', error);
-            alert('Error loading address');
+            console.error('Error fetching masjid doc:', error);
+            navigate('/route', { state: { listings: [], masjidID } });
         }
     };
 
