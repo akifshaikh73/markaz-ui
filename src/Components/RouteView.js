@@ -31,10 +31,22 @@ function RouteView() {
     const navigate = useNavigate();
     const API_URL = process.env.REACT_APP_API_URL || '';
 
-    // listings passed via route state; fall back to fetching by ids
-    const { listings: initialListings = [], masjidID, unitID } = location.state || {};
+    // listings passed via route state; fall back to localStorage
+    const getInitialListings = () => {
+        if (location.state?.listings && Array.isArray(location.state.listings)) {
+            return location.state.listings;
+        }
+        try {
+            const saved = localStorage.getItem('addressList');
+            return Array.isArray(saved) ? saved : [];
+        } catch {
+            return [];
+        }
+    };
 
-    const [listings, setListings] = useState(initialListings);
+    // location.state may contain masjidID and unitID for context
+
+    const [listings, setListings] = useState(getInitialListings());
     const [routePolyline, setRoutePolyline] = useState(null);
     const [routeLoading, setRouteLoading] = useState(false);
     const [totalDistance, setTotalDistance] = useState(null);
@@ -42,6 +54,10 @@ function RouteView() {
     const [nearbyCount, setNearbyCount] = useState(5);
     const [nearbyLoading, setNearbyLoading] = useState(false);
     const [nearbyError, setNearbyError] = useState('');
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [selectedArea, setSelectedArea] = useState('');
+    const [updateAreaLoading, setUpdateAreaLoading] = useState(false);
+    const [updateAreaError, setUpdateAreaError] = useState('');
 
     const handleFindNearby = () => {
         const source = listings[0];
@@ -58,6 +74,42 @@ function RouteView() {
             })
             .catch(() => setNearbyError('Failed to fetch nearby listings'))
             .finally(() => setNearbyLoading(false));
+    };
+
+    const handleToggleId = (id) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleUpdateArea = () => {
+        if (selectedIds.length === 0 || !selectedArea.trim()) return;
+        setUpdateAreaLoading(true);
+        setUpdateAreaError('');
+        
+        Promise.all(
+            selectedIds.map(id =>
+                fetch(`${API_URL}/api/addressList/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ area: selectedArea })
+                }).then(r => r.json())
+            )
+        )
+        .then(results => {
+            if (results.some(r => r.error)) {
+                setUpdateAreaError('Some updates failed');
+                return;
+            }
+            // Update local listings with new area
+            setListings(listings.map(l => 
+                selectedIds.includes(l._id) ? { ...l, area: selectedArea } : l
+            ));
+            setSelectedIds([]);
+            setSelectedArea('');
+        })
+        .catch(() => setUpdateAreaError('Failed to update area'))
+        .finally(() => setUpdateAreaLoading(false));
     };
 
     const plotted = listings.filter(l => l.latitude && l.longitude);
@@ -135,6 +187,32 @@ function RouteView() {
                         {nearbyError && <span style={{ color: 'red', fontSize: '0.85em' }}>{nearbyError}</span>}
                     </span>
                 )}
+                {selectedIds.length > 0 && (
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '4px 10px', background: '#e3f2fd', border: '1px solid #64b5f6', borderRadius: '6px' }}>
+                        <span style={{ fontWeight: 500, fontSize: '0.88em' }}>{selectedIds.length} selected</span>
+                        <input
+                            type="text"
+                            placeholder="New area name"
+                            value={selectedArea}
+                            onChange={e => setSelectedArea(e.target.value)}
+                            style={{ padding: '4px 6px', fontSize: '0.88em', border: '1px solid #90caf9', borderRadius: '3px' }}
+                        />
+                        <button
+                            onClick={handleUpdateArea}
+                            disabled={!selectedArea.trim() || updateAreaLoading}
+                            style={{ padding: '3px 10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.88em' }}
+                        >
+                            {updateAreaLoading ? '…' : 'Set Area'}
+                        </button>
+                        <button
+                            onClick={() => { setSelectedIds([]); setSelectedArea(''); }}
+                            style={{ padding: '3px 10px', background: '#ccc', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.88em' }}
+                        >
+                            Clear
+                        </button>
+                        {updateAreaError && <span style={{ color: 'red', fontSize: '0.85em' }}>{updateAreaError}</span>}
+                    </div>
+                )}
             </div>
 
             {/* Map */}
@@ -171,6 +249,27 @@ function RouteView() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                     <thead style={{ position: 'sticky', top: 0, background: '#f0f0f0' }}>
                         <tr>
+                            <th style={th} width="30px">
+                                <input 
+                                    type="checkbox" 
+                                    checked={listings.length > 0 && listings.every(l => selectedIds.includes(l._id))}
+                                    ref={el => {
+                                        if (el) {
+                                            const allSelected = listings.length > 0 && listings.every(l => selectedIds.includes(l._id));
+                                            const someSelected = listings.some(l => selectedIds.includes(l._id));
+                                            el.indeterminate = someSelected && !allSelected;
+                                        }
+                                    }}
+                                    onChange={() => {
+                                        if (listings.every(l => selectedIds.includes(l._id))) {
+                                            setSelectedIds([]);
+                                        } else {
+                                            setSelectedIds(listings.map(l => l._id));
+                                        }
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            </th>
                             <th style={th}>#</th>
                             <th style={th}>ID</th>
                             <th style={th}>Name</th>
@@ -182,15 +281,23 @@ function RouteView() {
                     </thead>
                     <tbody>
                         {listings.map((l, i) => (
-                            <tr key={l._id} style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
-                                onClick={() => navigate(`/address/${l._id}`)}>
-                                <td style={td}>{i + 1}</td>
-                                <td style={td}>{l._id}</td>
-                                <td style={td}>{[l.firstName, l.lastName].filter(Boolean).join(' ') || '—'}</td>
-                                <td style={td}>{[l.address1, l.address2].filter(Boolean).join(', ')}</td>
-                                <td style={td}>{l.area || '—'}</td>
-                                <td style={td}>{formatDate(l.lastModifiedDate)}</td>
-                                <td style={td}>{l.latitude && l.longitude ? '✅' : '❌'}</td>
+                            <tr key={l._id} style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}>
+                                <td style={{ ...td, width: '30px' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={selectedIds.includes(l._id)}
+                                        onChange={() => handleToggleId(l._id)}
+                                        onClick={e => e.stopPropagation()}
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                </td>
+                                <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{i + 1}</td>
+                                <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{l._id}</td>
+                                <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{[l.firstName, l.lastName].filter(Boolean).join(' ') || '—'}</td>
+                                <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{[l.address1, l.address2].filter(Boolean).join(', ')}</td>
+                                <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{l.area || '—'}</td>
+                                <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{formatDate(l.lastModifiedDate)}</td>
+                                <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{l.latitude && l.longitude ? '✅' : '❌'}</td>
                             </tr>
                         ))}
                     </tbody>
