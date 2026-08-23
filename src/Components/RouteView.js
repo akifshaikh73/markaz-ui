@@ -114,6 +114,11 @@ function RouteView() {
 
     const plotted = listings.filter(l => l.latitude && l.longitude);
 
+    // Get unique areas from listings
+    const uniqueAreas = Array.from(new Set(
+        listings.map(l => l.area).filter(a => a && a.trim())
+    )).sort();
+
     // Fetch OSRM route whenever plotted points change
     useEffect(() => {
         if (plotted.length < 2) { setRoutePolyline(null); return; }
@@ -192,11 +197,17 @@ function RouteView() {
                         <span style={{ fontWeight: 500, fontSize: '0.88em' }}>{selectedIds.length} selected</span>
                         <input
                             type="text"
-                            placeholder="New area name"
+                            list="areaList"
+                            placeholder="Select or type area"
                             value={selectedArea}
                             onChange={e => setSelectedArea(e.target.value)}
                             style={{ padding: '4px 6px', fontSize: '0.88em', border: '1px solid #90caf9', borderRadius: '3px' }}
                         />
+                        <datalist id="areaList">
+                            {uniqueAreas.map(area => (
+                                <option key={area} value={area} />
+                            ))}
+                        </datalist>
                         <button
                             onClick={handleUpdateArea}
                             disabled={!selectedArea.trim() || updateAreaLoading}
