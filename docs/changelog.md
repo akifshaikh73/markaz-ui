@@ -4,6 +4,14 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-23 (Session 4 - Part 4 Continued)
+
+### Filter Persistence Across Navigation
+- **feat(VisitationView - filter persistence):** Implemented sessionStorage-based persistence for unit and area filters. Filters are automatically saved when changed and restored when navigating back from AddressDetail using browser history (`navigate(-1)`), eliminating loss of filter state.
+- **feat(VisitationView - filter restoration on back):** Random unit auto-selection now only occurs on first page load. When navigating back to VisitationView from AddressDetail, previously selected unit/area filters are restored instead of triggering random selection again.
+- **feat(Landing - filter persistence):** Enhanced area filter persistence using sessionStorage fallback. Filters are preserved across navigation and remain available when returning from AddressDetail via browser history, even if unit changes reset localStorage.
+
+---
 ## 2026-08-23 (Session 4 - Part 4)
 
 ### RouteView Simplification
