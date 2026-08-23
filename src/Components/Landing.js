@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import SearchForm from './Search';
 import AddressList from './AddressList';
-import FilterUI from './FilterUI';
 import AddAddress from './AddAddress';
 import { exportToExcel } from '../exportExcel';
 import { setAdmin, getAdmin, getUserRole } from '../config';
@@ -36,15 +35,11 @@ function Landing() {
     const [areaUpdateStatus, setAreaUpdateStatus] = useState(null);
     const [unitUpdateStatus, setUnitUpdateStatus] = useState(null);
     const [searchWarning, setSearchWarning] = useState(null); // 'no-results' | 'cross-masjid' | null
-    const [activeFilters, setActiveFilters] = useState(
-        cacheValid ? (JSON.parse(localStorage.getItem('activeFilters')) || { showInactive: false, filterByStudents: false }) : { showInactive: false, filterByStudents: false }
-    );
 
     if (!cacheValid) {
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
-        localStorage.removeItem('activeFilters');
         localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
     }
 
@@ -74,14 +69,12 @@ function Landing() {
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
-        localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
         setUnitAreas([]);
         if (val === '') {
             setSelectedUnit('');
             setSearchParams({});
             setAreaFilter('');
-            setActiveFilters({ showInactive: false, filterByStudents: false });
             fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`)
                 .then(response => response.json())
                 .then(data => {
@@ -95,16 +88,15 @@ function Landing() {
             setAddressList([]);
             setAreaFilter('');
             setSearchParams({});
-            setActiveFilters({ showInactive: false, filterByStudents: false });
             navigate(`/landing/${masjidID}/${!isNaN(newUnit) ? newUnit : 'all'}`, { state: { isLoggedIn: true } });
         }
     };
 
     const API_URL = process.env.REACT_APP_API_URL || '';
 
-    const doSearch = (params, filters) => {
+    const doSearch = (params) => {
         setSearchWarning(null);
-        const body = { ...params, ...filters };
+        const body = { ...params };
         if (body.unitId === undefined || body.unitId === null || body.unitId === '') delete body.unitId;
         fetch(`${API_URL}/api/addressList/filter/search/`, {
             method: 'POST',
@@ -130,14 +122,7 @@ function Landing() {
     const handleSearch = (params) => {
         setSearchParams(params);
         localStorage.setItem('searchParams', JSON.stringify(params));
-        doSearch(params, activeFilters);
-    };
-
-    const handleFilterChange = (changed) => {
-        const newFilters = { ...activeFilters, ...changed };
-        setActiveFilters(newFilters);
-        localStorage.setItem('activeFilters', JSON.stringify(newFilters));
-        doSearch(searchParams, newFilters);
+        doSearch(params);
     };
 
     const handleUpdateArea = (ids, area) => {
@@ -189,11 +174,9 @@ function Landing() {
         const baseParams = { masjidId: masjidID };
         setSearchParams(baseParams);
         setAreaFilter('');
-        setActiveFilters({ showInactive: false, filterByStudents: false });
         setSearchWarning(null);
         localStorage.setItem('searchParams', JSON.stringify(baseParams));
         localStorage.removeItem('areaFilter');
-        localStorage.setItem('activeFilters', JSON.stringify({ showInactive: false, filterByStudents: false }));
         const unitParam = selectedUnit !== '' ? `&unit_id=${selectedUnit}` : '';
         fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`)
             .then(r => r.json())
@@ -217,7 +200,6 @@ function Landing() {
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
-        localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
         localStorage.removeItem('preferredMasjid');
         sessionStorage.clear();
@@ -273,10 +255,10 @@ function Landing() {
             </div>
             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <button
-                    onClick={() => navigate('/visitation', { state: { isLoggedIn: true, masjidID } })}
-                    style={{ background: '#2e7d32', color: '#fff', border: 'none', padding: '0.45rem 1.1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', boxShadow: '0 2px 6px rgba(0,0,0,0.18)', letterSpacing: '0.01em' }}
+                    onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
+                    style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.45rem 1.1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', boxShadow: '0 2px 6px rgba(0,0,0,0.18)', letterSpacing: '0.01em' }}
                 >
-                    🕌 Visitation
+                    ⚡ Quick Links
                 </button>
                 {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
                 {selectedIds.length > 0 && (
@@ -292,7 +274,6 @@ function Landing() {
                 <button onClick={onLogout}>Logout</button>
             </div>
             <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} onReset={handleReset} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
-            <FilterUI filters={activeFilters} onFilterChange={handleFilterChange} />
             {selectedIds.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0', padding: '0.5rem 1rem', background: '#e3f2fd', borderRadius: '6px' }}>
                     <span style={{ fontWeight: 500 }}>{selectedIds.length} selected</span>

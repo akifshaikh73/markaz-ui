@@ -9,6 +9,8 @@ import AddressDetail from './Components/AddressDetail';
 import MapView from './Components/MapView';
 import RouteView from './Components/RouteView';
 import VisitationView from './Components/VisitationView';
+import QuickLinks from './Components/QuickLinks';
+import Report from './Components/Report';
 import Landing from './Components/Landing';
 import MasjidDetail from './Components/MasjidDetail';
 import UserManagement from './Components/UserManagement';
@@ -46,6 +48,8 @@ function App() {
                     <Route path="/:masjidSlug" element={<MasjidLanding />} />
                     <Route path="/admin-login" element={<AdminPasswordLogin />} />
                     <Route element={<ProtectedUserRoute />}>
+                        <Route path="/quick-links/:masjidID" element={<QuickLinks />} />
+                        <Route path="/report/:masjidID" element={<Report />} />
                         <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
                         <Route path="/address/:id" element={<AddressDetail />} />
                         <Route path="/map/:masjidID/:unitID" element={<MapView />} />

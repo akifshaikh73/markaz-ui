@@ -4,6 +4,25 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-22 (Session 4 - Part 2)
+
+### Navigation Reorganization
+- **refactor(Landing):** Replaced "Visitation" button (green) with "Quick Links" button (blue) for centralized navigation hub access.
+- **feat(QuickLinks - Reports card):** Added "Reports" card (📊) to QuickLinks, linking to new `/report/:masjidID` page. Shows "Full List", "Visitations", "Routes", and "Reports" as primary enabled features.
+- **refactor(Landing - filters removed):** Deleted entire `FilterUI` component from Landing page. Removed Active/Inactive filter buttons and "All/Has Students" filter buttons, streamlining address list UI.
+- **refactor(Landing - filter state cleanup):** Removed `activeFilters` state, `handleFilterChange()` function, and all associated filter-related localStorage operations. doSearch() now operates without filter parameter merging.
+
+### Reports Component (New)
+- **feat(Report.js - new component):** Created `/report/:masjidID` page with grid layout showing 6 report cards: Inactive Listings (enabled) + Unvisited Addresses, High Priority, Visit Statistics, Area Summary, Export Data (all coming soon).
+- **feat(Report - Inactive Listings):** First enabled report card navigates to `/landing/:masjidID/all` with `showInactive: true` state flag, allowing display of inactive addresses from main Landing view.
+- **refactor(App):** Added Report import and `/report/:masjidID` route protected by ProtectedUserRoute.
+- **style(Report):** Card-based grid layout with hover effects (translateY, shadow), disabled cards at 60% opacity with "Coming Soon" label, consistent icon/label/description styling.
+
+### Cleanup
+- **chore(Landing - imports):** Removed `FilterUI` import from component file.
+- **docs(changelog):** Documented all Session 4 Part 2 changes for transparency on UI reorganization.
+
+---
 ## 2026-08-22 (Session 4)
 
 ### Unified Selection & Area Assignment System
