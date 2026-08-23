@@ -4,6 +4,25 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-22 (Session 4)
+
+### Unified Selection & Area Assignment System
+- **refactor(AddressList & Landing):** Unified ID column checkbox to handle both area assignment and route selection. Single `selectedIds` state now drives both workflows, eliminating confusing dual-checkbox UI (`Neighborhood` column removed).
+- **refactor(AddressRow):** ID column checkbox now exclusively uses `isSelected` and `onToggle` callbacks for area assignment. Removed separate route selection checkbox and styling.
+- **fix(AddressList):** Removed unused `handleRouteSelectAll()` function and route-related props (`routeIds`, `onRouteChange`) that were unused since unified selection implementation.
+- **feat(Landing - Route button):** Route button now triggers on any `selectedIds` (not just `routeIds`). Count displays selected addresses ready for route planning or area assignment.
+
+### RouteView Address Display & Selection
+- **feat(RouteView - map visibility):** All addresses in listings now visible on map simultaneously (not just selected ones). Visual status indicators via marker colors: blue = selected, green = has area assigned, gray = unselected/no area.
+- **feat(RouteView - marker interaction):** Clicking address marker pins toggles corresponding checkbox in address list table. Bidirectional sync between map selection and table selection enables faster workflow.
+- **feat(RouteView - initial selection):** RouteView now auto-selects all incoming addresses via `selectedIds` initialization from location.state.listings. Area assignment UI appears immediately upon navigation from AddressList.
+- **refactor(RouteView - marker icons):** Implemented `makeNumberedIcon(n, isSelected, area)` function to dynamically set marker colors based on address status. Consistent numbered icon style across all map views.
+
+### Bug Fixes
+- **fix(RouteView):** Area assignment section now displays when selecting addresses in RouteView (was hidden before due to empty selectedIds initialization).
+- **fix(ESLint):** Removed compilation warning from unused `handleRouteSelectAll` function.
+
+---
 ## 2026-08-22 (Session 3)
 
 ### Route Planning & Visitation Analytics
