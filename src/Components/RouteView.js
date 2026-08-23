@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Tooltip, Polyline, useMap, Rectangle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -23,132 +23,11 @@ const makeNumberedIcon = (n, isSelected = false, area = null) => {
     });
 };
 
-function CursorHandler({ isDrawingArea }) {
-    const map = useMap();
-    useEffect(() => {
-        if (map && map.getContainer()) {
-            // Set cursor based on mode
-            map.getContainer().style.cursor = isDrawingArea ? 'crosshair' : 'grab';
-            
-            // Disable/enable dragging based on mode
-            if (isDrawingArea) {
-                map.dragging.disable();
-            } else {
-                map.dragging.enable();
-            }
-        }
-        return () => {
-            // Cleanup: re-enable dragging if component unmounts
-            if (map) {
-                map.dragging.enable();
-            }
-        };
-    }, [map, isDrawingArea]);
-    return null;
-}
-
-function SelectionMapContainer({ allAddresses, isDrawingArea, onAreaSelected, areaSelector }) {
-    const [drawStart, setDrawStart] = useState(null);
-    const [dragRect, setDragRect] = useState(null);
-
-    const handleMapMouseDown = (e) => {
-        if (!isDrawingArea) return;
-        setDrawStart({ lat: e.latlng.lat, lng: e.latlng.lng });
-        setDragRect(null);
-    };
-
-    const handleMapMouseMove = (e) => {
-        if (!isDrawingArea || !drawStart) return;
-        // Show live preview of rectangle while dragging
-        setDragRect({
-            lat1: drawStart.lat,
-            lng1: drawStart.lng,
-            lat2: e.latlng.lat,
-            lng2: e.latlng.lng
-        });
-    };
-
-    const handleMapMouseUp = (e) => {
-        if (!isDrawingArea || !drawStart) return;
-        onAreaSelected({
-            lat1: drawStart.lat,
-            lng1: drawStart.lng,
-            lat2: e.latlng.lat,
-            lng2: e.latlng.lng
-        });
-        setDrawStart(null);
-        setDragRect(null);
-    };
-
-    const center = allAddresses.length > 0
-        ? [allAddresses[0].latitude || 39.5, allAddresses[0].longitude || -98.35]
-        : [39.5, -98.35];
-
-    return (
-        <MapContainer
-            center={center}
-            zoom={13}
-            style={{ height: '100%', width: '100%' }}
-            onMouseDown={handleMapMouseDown}
-            onMouseMove={handleMapMouseMove}
-            onMouseUp={handleMapMouseUp}
-        >
-            <CursorHandler isDrawingArea={isDrawingArea} />
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {allAddresses.map((addr, i) => {
-                if (!addr.latitude || !addr.longitude) return null;
-                try {
-                    return (
-                        <Marker
-                            key={addr._id}
-                            position={[addr.latitude, addr.longitude]}
-                            icon={makeNumberedIcon(i + 1, false, addr.area)}
-                        >
-                            <Tooltip direction="top" opacity={0.95}>
-                                <div>
-                                    <strong>{[addr.firstName, addr.lastName].filter(Boolean).join(' ') || '—'}</strong><br />
-                                    {[addr.address1, addr.address2].filter(Boolean).join(', ')}<br />
-                                    {addr.area && <em>{addr.area}</em>}
-                                </div>
-                            </Tooltip>
-                        </Marker>
-                    );
-                } catch (e) {
-                    console.error('[SelectionMapContainer] Marker error:', e);
-                    return null;
-                }
-            })}
-            {dragRect && (
-                <Rectangle
-                    bounds={[
-                        [Math.min(dragRect.lat1, dragRect.lat2), Math.min(dragRect.lng1, dragRect.lng2)],
-                        [Math.max(dragRect.lat1, dragRect.lat2), Math.max(dragRect.lng1, dragRect.lng2)]
-                    ]}
-                    color="#ff9800"
-                    fillColor="#ff9800"
-                    fillOpacity={0.15}
-                    weight={2}
-                    dashArray="4 4"
-                />
-            )}
-            {areaSelector && (
-                <Rectangle
-                    bounds={[
-                        [Math.min(areaSelector.lat1, areaSelector.lat2), Math.min(areaSelector.lng1, areaSelector.lng2)],
-                        [Math.max(areaSelector.lat1, areaSelector.lat2), Math.max(areaSelector.lng1, areaSelector.lng2)]
-                    ]}
-                    color="#1976d2"
-                    fillColor="#1976d2"
-                    fillOpacity={0.1}
-                    weight={2}
-                />
-            )}
-        </MapContainer>
-    );
-}
+const masjidIcon = L.divIcon({
+    className: '',
+    html: `<div style="background:#6a1b9a;color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)">🕌</div>`,
+    iconSize: [34, 34], iconAnchor: [17, 17],
+});
 
 function FitBounds({ positions }) {
     const map = useMap();
@@ -174,7 +53,7 @@ function RouteView() {
         return [];
     };
 
-    const { masjidID: passedMasjidID } = location.state || {};
+    const { masjidID: passedMasjidID, masjidRef: passedMasjidRef } = location.state || {};
 
     // All state declarations AFTER functions but BEFORE effects
     const [showRoute, setShowRoute] = useState(false);
@@ -191,11 +70,10 @@ function RouteView() {
     const [updateAreaError, setUpdateAreaError] = useState('');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [listings, setListings] = useState(getInitialListings());
-    const [allAvailableAddresses, setAllAvailableAddresses] = useState([]);
     const [routePolyline, setRoutePolyline] = useState(null);
     const [routeLoading, setRouteLoading] = useState(false);
-    const [areaSelector, setAreaSelector] = useState(null);
-    const [isDrawingArea, setIsDrawingArea] = useState(false);
+    // Resolved masjid reference with geocoded coordinates
+    const [masjidRef, setMasjidRef] = useState(passedMasjidRef || null);
     
     // Detect if mobile (for responsive layout)
     useEffect(() => {
@@ -237,64 +115,71 @@ function RouteView() {
         }
     }, [isDragging, isMobile]);
     
-    // Load all available addresses from API
+    // Resolve masjidID from state or landingContext, then fetch+geocode masjid doc
     useEffect(() => {
-        const loadAllAddresses = async () => {
-            try {
-                let masjidID = passedMasjidID;
-                if (!masjidID) {
-                    const stored = localStorage.getItem('userMasjidSlug');
-                    if (stored) {
-                        console.log('[RouteView] Using stored masjid slug:', stored);
-                    }
-                }
-                
-                if (masjidID) {
-                    const response = await fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: Failed to load addresses`);
-                    }
-                    const data = await response.json();
-                    if (Array.isArray(data)) {
-                        setAllAvailableAddresses(data);
-                        console.log('[RouteView] Loaded all addresses for masjid:', masjidID, 'Count:', data.length);
-                    } else {
-                        console.error('[RouteView] Unexpected response format:', data);
-                    }
-                } else {
-                    console.log('[RouteView] No masjidID available');
-                }
-            } catch (err) {
-                console.error('[RouteView] Error loading addresses:', err);
+        const resolveMasjid = async () => {
+            // Already have a masjidRef with coordinates — nothing to do
+            if (masjidRef?.latitude && masjidRef?.longitude) return;
+
+            // Determine masjidID
+            let masjidID = passedMasjidID;
+            if (!masjidID) {
+                try {
+                    const ctx = JSON.parse(localStorage.getItem('landingContext') || '{}');
+                    masjidID = ctx.masjidID || null;
+                } catch {}
             }
+            if (!masjidID) return;
+
+            // Fetch masjid doc (with sessionStorage cache)
+            let doc = masjidRef;
+            if (!doc) {
+                const cacheKey = `masjidDoc_${masjidID}`;
+                try {
+                    const cached = sessionStorage.getItem(cacheKey);
+                    if (cached) doc = JSON.parse(cached);
+                } catch {}
+                if (!doc) {
+                    try {
+                        const r = await fetch(`${API_URL}/api/masjids/${encodeURIComponent(masjidID)}`);
+                        if (r.ok) {
+                            doc = await r.json();
+                            try { sessionStorage.setItem(cacheKey, JSON.stringify(doc)); } catch {}
+                        }
+                    } catch (e) {
+                        console.error('[RouteView] Failed to fetch masjid doc:', e);
+                    }
+                }
+            }
+            if (!doc) return;
+
+            // Already has coordinates — just set it
+            if (doc.latitude && doc.longitude) {
+                setMasjidRef(doc);
+                return;
+            }
+
+            // Geocode the masjid address via Nominatim
+            const addrStr = [doc.address, doc.city, doc.state, doc.zipcode].filter(Boolean).join(', ');
+            if (!addrStr) { setMasjidRef(doc); return; }
+
+            try {
+                const geo = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(addrStr)}`,
+                    { headers: { 'Accept-Language': 'en' } }
+                );
+                const results = await geo.json();
+                if (results?.[0]) {
+                    doc = { ...doc, latitude: parseFloat(results[0].lat), longitude: parseFloat(results[0].lon) };
+                }
+            } catch (e) {
+                console.error('[RouteView] Geocode failed:', e);
+            }
+            setMasjidRef(doc);
         };
-        loadAllAddresses();
+        resolveMasjid();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [API_URL, passedMasjidID]);
-
-    const getAddressesInArea = () => {
-        if (!areaSelector) return [];
-        const { lat1, lng1, lat2, lng2 } = areaSelector;
-        const minLat = Math.min(lat1, lat2);
-        const maxLat = Math.max(lat1, lat2);
-        const minLng = Math.min(lng1, lng2);
-        const maxLng = Math.max(lng1, lng2);
-
-        return allAvailableAddresses.filter(addr => {
-            const lat = addr.latitude;
-            const lng = addr.longitude;
-            return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
-        });
-    };
-
-    const handleSelectAddressesInArea = () => {
-        const inArea = getAddressesInArea();
-        if (inArea.length === 0) {
-            alert('No addresses found in the selected area');
-            return;
-        }
-        setListings(inArea);
-        setAreaSelector(null);
-    };
 
     const handleFindNearby = () => {
         const source = listings[0];
@@ -386,7 +271,6 @@ function RouteView() {
         // Clear only route and selection state, keep the address list intact
         setSelectedIds([]);
         setSelectedArea('');
-        setAreaSelector(null);
         setShowRoute(false);
         setRoutePolyline(null);
         setTotalDistance(null);
@@ -438,8 +322,15 @@ function RouteView() {
             return;
         }
         setRouteLoading(true);
-        const coords = addressesToRoute.map(l => `${l.longitude},${l.latitude}`).join(';');
-        fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+
+        // Prepend masjid as origin if it has coordinates
+        const masjidCoord = masjidRef?.latitude && masjidRef?.longitude
+            ? `${masjidRef.longitude},${masjidRef.latitude}`
+            : null;
+        const stopCoords = addressesToRoute.map(l => `${l.longitude},${l.latitude}`);
+        const allCoords = masjidCoord ? [masjidCoord, ...stopCoords] : stopCoords;
+
+        fetch(`https://router.project-osrm.org/route/v1/driving/${allCoords.join(';')}?overview=full&geometries=geojson`)
             .then(r => {
                 if (!r.ok) {
                     throw new Error(`HTTP ${r.status}: Route calculation failed`);
@@ -470,143 +361,9 @@ function RouteView() {
 
     const center = addressesToRoute.length > 0
         ? [addressesToRoute[0].latitude, addressesToRoute[0].longitude]
-        : [39.5, -98.35];
-
-    // State for area drawing on map
-    const [drawStart, setDrawStart] = useState(null);
-    const [dragRect, setDragRect] = useState(null);
-
-    const handleMapMouseDown = (e) => {
-        if (!isDrawingArea) return;
-        setDrawStart({ lat: e.latlng.lat, lng: e.latlng.lng });
-        setDragRect(null);
-    };
-
-    const handleMapMouseMove = (e) => {
-        if (!isDrawingArea || !drawStart) return;
-        // Show live preview of rectangle while dragging
-        setDragRect({
-            lat1: drawStart.lat,
-            lng1: drawStart.lng,
-            lat2: e.latlng.lat,
-            lng2: e.latlng.lng
-        });
-    };
-
-    const handleMapMouseUp = (e) => {
-        if (!isDrawingArea || !drawStart) return;
-        setAreaSelector({
-            lat1: drawStart.lat,
-            lng1: drawStart.lng,
-            lat2: e.latlng.lat,
-            lng2: e.latlng.lng
-        });
-        setDrawStart(null);
-        setDragRect(null);
-    };
-
-    // Show selection UI when no addresses loaded
-    if (listings.length === 0) {
-        return (
-            <div id="route-view-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-                {/* Toolbar */}
-                <div style={{ padding: '10px 16px', background: '#f5f5f5', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                    <button onClick={() => navigate(-1)}>← Back</button>
-                    <strong>Route Builder</strong>
-                    <span style={{ color: '#555', fontSize: '0.9em' }}>Select addresses to create a route</span>
-                </div>
-
-                {/* Selection panel */}
-                <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-                    {/* Left side: Map with area selector */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ padding: '10px 16px', background: '#fff', borderBottom: '1px solid #ddd' }}>
-                            <strong>Draw an area on the map to select addresses</strong>
-                            <div style={{ marginTop: '8px', fontSize: '0.9em', color: '#555' }}>
-                                {isDrawingArea ? (
-                                    <span style={{ color: '#1976d2', fontWeight: 500 }}>Click and drag on the map to select an area</span>
-                                ) : (
-                                    <>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={isDrawingArea}
-                                                onChange={() => setIsDrawingArea(!isDrawingArea)}
-                                            />
-                                            Enable Area Selector
-                                        </label>
-                                    </>
-                                )}
-                            </div>
-                            {areaSelector && (
-                                <div style={{ marginTop: '10px', padding: '10px', background: '#e3f2fd', borderRadius: '4px', border: '1px solid #90caf9' }}>
-                                    <button
-                                        onClick={handleSelectAddressesInArea}
-                                        style={{ padding: '6px 12px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, marginRight: '8px' }}
-                                    >
-                                        ✓ Add {getAddressesInArea().length} addresses from area
-                                    </button>
-                                    <button
-                                        onClick={() => setAreaSelector(null)}
-                                        style={{ padding: '6px 12px', background: '#ccc', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
-                                    >
-                                        ✕ Cancel
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                            <SelectionMapContainer
-                                allAddresses={allAvailableAddresses}
-                                isDrawingArea={isDrawingArea}
-                                onAreaSelected={setAreaSelector}
-                                areaSelector={areaSelector}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Right side: Available addresses list */}
-                    <div style={{ width: '350px', borderLeft: '1px solid #ddd', display: 'flex', flexDirection: 'column', background: '#f9f9f9' }}>
-                        <div style={{ padding: '10px 16px', background: '#fff', borderBottom: '1px solid #ddd' }}>
-                            <strong>Available Addresses</strong>
-                            <div style={{ fontSize: '0.9em', color: '#666' }}>{allAvailableAddresses.length} total</div>
-                        </div>
-                        <div style={{ flex: 1, overflowY: 'auto' }}>
-                            <div style={{ padding: '8px' }}>
-                                {allAvailableAddresses.length === 0 ? (
-                                    <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>Loading addresses...</div>
-                                ) : (
-                                    <div style={{ fontSize: '0.85em' }}>
-                                        {allAvailableAddresses.map(addr => (
-                                            <div
-                                                key={addr._id}
-                                                onClick={() => setListings([addr])}
-                                                style={{
-                                                    padding: '8px',
-                                                    marginBottom: '4px',
-                                                    background: '#fff',
-                                                    border: '1px solid #ddd',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => (e.target.style.background = '#e3f2fd')}
-                                                onMouseLeave={(e) => (e.target.style.background = '#fff')}
-                                            >
-                                                <div style={{ fontWeight: 500 }}>{[addr.firstName, addr.lastName].filter(Boolean).join(' ') || '—'}</div>
-                                                <div style={{ color: '#666', fontSize: '0.8em' }}>{[addr.address1, addr.address2].filter(Boolean).join(', ')}</div>
-                                                {addr.area && <div style={{ color: '#1976d2', fontSize: '0.8em' }}>📍 {addr.area}</div>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+        : masjidRef?.latitude && masjidRef?.longitude
+            ? [masjidRef.latitude, masjidRef.longitude]
+            : [39.5, -98.35];
 
     return (
         <div id="route-view-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -614,24 +371,6 @@ function RouteView() {
             <div style={{ padding: '10px 16px', background: '#f5f5f5', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate(-1)}>← Back to List</button>
                 <button onClick={handleClearRoute} style={{ padding: '4px 12px', background: '#ff5252', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}>✕ Clear Route</button>
-                
-                {/* Area Selector in toolbar */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginLeft: '1rem' }}>
-                    <input
-                        type="checkbox"
-                        checked={isDrawingArea}
-                        onChange={() => setIsDrawingArea(!isDrawingArea)}
-                    />
-                    <span style={{ fontSize: '0.9em' }}>Draw Area</span>
-                </label>
-                {areaSelector && (
-                    <button
-                        onClick={handleSelectAddressesInArea}
-                        style={{ padding: '4px 12px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}
-                    >
-                        ✓ Add {getAddressesInArea().length} from area
-                    </button>
-                )}
                 
                 {addressesToRoute.length >= 2 && (
                     <button
@@ -643,6 +382,11 @@ function RouteView() {
                     </button>
                 )}
                 <strong>Route</strong>
+                {masjidRef && (
+                    <span style={{ color: '#6a1b9a', fontSize: '0.88em', fontWeight: 500 }}>
+                        🕌 From: {masjidRef.name || 'Masjid'}
+                    </span>
+                )}
                 <span style={{ color: '#555', fontSize: '0.9em' }}>
                     {selectedIds.length > 0 ? `${selectedIds.length} selected` : (showRoute ? `${addressesToRoute.length} stops` : '0 stops')}
                 </span>
@@ -726,20 +470,27 @@ function RouteView() {
                         center={center} 
                         zoom={13} 
                         style={{ height: '100%', width: '100%' }}
-                        onMouseDown={handleMapMouseDown}
-                        onMouseMove={handleMapMouseMove}
-                        onMouseUp={handleMapMouseUp}
                     >
-                        <CursorHandler isDrawingArea={isDrawingArea} />
                         <TileLayer
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
                         {addressesToRoute.length > 0 && (
-                            <FitBounds positions={addressesToRoute.map(l => [l.latitude, l.longitude])} />
+                            <FitBounds positions={[
+                                ...addressesToRoute.map(l => [l.latitude, l.longitude]),
+                                ...(masjidRef?.latitude && masjidRef?.longitude ? [[masjidRef.latitude, masjidRef.longitude]] : [])
+                            ]} />
                         )}
                         {routePolyline && showRoute && (
                             <Polyline positions={routePolyline} color="#1976d2" weight={4} opacity={0.8} dashArray="8 4" />
+                        )}
+                        {/* Masjid reference marker */}
+                        {masjidRef?.latitude && masjidRef?.longitude && (
+                            <Marker position={[masjidRef.latitude, masjidRef.longitude]} icon={masjidIcon}>
+                                <Tooltip direction="top" opacity={0.95} permanent>
+                                    <div style={{ fontWeight: 'bold', color: '#6a1b9a' }}>🕌 {masjidRef.name || 'Masjid'}</div>
+                                </Tooltip>
+                            </Marker>
                         )}
                         {listings.map((l, i) => {
                             if (!l.latitude || !l.longitude) return null;
@@ -762,31 +513,6 @@ function RouteView() {
                                 </Marker>
                             );
                         })}
-                        {dragRect && (
-                            <Rectangle
-                                bounds={[
-                                    [Math.min(dragRect.lat1, dragRect.lat2), Math.min(dragRect.lng1, dragRect.lng2)],
-                                    [Math.max(dragRect.lat1, dragRect.lat2), Math.max(dragRect.lng1, dragRect.lng2)]
-                                ]}
-                                color="#ff9800"
-                                fillColor="#ff9800"
-                                fillOpacity={0.15}
-                                weight={2}
-                                dashArray="4 4"
-                            />
-                        )}
-                        {areaSelector && (
-                            <Rectangle
-                                bounds={[
-                                    [Math.min(areaSelector.lat1, areaSelector.lat2), Math.min(areaSelector.lng1, areaSelector.lng2)],
-                                    [Math.max(areaSelector.lat1, areaSelector.lat2), Math.max(areaSelector.lng1, areaSelector.lng2)]
-                                ]}
-                                color="#1976d2"
-                                fillColor="#1976d2"
-                                fillOpacity={0.1}
-                                weight={2}
-                            />
-                        )}
                     </MapContainer>
                 </div>
 
