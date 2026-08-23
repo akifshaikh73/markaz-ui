@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Tooltip, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Polyline, useMap, Rectangle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { formatDate } from '../utils';
@@ -17,6 +17,87 @@ const makeNumberedIcon = (n) => L.divIcon({
     html: `<div style="background:#1976d2;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4)">${n}</div>`,
     iconSize: [28, 28], iconAnchor: [14, 14],
 });
+
+function SelectionMapContainer({ allAddresses, isDrawingArea, onAreaSelected, areaSelector }) {
+    const mapRef = React.useRef(null);
+    const [drawStart, setDrawStart] = React.useState(null);
+
+    const handleMapMouseDown = (e) => {
+        if (!isDrawingArea) return;
+        setDrawStart({ lat: e.latlng.lat, lng: e.latlng.lng });
+    };
+
+    const handleMapMouseMove = (e) => {
+        if (!isDrawingArea || !drawStart) return;
+        // Could add visual feedback here (rectangle)
+    };
+
+    const handleMapMouseUp = (e) => {
+        if (!isDrawingArea || !drawStart) return;
+        onAreaSelected({
+            lat1: drawStart.lat,
+            lng1: drawStart.lng,
+            lat2: e.latlng.lat,
+            lng2: e.latlng.lng
+        });
+        setDrawStart(null);
+    };
+
+    const center = allAddresses.length > 0
+        ? [allAddresses[0].latitude || 39.5, allAddresses[0].longitude || -98.35]
+        : [39.5, -98.35];
+
+    return (
+        <MapContainer
+            center={center}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+            onMouseDown={handleMapMouseDown}
+            onMouseMove={handleMapMouseMove}
+            onMouseUp={handleMapMouseUp}
+        >
+            <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {allAddresses.map((addr, i) => {
+                if (!addr.latitude || !addr.longitude) return null;
+                return (
+                    <Marker
+                        key={addr._id}
+                        position={[addr.latitude, addr.longitude]}
+                        icon={L.icon({
+                            iconUrl: require('leaflet/dist/images/marker-icon.png'),
+                            shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41]
+                        })}
+                    >
+                        <Tooltip direction="top" opacity={0.95}>
+                            <div>
+                                <strong>{[addr.firstName, addr.lastName].filter(Boolean).join(' ') || '—'}</strong><br />
+                                {[addr.address1, addr.address2].filter(Boolean).join(', ')}<br />
+                                {addr.area && <em>{addr.area}</em>}
+                            </div>
+                        </Tooltip>
+                    </Marker>
+                );
+            })}
+            {areaSelector && (
+                <Rectangle
+                    bounds={[
+                        [Math.min(areaSelector.lat1, areaSelector.lat2), Math.min(areaSelector.lng1, areaSelector.lng2)],
+                        [Math.max(areaSelector.lat1, areaSelector.lat2), Math.max(areaSelector.lng1, areaSelector.lng2)]
+                    ]}
+                    color="#1976d2"
+                    fillColor="#1976d2"
+                    fillOpacity={0.1}
+                    weight={2}
+                />
+            )}
+        </MapContainer>
+    );
+}
 
 function FitBounds({ positions }) {
     const map = useMap();
@@ -56,28 +137,20 @@ function RouteView() {
 
     // listings passed via route state; fall back to localStorage
     const getInitialListings = () => {
-        if (location.state?.listings && Array.isArray(location.state.listings)) {
-            console.log('[RouteView] Listings from location.state:', location.state.listings);
-            return location.state.listings;
-        }
-        try {
-            const saved = localStorage.getItem('addressList');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                return Array.isArray(parsed) ? parsed : [];
-            }
-            return [];
-        } catch (err) {
-            console.error('[RouteView] Error parsing addressList from localStorage:', err);
-            return [];
-        }
+        // Don't auto-load listings. Start empty.
+        // User must explicitly select addresses.
+        return [];
     };
 
     // location.state may contain masjidID and unitID for context
+    const { masjidID: passedMasjidID, unitID: passedUnitID } = location.state || {};
 
     const [listings, setListings] = useState(getInitialListings());
+    const [allAvailableAddresses, setAllAvailableAddresses] = useState([]);
     const [routePolyline, setRoutePolyline] = useState(null);
     const [routeLoading, setRouteLoading] = useState(false);
+    const [areaSelector, setAreaSelector] = useState(null); // { lat1, lng1, lat2, lng2 }
+    const [isDrawingArea, setIsDrawingArea] = useState(false);
     const [totalDistance, setTotalDistance] = useState(null);
     const [totalDuration, setTotalDuration] = useState(null);
     const [nearbyCount, setNearbyCount] = useState(5);
@@ -105,10 +178,47 @@ function RouteView() {
             .finally(() => setNearbyLoading(false));
     };
 
-    const handleToggleId = (id) => {
-        setSelectedIds(prev => 
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
+    // Load all available addresses on mount
+    useEffect(() => {
+        const loadAllAddresses = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/addressList`);
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    setAllAvailableAddresses(data);
+                    console.log('[RouteView] Loaded all available addresses:', data.length);
+                }
+            } catch (err) {
+                console.error('[RouteView] Error loading addresses:', err);
+            }
+        };
+        loadAllAddresses();
+    }, [API_URL]);
+
+    // Area selector: addresses within the selected bounding box
+    const getAddressesInArea = () => {
+        if (!areaSelector) return [];
+        const { lat1, lng1, lat2, lng2 } = areaSelector;
+        const minLat = Math.min(lat1, lat2);
+        const maxLat = Math.max(lat1, lat2);
+        const minLng = Math.min(lng1, lng2);
+        const maxLng = Math.max(lng1, lng2);
+
+        return allAvailableAddresses.filter(addr => {
+            const lat = addr.latitude;
+            const lng = addr.longitude;
+            return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
+        });
+    };
+
+    const handleSelectAddressesInArea = () => {
+        const inArea = getAddressesInArea();
+        if (inArea.length === 0) {
+            alert('No addresses found in the selected area');
+            return;
+        }
+        setListings(inArea);
+        setAreaSelector(null);
     };
 
     const handleUpdateArea = () => {
@@ -139,6 +249,19 @@ function RouteView() {
         })
         .catch(() => setUpdateAreaError('Failed to update area'))
         .finally(() => setUpdateAreaLoading(false));
+    };
+
+    const handleToggleId = (id) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleClearRoute = () => {
+        setListings([]);
+        setSelectedIds([]);
+        setSelectedArea('');
+        setAreaSelector(null);
     };
 
     const plotted = listings.filter(l => l.latitude && l.longitude);
@@ -211,10 +334,102 @@ function RouteView() {
 
     if (listings.length === 0) {
         return (
-            <div style={{ margin: '2rem', padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-                <h2>Route</h2>
-                <p>No listings selected. Go back to the address list and select listings to build a route.</p>
-                <button onClick={() => navigate(-1)}>← Back</button>
+            <div id="route-view-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+                {/* Toolbar */}
+                <div style={{ padding: '10px 16px', background: '#f5f5f5', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <button onClick={() => navigate(-1)}>← Back</button>
+                    <strong>Route Builder</strong>
+                    <span style={{ color: '#555', fontSize: '0.9em' }}>Select addresses to create a route</span>
+                </div>
+
+                {/* Selection panel */}
+                <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+                    {/* Left side: Map with area selector */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ padding: '10px 16px', background: '#fff', borderBottom: '1px solid #ddd' }}>
+                            <strong>Draw an area on the map to select addresses</strong>
+                            <div style={{ marginTop: '8px', fontSize: '0.9em', color: '#555' }}>
+                                {isDrawingArea ? (
+                                    <span style={{ color: '#1976d2', fontWeight: 500 }}>Click and drag on the map to select an area</span>
+                                ) : (
+                                    <>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isDrawingArea}
+                                                onChange={() => setIsDrawingArea(!isDrawingArea)}
+                                            />
+                                            Enable Area Selector
+                                        </label>
+                                    </>
+                                )}
+                            </div>
+                            {areaSelector && (
+                                <div style={{ marginTop: '10px', padding: '10px', background: '#e3f2fd', borderRadius: '4px', border: '1px solid #90caf9' }}>
+                                    <button
+                                        onClick={handleSelectAddressesInArea}
+                                        style={{ padding: '6px 12px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, marginRight: '8px' }}
+                                    >
+                                        ✓ Add {getAddressesInArea().length} addresses from area
+                                    </button>
+                                    <button
+                                        onClick={() => setAreaSelector(null)}
+                                        style={{ padding: '6px 12px', background: '#ccc', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                                    >
+                                        ✕ Cancel
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                            <SelectionMapContainer
+                                allAddresses={allAvailableAddresses}
+                                isDrawingArea={isDrawingArea}
+                                onAreaSelected={setAreaSelector}
+                                areaSelector={areaSelector}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Right side: Available addresses list */}
+                    <div style={{ width: '350px', borderLeft: '1px solid #ddd', display: 'flex', flexDirection: 'column', background: '#f9f9f9' }}>
+                        <div style={{ padding: '10px 16px', background: '#fff', borderBottom: '1px solid #ddd' }}>
+                            <strong>Available Addresses</strong>
+                            <div style={{ fontSize: '0.9em', color: '#666' }}>{allAvailableAddresses.length} total</div>
+                        </div>
+                        <div style={{ flex: 1, overflowY: 'auto' }}>
+                            <div style={{ padding: '8px' }}>
+                                {allAvailableAddresses.length === 0 ? (
+                                    <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>Loading addresses...</div>
+                                ) : (
+                                    <div style={{ fontSize: '0.85em' }}>
+                                        {allAvailableAddresses.map(addr => (
+                                            <div
+                                                key={addr._id}
+                                                onClick={() => setListings([addr])}
+                                                style={{
+                                                    padding: '8px',
+                                                    marginBottom: '4px',
+                                                    background: '#fff',
+                                                    border: '1px solid #ddd',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => (e.target.style.background = '#e3f2fd')}
+                                                onMouseLeave={(e) => (e.target.style.background = '#fff')}
+                                            >
+                                                <div style={{ fontWeight: 500 }}>{[addr.firstName, addr.lastName].filter(Boolean).join(' ') || '—'}</div>
+                                                <div style={{ color: '#666', fontSize: '0.8em' }}>{[addr.address1, addr.address2].filter(Boolean).join(', ')}</div>
+                                                {addr.area && <div style={{ color: '#1976d2', fontSize: '0.8em' }}>📍 {addr.area}</div>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -224,6 +439,7 @@ function RouteView() {
             {/* Toolbar */}
             <div style={{ padding: '10px 16px', background: '#f5f5f5', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate(-1)}>← Back to List</button>
+                <button onClick={handleClearRoute} style={{ padding: '4px 12px', background: '#ff5252', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}>✕ Clear Route</button>
                 <strong>Route</strong>
                 <span style={{ color: '#555', fontSize: '0.9em' }}>
                     {plotted.length} stop{plotted.length !== 1 ? 's' : ''} plotted
@@ -331,25 +547,17 @@ function RouteView() {
             <div
                 onMouseDown={() => setIsDragging(true)}
                 onMouseEnter={(e) => (e.target.style.background = '#999')}
-                onMouseLeave={(e) => !isDragging && (e.target.style.background = '#ff0000')}
+                onMouseLeave={(e) => !isDragging && (e.target.style.background = '#ddd')}
                 style={{
-                    height: '20px',
-                    background: '#ff0000',
+                    height: '10px',
+                    background: '#ddd',
                     cursor: 'row-resize',
                     borderTop: '1px solid #bbb',
                     borderBottom: '1px solid #bbb',
                     transition: isDragging ? 'none' : 'background 0.2s',
-                    userSelect: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    color: '#fff',
-                    fontWeight: 'bold'
+                    userSelect: 'none'
                 }}
-            >
-                ↕ DRAG TO RESIZE ↕
-            </div>
+            />
 
             {/* Resizable Stop List Pane */}
             <div style={{ flex: `0 0 ${100 - splitPos}%`, minHeight: 0, overflowY: 'auto', background: '#fff' }}>
