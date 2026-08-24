@@ -20,6 +20,9 @@ function VisitationView() {
     };
     
     const masjidID = getMasjidID();
+    
+    // Get masjid slug for back navigation (used in back button onClick)
+    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid'); // eslint-disable-line no-unused-vars
 
     const [total, setTotal] = useState(10);
     const [countMode, setCountMode] = useState('10'); // '5', '10', '25', 'custom'
@@ -170,7 +173,18 @@ function VisitationView() {
     return (
         <div style={{ padding: '1rem 1.5rem', maxWidth: '1100px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <button onClick={() => navigate(-1)}>← Back</button>
+                <button 
+                    onClick={() => {
+                        if (masjidSlug) {
+                            navigate(`/${masjidSlug}`, { replace: true, state: { fromChildPage: true } });
+                        } else {
+                            navigate(-1);
+                        }
+                    }} 
+                    style={{ padding: '0.5rem 1rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                    🏠 Home
+                </button>
                 <StatusBadges />
                 <h2 style={{ margin: 0 }}>Visitation View</h2>
                 <button
@@ -187,8 +201,8 @@ function VisitationView() {
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#555' }}>Visited:</span>
                     {[
-                        { label: 'Least Recently', value: 'leastRecent' },
-                        { label: 'Most Recently', value: 'mostRecent' }
+                        { label: 'Earliest', value: 'leastRecent' },
+                        { label: 'Latest', value: 'mostRecent' }
                     ].map(({ label, value }) => (
                         <button key={value} onClick={() => setSortMode(value)}
                             style={{ padding: '0.35rem 0.9rem', borderRadius: '5px', border: '1px solid #f57c00', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem', background: sortMode === value ? '#f57c00' : '#fff', color: sortMode === value ? '#fff' : '#f57c00' }}>
@@ -199,7 +213,7 @@ function VisitationView() {
 
                 {/* Count selector dropdown */}
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#555' }}>Count:</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#555' }}># of Addresses:</span>
                     <select value={countMode} onChange={e => setCountMode(e.target.value)}
                         style={{ padding: '0.35rem 0.7rem', borderRadius: '5px', border: '1px solid #1976d2', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}>
                         <option value="5">5</option>
@@ -223,8 +237,8 @@ function VisitationView() {
             {/* Description */}
             <p style={{ color: '#555', marginTop: 0, marginBottom: '1rem' }}>
                 {sortMode === 'leastRecent' 
-                    ? 'Least-recently-visited' 
-                    : 'Most-recently-visited'} <strong>active</strong> addresses. Count is applied per unit.
+                    ? 'Earliest-visited' 
+                    : 'Latest-visited'} <strong>active</strong> addresses. Applied per unit.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', background: '#e3f2fd', borderRadius: '6px', flexWrap: 'wrap' }}>
                 <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

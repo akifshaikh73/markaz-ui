@@ -34,6 +34,7 @@ const UserLogin = () => {
         const loginSource = localStorage.getItem('loginSource');
         const storedSlug = localStorage.getItem('userMasjidSlug');
         // Resume session: navigate straight to the stored slug without re-calling the API
+        // Works for both /user-login session resume AND direct slug access with cached PIN
         if (storedPin && loginSource && storedSlug) {
             navigate(`/${storedSlug}`, { replace: true, state: { isLoggedIn: true } });
         }

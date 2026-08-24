@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 const MASJID_CACHE_PREFIX = 'masjidDoc_';
 
@@ -19,8 +19,10 @@ async function getMasjidDoc(masjidID, apiUrl) {
 
 function QuickLinks() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { masjidID } = useParams();
     const API_URL = process.env.REACT_APP_API_URL || '';
+    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
 
     const handleRouteClick = async () => {
         try {
@@ -98,10 +100,16 @@ function QuickLinks() {
             {/* Header */}
             <div style={{ padding: '1.5rem 2rem', background: '#fff', borderBottom: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <button 
-                    onClick={() => navigate(-1)}
+                    onClick={() => {
+                        if (masjidSlug) {
+                            navigate(`/${masjidSlug}`, { replace: true, state: { fromChildPage: true } });
+                        } else {
+                            navigate(-1);
+                        }
+                    }}
                     style={{ background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}
                 >
-                    ← Back
+                    🏠 Home
                 </button>
                 <h1 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem', fontWeight: 700, color: '#333' }}>Quick Links</h1>
                 <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '0.95rem' }}>Access key features and tools</p>
