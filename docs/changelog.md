@@ -10,6 +10,9 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 ### Mobile Responsiveness
 - **fix(VisitationView):** Added horizontal scrolling support for mobile devices (iPhone, Android). Table now wrapped in scrollable container with `overflowX: auto` and `WebkitOverflowScrolling: touch` for smooth momentum scrolling. Allows users to pan right to view "Last Visited" and "Last Response" columns on small screens
 
+### Table Layout & Columns
+- **refactor(VisitationView):** Reorganized table columns for better data density: Moved "Area" to last column (was 4th). Combined "Last Visited" + "Last Response" into single "Visited" column showing format: `"Date (Response)"` e.g., `"Never (—)"` or `"2026-08-24 (Yes)"`. Dropped "Last" prefix from all column labels
+
 ### Code Quality
 - **chore(QuickLinks):** Removed unused `useLocation` import to resolve ESLint warning. Component uses `localStorage` for navigation state instead
 

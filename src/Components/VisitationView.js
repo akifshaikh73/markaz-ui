@@ -312,15 +312,16 @@ function VisitationView() {
                                         <th style={th}>ID</th>
                                         <th style={th}>Name</th>
                                         <th style={th}>Address</th>
+                                        <th style={th}>Visited</th>
                                         <th style={th}>Area</th>
-                                        <th style={th}>Last Visited</th>
-                                        <th style={th}>Last Response</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {listings.map(a => {
                                         const lastVisit = (a.visitHistory || []).slice(-1)[0];
                                         const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
+                                        const visitedText = a.lastModifiedDate ? formatDate(a.lastModifiedDate) : 'Never';
+                                        const responseText = lastVisit?.response || '—';
                                         return (
                                             <tr key={a._id} style={{ borderBottom: '1px solid #eee' }}>
                                                 <td style={{ ...td, width: '30px', textAlign: 'center' }}>
@@ -334,11 +335,10 @@ function VisitationView() {
                                                 <td style={td}><Link to={`/address/${a._id}`} style={{ color: '#1976d2' }}>{a._id}</Link></td>
                                                 <td style={td}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
                                                 <td style={td}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
-                                                <td style={td}><em style={{ color: '#555' }}>{area}</em></td>
                                                 <td style={{ ...td, color: !a.lastModifiedDate ? '#b71c1c' : '#333' }}>
-                                                    {a.lastModifiedDate ? formatDate(a.lastModifiedDate) : 'Never'}
+                                                    {visitedText} <span style={{ fontSize: '0.8em', color: '#999' }}>({responseText})</span>
                                                 </td>
-                                                <td style={td}>{lastVisit?.response || '—'}</td>
+                                                <td style={td}><em style={{ color: '#555' }}>{area}</em></td>
                                             </tr>
                                         );
                                     })}
