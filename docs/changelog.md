@@ -3,6 +3,36 @@
 All notable changes to Markaz Visitation UI are documented here.  
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
+---## 2026-08-23 (Session 5 - UI/UX Refinements & Navigation)
+
+### Branding & Visual Updates
+- **chore(manifest):** Updated app icons to Chicago Markaz PNG skyline (replaced generic logo files)
+- **style(Landing):** Enhanced address list page with improved colors, padding, and visual hierarchy to match VisitationView aesthetic. Top-right buttons now have consistent styling with better spacing and hover effects
+- **style(MasjidLanding):** Added descriptive subtitles to navigation buttons (Visitations: "Daily and weekly visitations", Full Listings: "Full address list and search", Quick Links: "Access key features and tools"). Improved button styling with hover effects and better visual hierarchy
+
+### Navigation & User Flow Improvements
+- **feat(VisitationView, QuickLinks, Landing):** Added Home button (🏠) to return users to MasjidLanding page. Implements proper navigation state with `fromChildPage` flag to prevent auto-navigation loops
+- **feat(Landing):** Logout button now only shows when user logs in via `/user-login` (email or PIN). Hidden for direct slug access (`loginSource !== 'masjid-slug-direct'`). Prevents confusion about available actions for direct-access users
+- **fix(MasjidLanding):** Disabled auto-navigate to last viewed page. Users now always see the landing page first when accessing via masjid slug, allowing them to select unit and desired page manually
+
+### Address & Visitation Features
+- **fix(AddressDetail):** Route button now only displays when address has valid latitude and longitude coordinates. Prevents navigation to route planner with incomplete geocoding data
+- **style(VisitationView):** Shortened sort mode labels for improved UX: "Least Recently" → "Earliest", "Most Recently" → "Latest". Updated selector label: "Count" → "# of Addresses" for clarity
+
+### Code Quality
+- **chore(VisitationView):** Suppressed ESLint unused variable warning for `masjidSlug` (variable is used in onClick closure). Added explanatory comment clarifying usage
+
+---## 2026-08-23 (Session 4 - Part 4 Final Extra - Slug Auto-Login)
+
+### Direct Masjid Slug Auto-Login (Bypass /user-login)
+- **feat(MasjidLanding):** Users accessing via direct masjid slug URL (e.g., `/msi`, `/diman`) are now automatically logged in without visiting `/user-login`. System extracts PIN from masjid config and caches it along with login metadata. If user visits a different slug, PIN is auto-switched (Option A). Auto-cached PIN enables fast session resume and direct navigation to selection screen.
+
+---
+## 2026-08-23 (Session 4 - Part 4 Final Extra - Auto-Navigate)
+
+### MasjidUser Direct Slug Access Auto-Navigation
+- **feat(MasjidLanding):** Added auto-navigation when users enter via masjid slug URL (e.g., /muthman). System now remembers the last viewed option (Visitations, Full Listings, or Quick Links) for each masjid. On subsequent visits via slug, users are taken directly to their last viewed page, skipping the selection screen. Selection screen still appears on initial login. Last view preferences are cleared on logout.
+
 ---
 ## 2026-08-23 (Session 4 - Part 4 Final Extra)
 
