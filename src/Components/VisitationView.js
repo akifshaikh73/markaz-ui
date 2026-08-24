@@ -308,7 +308,6 @@ function VisitationView() {
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', minWidth: '600px' }}>
                                 <thead>
                                     <tr style={{ background: '#f5f5f5' }}>
-                                        <th style={{ ...th, width: '30px' }}></th>
                                         <th style={th}>ID</th>
                                         <th style={th}>Name</th>
                                         <th style={th}>Address</th>
@@ -324,15 +323,15 @@ function VisitationView() {
                                         const responseText = lastVisit?.response || '—';
                                         return (
                                             <tr key={a._id} style={{ borderBottom: '1px solid #eee' }}>
-                                                <td style={{ ...td, width: '30px', textAlign: 'center' }}>
+                                                <td style={{ ...td, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     <input 
                                                         type="checkbox"
                                                         checked={selectedIds.includes(a._id)}
                                                         onChange={() => handleToggleId(a._id)}
-                                                        style={{ cursor: 'pointer', accentColor: '#e65100' }}
+                                                        style={{ cursor: 'pointer', accentColor: '#e65100', flexShrink: 0 }}
                                                     />
+                                                    <Link to={`/address/${a._id}`} style={{ color: '#1976d2' }}>{a._id}</Link>
                                                 </td>
-                                                <td style={td}><Link to={`/address/${a._id}`} style={{ color: '#1976d2' }}>{a._id}</Link></td>
                                                 <td style={td}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
                                                 <td style={td}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
                                                 <td style={{ ...td, color: !a.lastModifiedDate ? '#b71c1c' : '#333' }}>

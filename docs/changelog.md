@@ -8,10 +8,15 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 ## 2026-08-24 (Mobile UX & Code Quality)
 
 ### Mobile Responsiveness
-- **fix(VisitationView):** Added horizontal scrolling support for mobile devices (iPhone, Android). Table now wrapped in scrollable container with `overflowX: auto` and `WebkitOverflowScrolling: touch` for smooth momentum scrolling. Allows users to pan right to view "Last Visited" and "Last Response" columns on small screens
+- **fix(VisitationView):** Added horizontal scrolling support for mobile devices (iPhone, Android). Table now wrapped in scrollable container with `overflowX: auto` and `WebkitOverflowScrolling: touch` for smooth momentum scrolling. Allows users to pan right to view all table columns on small screens
 
 ### Table Layout & Columns
-- **refactor(VisitationView):** Reorganized table columns for better data density: Moved "Area" to last column (was 4th). Combined "Last Visited" + "Last Response" into single "Visited" column showing format: `"Date (Response)"` e.g., `"Never (—)"` or `"2026-08-24 (Yes)"`. Dropped "Last" prefix from all column labels
+- **refactor(VisitationView):** Reorganized and consolidated table columns for better data density:
+  - Moved "Area" to last column (was 4th)
+  - Combined "Last Visited" + "Last Response" into single "Visited" column showing format: `"Date (Response)"` e.g., `"Never (—)"` or `"2026-08-24 (Yes)"`
+  - Merged checkbox into ID column with flexbox layout (checkbox | ID link)
+  - Dropped "Last" prefix from all column labels
+  - Final column order: ID (with checkbox), Name, Address, Visited, Area
 
 ### Code Quality
 - **chore(QuickLinks):** Removed unused `useLocation` import to resolve ESLint warning. Component uses `localStorage` for navigation state instead
