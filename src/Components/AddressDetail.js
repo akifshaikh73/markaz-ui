@@ -302,13 +302,15 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 {!isModal && (
                     <button onClick={handleNavigation}>← Back</button>
                 )}
-                <button
-                    onClick={() => navigate('/route', { state: { listings: [address] } })}
-                    disabled={!address._id}
-                    style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
-                >
-                    🗺 Route
-                </button>
+                {address.latitude && address.longitude && (
+                    <button
+                        onClick={() => navigate('/route', { state: { listings: [address] } })}
+                        disabled={!address._id}
+                        style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
+                    >
+                        🗺 Route
+                    </button>
+                )}
             </div>
         </div>
     );
