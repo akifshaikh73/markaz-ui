@@ -20,10 +20,14 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ### Vertical Space Optimization
 - **refactor(VisitationView):** Optimized header bar to fit on single line:
-  - Home button, Visitation View heading, and Quick Links button now on one line
-  - Reduced button padding and font sizes: padding 0.5rem 1rem → 0.35rem 0.8rem (Home), font 0.9rem → 0.85rem (Quick Links)
+  - Home button, Visitations heading, and Links button now on one line
+  - Changed label: "Visitation View" → "Visitations" (5 character savings)
+  - Changed label: "Quick Links" → "Links" (6 character savings)
+  - Reduced button padding and font sizes: padding 0.5rem 1rem → 0.35rem 0.8rem (Home), font 0.9rem → 0.85rem (Links)
   - Heading font size: default → 1rem
   - Added whiteSpace: nowrap to prevent wrapping
+  - Reduced gap: 1rem → 0.5rem
+  - Set flexWrap to nowrap
 
 - **refactor(VisitationView):** Optimized filter bar (Visited sort + Show count) to fit on single line:
   - Changed "Neighborhood" label to "Area" for consistency with table

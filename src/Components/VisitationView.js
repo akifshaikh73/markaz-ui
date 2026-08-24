@@ -172,7 +172,7 @@ function VisitationView() {
 
     return (
         <div style={{ padding: '1rem 1.5rem', maxWidth: '1100px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'nowrap' }}>
                 <button 
                     onClick={() => {
                         if (masjidSlug) {
@@ -181,17 +181,17 @@ function VisitationView() {
                             navigate(-1);
                         }
                     }} 
-                    style={{ padding: '0.5rem 1rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                    style={{ padding: '0.35rem 0.8rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}
                 >
                     🏠 Home
                 </button>
                 <StatusBadges />
-                <h2 style={{ margin: 0 }}>Visitation View</h2>
+                <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, whiteSpace: 'nowrap' }}>Visitations</h2>
                 <button
                     onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
-                    style={{ marginLeft: 'auto', background: '#1976d2', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+                    style={{ marginLeft: 'auto', background: '#1976d2', color: '#fff', border: 'none', padding: '0.3rem 0.7rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap' }}
                 >
-                    ⚡ Quick Links
+                    ⚡ Links
                 </button>
             </div>
 
