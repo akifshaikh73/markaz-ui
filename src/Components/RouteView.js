@@ -317,8 +317,8 @@ function RouteView() {
         : plotted;
 
     const handleCalculateRoute = () => {
-        if (addressesToRoute.length < 2) {
-            alert('Need at least 2 selected addresses with coordinates to create a route');
+        if (addressesToRoute.length < 1) {
+            alert('Need at least 1 selected address with coordinates to create a route');
             return;
         }
         setRouteLoading(true);
@@ -372,7 +372,7 @@ function RouteView() {
                 <button onClick={() => navigate(-1)}>← Back to List</button>
                 <button onClick={handleClearRoute} style={{ padding: '4px 12px', background: '#ff5252', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}>✕ Clear Route</button>
                 
-                {addressesToRoute.length >= 2 && (
+                {addressesToRoute.length >= 1 && (
                     <button
                         onClick={handleCalculateRoute}
                         disabled={routeLoading || showRoute}
