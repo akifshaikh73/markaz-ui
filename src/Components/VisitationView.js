@@ -304,10 +304,10 @@ function VisitationView() {
                                 <thead>
                                     <tr style={{ background: '#f5f5f5' }}>
                                         <th style={th}>ID</th>
-                                        <th style={th}>Name</th>
-                                        <th style={th}>Address</th>
+                                        <th style={{ ...th, maxWidth: '100px' }}>Name</th>
+                                        <th style={{ ...th, maxWidth: '120px' }}>Address</th>
                                         <th style={th}>Visited</th>
-                                        <th style={th}>Area</th>
+                                        <th style={{ ...th, maxWidth: '90px' }}>Area</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -327,12 +327,12 @@ function VisitationView() {
                                                     />
                                                     <Link to={`/address/${a._id}`} style={{ color: '#1976d2' }}>{a._id}</Link>
                                                 </td>
-                                                <td style={td}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
-                                                <td style={td}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
+                                                <td style={{ ...td, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
+                                                <td style={{ ...td, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.address1, a.address2].filter(Boolean).join(', ')}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
                                                 <td style={{ ...td, color: !a.lastModifiedDate ? '#b71c1c' : '#333' }}>
                                                     {visitedText} <span style={{ fontSize: '0.8em', color: '#999' }}>({responseText})</span>
                                                 </td>
-                                                <td style={td}><em style={{ color: '#555' }}>{area}</em></td>
+                                                <td style={{ ...td, maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={area}><em style={{ color: '#555' }}>{area}</em></td>
                                             </tr>
                                         );
                                     })}

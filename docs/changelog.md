@@ -29,6 +29,14 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
   - Changed "addresses loaded" → "loaded" to save horizontal space
   - Set flexWrap to nowrap with horizontal scroll if needed
 
+### Column Width Optimization
+- **refactor(VisitationView):** Reduced Name and Address column widths to keep Visited column visible without horizontal scroll:
+  - Name: maxWidth 100px with text truncation and hover tooltip
+  - Address: maxWidth 120px with text truncation and hover tooltip
+  - Area: maxWidth 90px with text truncation and hover tooltip
+  - Added title attributes for full text on hover
+  - Ensures all 5 columns visible on smaller screens
+
 ### Code Quality
 - **chore(QuickLinks):** Removed unused `useLocation` import to resolve ESLint warning. Component uses `localStorage` for navigation state instead
 
