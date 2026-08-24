@@ -3,6 +3,16 @@
 All notable changes to Markaz Visitation UI are documented here.  
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
+---
+
+## 2026-08-24 (Mobile UX & Code Quality)
+
+### Mobile Responsiveness
+- **fix(VisitationView):** Added horizontal scrolling support for mobile devices (iPhone, Android). Table now wrapped in scrollable container with `overflowX: auto` and `WebkitOverflowScrolling: touch` for smooth momentum scrolling. Allows users to pan right to view "Last Visited" and "Last Response" columns on small screens
+
+### Code Quality
+- **chore(QuickLinks):** Removed unused `useLocation` import to resolve ESLint warning. Component uses `localStorage` for navigation state instead
+
 ---## 2026-08-23 (Session 5 - UI/UX Refinements & Navigation)
 
 ### Branding & Visual Updates

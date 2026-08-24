@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const MASJID_CACHE_PREFIX = 'masjidDoc_';
 
@@ -19,7 +19,6 @@ async function getMasjidDoc(masjidID, apiUrl) {
 
 function QuickLinks() {
     const navigate = useNavigate();
-    const location = useLocation();
     const { masjidID } = useParams();
     const API_URL = process.env.REACT_APP_API_URL || '';
     const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
