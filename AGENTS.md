@@ -27,7 +27,7 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 | `/` | `UserLogin` | None | PWA entry point — same as `/user-login` |
 | `/user-login` | `UserLogin` | None | MasjidAdmin entry: Email + PIN login; auto-login on PWA return if credentials cached; redirects to `/:masjidSlug` on success |
 | `/masjid-login` | `MasjidLogin` | None | MasjidUser entry: PIN-only login; Masjid ID + PIN → `MasjidUser` role; redirects to `/landing` on success |
-| `/:masjidSlug` | `MasjidLanding` | None | Public landing page; auto-grants `MasjidUser` role when "Go to Listings" clicked; shows unit selector and collapsible masjid links (for MasjidAdmin users) |
+| `/:masjidSlug` | `MasjidLanding` | None | Public landing page; auto-grants `MasjidUser` role when user makes a selection; shows unit selector and three navigation options (Visitations, Full Listings, Quick Links); on return visits, auto-navigates to last viewed page; collapsible "Other Masjids" section for MasjidAdmin users |
 | `/admin-login` | `AdminPasswordLogin` | None | MarkazAdmin entry: Markaz password prompt; sets `userRole = 'MarkazAdmin'`; redirects to `/admin-home` on success |
 | `/admin-home` | `Home` | `MarkazAdmin` | Admin dashboard; redirects to `/admin-login` if not MarkazAdmin; shows navigation links and logout button |
 | `/landing/:masjidID/:unitID` | `Landing` | Any authenticated | Protected — main address list view; accessible to MasjidUser, MasjidAdmin, or MarkazAdmin |
@@ -78,10 +78,13 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 ## Authentication Flows
 
 ### MasjidUser Entry — Masjid PIN
-Route `/user-login` (top section) → enter 4-digit PIN → `POST /api/masjids/login` (plain match against `masjids.pin`) → `userRole = 'MasjidUser'`; `loginSource = 'masjid'`; `userMasjidSlug` cached → navigate to `/:slug` → MasjidLanding auto-navigates to `/landing/:id/:unit`.
+Route `/user-login` (top section) → enter 4-digit PIN → `POST /api/masjids/login` (plain match against `masjids.pin`) → `userRole = 'MasjidUser'`; `loginSource = 'masjid'`; `userMasjidSlug` cached → navigate to `/:slug` → MasjidLanding shows unit selector and three navigation options. On subsequent visits via slug, auto-navigates to last viewed page (Visitations, Full Listings, or Quick Links).
 
-### MasjidUser Entry — Slug / MasjidLogin
-Route `/:masjidSlug` or `/masjid-login` → select unit → click Login → `userRole = 'MasjidUser'`; `loginSource = 'masjid-slug'` → navigate to `/landing/:id/:unit`.
+### MasjidUser Entry — Direct Slug (Auto-Login)
+Route `/:masjidSlug` (e.g., `/msi`, `/diman`) → auto-extracts PIN from masjid config → caches: `userPin`, `userMasjidSlug`, `loginSource = 'masjid-slug-direct'` → MasjidLanding shows unit selector immediately → user selects unit and navigation option (no `/user-login` needed). If visiting different slug, auto-switches PIN (Option A). Return visits via same slug navigate directly to last viewed page.
+
+### MasjidUser Entry — Slug / MasjidLogin Form
+Route `/:masjidSlug` or `/masjid-login` → select unit → click Login button → `userRole = 'MasjidUser'`; `loginSource = 'masjid-slug'` → navigate to `/landing/:id/:unit`. (Alternative explicit login path)
 
 ### MasjidAdmin Entry — Email + PIN
 Route `/user-login` (expand "Masjid Admin Login" section) → enter email + PIN → `POST /api/users/login` (bcrypt verify) → `userRole = 'MasjidAdmin'`; `userEmail`, `userPin`, `userMasjids`, `userMasjidSlug` cached; `loginSource = 'user'` → navigate to primary `/:slug`.
@@ -134,16 +137,7 @@ Never hardcode `localhost` URLs.
 **Context & Preferences**:
 - `landingContext` — `{ masjidID, unitID }` last visited (cleared on logout; used to restore unit selection)
 - `preferredMasjid` — masjid slug cached for PWA app launch (cleared on logout)
-
-**Address List & Filtering**:
-- `addressList` — working set from last fetch or search (cleared on logout)
-- `searchParams` — last search form values (cleared on logout)
-- `areaFilter` — last area filter text (cleared on logout)
-- `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
-
-**Context & Preferences**:
-- `landingContext` — `{ masjidID, unitID }` last visited (cleared on logout; used to restore unit selection)
-- `preferredMasjid` — masjid slug cached for PWA app launch (cleared on logout)
+- `lastView_<masjidSlug>` — Last viewed page for masjid slug access: `'visitations'`, `'listings'`, or `'quicklinks'` (cleared on logout; auto-navigates to stored view on subsequent slug visits)
 
 **sessionStorage keys** (keyed per masjid+unit; cleared on logout via `sessionStorage.clear()`):
 - `unitAreas_<masjidID>_<unitID>` — sorted unique area/neighborhood strings for the Neighborhood dropdown

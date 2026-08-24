@@ -39,6 +39,25 @@ const MasjidLanding = () => {
         localStorage.setItem('loginSource', 'masjid-slug');
     }, [location.state?.isLoggedIn, masjidConfig]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Auto-cache masjid PIN when accessing via direct slug (no /user-login needed)
+    useEffect(() => {
+        if (!masjidConfig || !masjidConfig.pin) return;
+        
+        const cachedSlug = localStorage.getItem('userMasjidSlug');
+        const cachedPin = localStorage.getItem('userPin');
+        
+        // Cache PIN if: not cached OR different slug (Option A: auto-switch)
+        if (!cachedPin || cachedSlug !== masjidSlug) {
+            localStorage.setItem('userPin', masjidConfig.pin);
+            localStorage.setItem('userMasjidSlug', masjidSlug);
+            localStorage.setItem('loginSource', 'masjid-slug-direct');
+            setUserRole('MasjidUser');
+        }
+    }, [masjidConfig, masjidSlug]);
+
+    // Auto-navigate disabled: Always show MasjidLanding UI to let user select unit
+    // Users can navigate to listings/visitations/quicklinks via buttons
+
     if (!apiReady || masjidLoading) return <ApiSplash />;
 
     if (!masjidConfig) {
@@ -56,18 +75,21 @@ const MasjidLanding = () => {
     const handleNavigateVisitations = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
         localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
+        localStorage.setItem(`lastView_${masjidSlug}`, 'visitations');
         navigate(`/visitation`, { state: { isLoggedIn: true, masjidID: masjidId, unitID } });
     };
 
     const handleNavigateListings = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
         localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
+        localStorage.setItem(`lastView_${masjidSlug}`, 'listings');
         navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
     const handleNavigateQuickLinks = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
         localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
+        localStorage.setItem(`lastView_${masjidSlug}`, 'quicklinks');
         navigate(`/quick-links/${masjidId}`, { state: { isLoggedIn: true, masjidID: masjidId } });
     };
 
@@ -85,6 +107,12 @@ const MasjidLanding = () => {
         localStorage.removeItem('activeFilters');
         localStorage.removeItem('landingContext');
         localStorage.removeItem('preferredMasjid');
+        // Clear all lastView preferences
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('lastView_')) {
+                localStorage.removeItem(key);
+            }
+        });
         sessionStorage.clear();
         navigate('/user-login');
     };
@@ -94,7 +122,7 @@ const MasjidLanding = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0 }}>{masjidConfig.name}</h2>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {localStorage.getItem('userEmail') && (
+                    {(localStorage.getItem('userEmail') || localStorage.getItem('loginSource') === 'masjid-slug') && (
                         <button onClick={handleUserLogout} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontWeight: 500 }}>
                             Logout
                         </button>
@@ -167,21 +195,30 @@ const MasjidLanding = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <button 
                     onClick={handleNavigateVisitations}
-                    style={{ padding: '0.75rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                    style={{ padding: '1rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem', transition: 'all 0.2s' }}
+                    onMouseEnter={e => e.target.style.background = '#e67e22'}
+                    onMouseLeave={e => e.target.style.background = '#f57c00'}
                 >
-                    📊 Visitations
+                    <span>📊 Visitations</span>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 400 }}>Daily and weekly visitations</span>
                 </button>
                 <button 
                     onClick={handleNavigateListings}
-                    style={{ padding: '0.75rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                    style={{ padding: '1rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem', transition: 'all 0.2s' }}
+                    onMouseEnter={e => e.target.style.background = '#1565c0'}
+                    onMouseLeave={e => e.target.style.background = '#1976d2'}
                 >
-                    📋 Full Listings
+                    <span>📋 Full Listings</span>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 400 }}>Full address list and search</span>
                 </button>
                 <button 
                     onClick={handleNavigateQuickLinks}
-                    style={{ padding: '0.75rem', background: '#388e3c', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                    style={{ padding: '1rem', background: '#388e3c', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem', transition: 'all 0.2s' }}
+                    onMouseEnter={e => e.target.style.background = '#2e7d32'}
+                    onMouseLeave={e => e.target.style.background = '#388e3c'}
                 >
-                    ⚡ Quick Links
+                    <span>⚡ Quick Links</span>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 400 }}>Access key features and tools</span>
                 </button>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>

@@ -4,6 +4,12 @@ All notable changes to Markaz Visitation UI are documented here.
 Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `docs`, `style`, `chore`.
 
 ---
+## 2026-08-23 (Session 4 - Part 4 Final Extra)
+
+### MasjidUser Logout Button
+- **feat(MasjidLanding):** Added logout button for MasjidUser (masjid PIN login). Logout button now appears for both email login and masjid PIN login scenarios. Clicking logout clears all session data and returns user to `/user-login` page.
+
+---
 ## 2026-08-23 (Session 4 - Part 4 Final)
 
 ### Login Navigation Choice Screen & Simplified MasjidLanding

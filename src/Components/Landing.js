@@ -270,24 +270,37 @@ function Landing() {
                     <button onClick={() => navigate('/admin-home')} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                 )}
             </div>
-            <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })}>🗺 Map View</button>}
+            <div style={{ position: 'fixed', top: '10px', right: '10px', display: 'flex', gap: '0.6rem', alignItems: 'center', zIndex: 1000, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '500px' }}>
+                {getAdmin() && <button onClick={() => navigate(`/map/${masjidID}/${selectedUnit}`, { state: { isLoggedIn: true } })} style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>🗺 Map View</button>}
                 {selectedIds.length > 0 && (
                     <button
                         onClick={() => navigate('/route', { state: { listings: addressList.filter(a => selectedIds.includes(a._id)), masjidID, unitID } })}
-                        style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.35rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                        style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
                     >
                         🗺 Route ({selectedIds.length})
                     </button>
                 )}
-                {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)}>⬇ Export Excel</button>}
-                <button onClick={() => setShowAddAddress(v => !v)}>+ Add Address</button>
-                <button onClick={onLogout}>Logout</button>
+                {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)} style={{ background: '#43a047', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>⬇ Export Excel</button>}
+                <button onClick={() => setShowAddAddress(v => !v)} style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>+ Add Address</button>
+                {(() => {
+                    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
+                    return masjidSlug ? (
+                        <button 
+                            onClick={() => navigate(`/${masjidSlug}`, { replace: true, state: { fromChildPage: true } })}
+                            style={{ background: '#f57c00', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+                        >
+                            🏠 Home
+                        </button>
+                    ) : null;
+                })()}
+                {localStorage.getItem('loginSource') !== 'masjid-slug-direct' && (
+                    <button onClick={onLogout} style={{ background: '#d32f2f', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>Logout</button>
+                )}
             </div>
             <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} onReset={handleReset} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
             {selectedIds.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0', padding: '0.5rem 1rem', background: '#e3f2fd', borderRadius: '6px' }}>
-                    <span style={{ fontWeight: 500 }}>{selectedIds.length} selected</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 1.5rem 0.75rem', padding: '0.75rem 1rem', background: '#e3f2fd', borderRadius: '6px', border: '1px solid #90caf9' }}>
+                    <span style={{ fontWeight: 600, color: '#1565c0' }}>{selectedIds.length} selected</span>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
                         Set Neighborhood:
                         <input
@@ -313,8 +326,8 @@ function Landing() {
                 </div>
             )}
             {selectedUnitIds.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0', padding: '0.5rem 1rem', background: '#fce4ec', borderRadius: '6px' }}>
-                    <span style={{ fontWeight: 500 }}>{selectedUnitIds.length} selected</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 1.5rem 0.75rem', padding: '0.75rem 1rem', background: '#fce4ec', borderRadius: '6px', border: '1px solid #f48fb1' }}>
+                    <span style={{ fontWeight: 600, color: '#c2185b' }}>{selectedUnitIds.length} selected</span>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
                         Set Unit:
                         <select
