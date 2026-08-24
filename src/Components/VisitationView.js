@@ -240,31 +240,26 @@ function VisitationView() {
                     ? 'Earliest-visited' 
                     : 'Latest-visited'} <strong>active</strong> addresses. Applied per unit.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', background: '#e3f2fd', borderRadius: '6px', flexWrap: 'wrap' }}>
-                <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.5rem 0.75rem', background: '#e3f2fd', borderRadius: '6px', flexWrap: 'nowrap', overflow: 'auto' }}>
+                <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                     Unit:
                     <select value={filterUnit} onChange={e => { setFilterUnit(e.target.value); setFilterArea(''); }}
-                        style={{ padding: '0.3rem 0.5rem' }}>
-                        <option value="">All Units</option>
+                        style={{ padding: '0.25rem 0.4rem', fontSize: '0.85rem' }}>
+                        <option value="">All</option>
                         {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
                     </select>
                 </label>
-                <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    Neighborhood:
+                <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                    Area:
                     <select value={filterArea} onChange={e => setFilterArea(e.target.value)}
-                        style={{ padding: '0.3rem 0.5rem' }}>
-                        <option value="">All Neighborhoods</option>
+                        style={{ padding: '0.25rem 0.4rem', fontSize: '0.85rem' }}>
+                        <option value="">All</option>
                         {filteredAreaOptions.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                 </label>
                 {applied && (
                     <>
-                        <span style={{ color: '#555', fontSize: '0.9em' }}>{applied.total} addresses loaded</span>
-                        <button
-                            onClick={() => handleRoute(Object.values(applied.grouped).flatMap(listings => listings))}
-                            style={{ padding: '0.35rem 1rem', background: '#e65100', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
-                            🗺 Route All
-                        </button>
+                        <span style={{ color: '#555', fontSize: '0.85em', whiteSpace: 'nowrap', marginLeft: 'auto' }}>{applied.total} loaded</span>
                     </>
                 )}
             </div>

@@ -18,6 +18,17 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
   - Dropped "Last" prefix from all column labels
   - Final column order: ID (with checkbox), Name, Address, Visited, Area
 
+### Vertical Space Optimization
+- **refactor(VisitationView):** Optimized filter bar layout to fit on single line:
+  - Changed "Neighborhood" label to "Area" for consistency with table
+  - Reduced padding: 0.75rem 1rem → 0.5rem 0.75rem
+  - Reduced gap: 0.75rem → 0.5rem
+  - Reduced select font size and padding for compact appearance
+  - Changed select options: "All Units" → "All", "All Neighborhoods" → "All"
+  - Removed "Route All" button (routing available at Unit level)
+  - Changed "addresses loaded" → "loaded" to save horizontal space
+  - Set flexWrap to nowrap with horizontal scroll if needed
+
 ### Code Quality
 - **chore(QuickLinks):** Removed unused `useLocation` import to resolve ESLint warning. Component uses `localStorage` for navigation state instead
 
