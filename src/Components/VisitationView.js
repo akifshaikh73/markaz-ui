@@ -196,30 +196,30 @@ function VisitationView() {
             </div>
 
             {/* All selectors in one row at top */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap', padding: '0.75rem 1rem', background: '#f5f5f5', borderRadius: '6px' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem', alignItems: 'center', flexWrap: 'nowrap', padding: '0.4rem 0.6rem', background: '#f5f5f5', borderRadius: '6px', overflow: 'auto', fontSize: '0.8rem' }}>
                 {/* Sort mode selector */}
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#555' }}>Visited:</span>
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontWeight: 600, color: '#555' }}>Visited:</span>
                     {[
                         { label: 'Earliest', value: 'leastRecent' },
                         { label: 'Latest', value: 'mostRecent' }
                     ].map(({ label, value }) => (
                         <button key={value} onClick={() => setSortMode(value)}
-                            style={{ padding: '0.35rem 0.9rem', borderRadius: '5px', border: '1px solid #f57c00', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem', background: sortMode === value ? '#f57c00' : '#fff', color: sortMode === value ? '#fff' : '#f57c00' }}>
+                            style={{ padding: '0.2rem 0.5rem', borderRadius: '3px', border: '1px solid #f57c00', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem', background: sortMode === value ? '#f57c00' : '#fff', color: sortMode === value ? '#fff' : '#f57c00' }}>
                             {label}
                         </button>
                     ))}
                 </div>
 
                 {/* Count selector dropdown */}
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#555' }}># of Addresses:</span>
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontWeight: 600, color: '#555' }}>Show:</span>
                     <select value={countMode} onChange={e => setCountMode(e.target.value)}
-                        style={{ padding: '0.35rem 0.7rem', borderRadius: '5px', border: '1px solid #1976d2', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}>
+                        style={{ padding: '0.2rem 0.3rem', borderRadius: '3px', border: '1px solid #1976d2', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem', width: '58px' }}>
                         <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="25">25</option>
-                        <option value="custom">Other</option>
+                        <option value="custom">Oth</option>
                     </select>
                     {countMode === 'custom' && (
                         <input 
@@ -228,7 +228,7 @@ function VisitationView() {
                             max="500" 
                             value={customCount}
                             onChange={e => setCustomCount(Math.max(1, parseInt(e.target.value) || 1))}
-                            style={{ width: '60px', padding: '0.35rem 0.5rem', textAlign: 'center', fontSize: '0.88rem', border: '1px solid #1976d2', borderRadius: '5px' }} 
+                            style={{ width: '40px', padding: '0.2rem 0.3rem', textAlign: 'center', fontSize: '0.75rem', border: '1px solid #1976d2', borderRadius: '3px' }} 
                         />
                     )}
                 </div>

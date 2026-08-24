@@ -19,20 +19,28 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
   - Final column order: ID (with checkbox), Name, Address, Visited, Area
 
 ### Vertical Space Optimization
-- **refactor(VisitationView):** Optimized filter bar layout to fit on single line:
+- **refactor(VisitationView):** Optimized header bar to fit on single line:
+  - Home button, Visitation View heading, and Quick Links button now on one line
+  - Reduced button padding and font sizes: padding 0.5rem 1rem → 0.35rem 0.8rem (Home), font 0.9rem → 0.85rem (Quick Links)
+  - Heading font size: default → 1rem
+  - Added whiteSpace: nowrap to prevent wrapping
+
+- **refactor(VisitationView):** Optimized filter bar (Visited sort + Show count) to fit on single line:
   - Changed "Neighborhood" label to "Area" for consistency with table
-  - Reduced padding: 0.75rem 1rem → 0.5rem 0.75rem
-  - Reduced gap: 0.75rem → 0.5rem
-  - Reduced select font size and padding for compact appearance
-  - Changed select options: "All Units" → "All", "All Neighborhoods" → "All"
+  - Changed "# of Addresses" label to "Show:" for compactness
+  - Reduced padding: 0.75rem 1rem → 0.4rem 0.6rem
+  - Reduced gaps: 1rem → 0.4rem, 0.5rem → 0.3rem
+  - Reduced button and select sizing: padding 0.35rem → 0.2rem, font 0.88rem → 0.75rem, borderRadius 5px → 3px
+  - Increased dropdown box width to 58px to accommodate 3-digit values
+  - Changed select options: "All Units" → "All", "All Neighborhoods" → "All", "Other" → "Oth"
   - Removed "Route All" button (routing available at Unit level)
   - Changed "addresses loaded" → "loaded" to save horizontal space
   - Set flexWrap to nowrap with horizontal scroll if needed
 
 ### Column Width Optimization
 - **refactor(VisitationView):** Reduced Name and Address column widths to keep Visited column visible without horizontal scroll:
-  - Name: maxWidth 100px with text truncation and hover tooltip
-  - Address: maxWidth 120px with text truncation and hover tooltip
+  - Name: maxWidth 100px → 80px with text truncation and hover tooltip
+  - Address: maxWidth 120px → 100px with text truncation and hover tooltip
   - Area: maxWidth 90px with text truncation and hover tooltip
   - Added title attributes for full text on hover
   - Ensures all 5 columns visible on smaller screens
