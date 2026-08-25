@@ -383,7 +383,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         <select value={oldWorkerTimeSpent} onChange={e => handleOldWorkerTimeSpentChange(e.target.value)}
                             style={{ padding: '0.2rem 0.4rem', border: '1px solid #ccc', borderRadius: '4px', fontSize: '0.9em' }}>
                             <option value="">-- Select --</option>
-                            {['5 Deeds', '3d', '40d', '4mo', '1y'].map(o => <option key={o} value={o}>{o}</option>)}
+                            {['5 Deeds', '3d', '10d', '40d', '4mo', '1y'].map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
                     </label>
                 )}
