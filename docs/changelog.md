@@ -5,6 +5,14 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-08-24 (AddressDetail Improvements)
+
+- **fix(AddressDetail):** Restore correct masjid/unit on back navigation by reading `landingContext` from localStorage instead of `navigate(-1)`
+- **feat(AddressDetail):** Inline editable phone number, best time, profession, oldWorker, and masturat fields with auto-save
+- **refactor(AddressDetail):** Inline name editing UI; address format changed to space-separated with no stray dashes; inactive field hidden from non-admins
+
+---
+
 ## 2026-08-24 (Mobile UX & Code Quality)
 
 ### Mobile Responsiveness
