@@ -21,6 +21,20 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [modifiedDate, setModifiedDate] = useState(localDateString());
     const [isAdmin, setIsAdmin] = useState(getAdmin());
     const [accessDenied, setAccessDenied] = useState(false);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [bestTime, setBestTime] = useState('');
+    const [profession, setProfession] = useState('');
+    const [originalPhoneNumber, setOriginalPhoneNumber] = useState('');
+    const [originalBestTime, setOriginalBestTime] = useState('');
+    const [originalProfession, setOriginalProfession] = useState('');
+    const [editingField, setEditingField] = useState(null); // 'phoneNumber' | 'bestTime' | 'profession'
+    const [editingName, setEditingName] = useState(false);
+    const [nameSaved, setNameSaved] = useState(false);
+    const [contactSaved, setContactSaved] = useState(null); // field name that just saved
+    const [oldWorker, setOldWorker] = useState(false);
+    const [oldWorkerTimeSpent, setOldWorkerTimeSpent] = useState('');
+    const [masturat, setMasturat] = useState(false);
+    const [massuratTimeSpent, setMassuratTimeSpent] = useState('');
     const navigate = useNavigate();
 
     const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
@@ -45,6 +59,16 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     setOriginalLastName(data.lastName);
                     setUnitId(String(data.unitId));
                     setOriginalUnitId(String(data.unitId));
+                    setPhoneNumber(data.phoneNumber || '');
+                    setBestTime(data.bestTime || '');
+                    setProfession(data.profession || '');
+                    setOriginalPhoneNumber(data.phoneNumber || '');
+                    setOriginalBestTime(data.bestTime || '');
+                    setOriginalProfession(data.profession || '');
+                    setOldWorker(!!data.oldWorker);
+                    setOldWorkerTimeSpent(data.oldWorkerTimeSpent || '');
+                    setMasturat(!!data.masturat);
+                    setMassuratTimeSpent(data.massuratTimeSpent || '');
                 })
                 .catch(err => console.error('[AddressDetail] fetch error:', err));
         } else {
@@ -55,6 +79,16 @@ function AddressDetail({ address: initialAddress, isModal }) {
             setOriginalLastName(initialAddress.lastName);
             setUnitId(String(initialAddress.unitId));
             setOriginalUnitId(String(initialAddress.unitId));
+            setPhoneNumber(initialAddress.phoneNumber || '');
+            setBestTime(initialAddress.bestTime || '');
+            setProfession(initialAddress.profession || '');
+            setOriginalPhoneNumber(initialAddress.phoneNumber || '');
+            setOriginalBestTime(initialAddress.bestTime || '');
+            setOriginalProfession(initialAddress.profession || '');
+            setOldWorker(!!initialAddress.oldWorker);
+            setOldWorkerTimeSpent(initialAddress.oldWorkerTimeSpent || '');
+            setMasturat(!!initialAddress.masturat);
+            setMassuratTimeSpent(initialAddress.massuratTimeSpent || '');
         }
     }, [id, initialAddress, API_URL]);
 
@@ -64,52 +98,104 @@ function AddressDetail({ address: initialAddress, isModal }) {
     }, []);    
 
     const handleUpdate = () => {
-        // Handle the update logic here
-        console.log('Updated firstName:', firstName);
-        console.log('Updated lastName:', lastName);
-        console.log('Address ID:', address.id);
-        address.firstName = firstName;
-        address.lastName = lastName;
-        
+        const body = {};
+        if (firstName !== originalFirstName) body.firstName = firstName;
+        if (lastName !== originalLastName) body.lastName = lastName;
+        if (Object.keys(body).length === 0) { setEditingName(false); return; }
+
         fetch(`${API_URL}/api/addressList/${address._id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                firstName: firstName,
-                lastName: lastName,
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
         })
         .then(res => res.json())
-        .then(data => {
-            console.log('Success:', data);
-            setOriginalFirstName(firstName);
-            setOriginalLastName(lastName);
+        .then(() => {
+            setAddress(prev => ({ ...prev, ...body }));
+            if (body.firstName !== undefined) setOriginalFirstName(firstName);
+            if (body.lastName !== undefined) setOriginalLastName(lastName);
+            setEditingName(false);
+            setNameSaved(true);
+            setTimeout(() => setNameSaved(false), 2000);
         })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+        .catch(err => console.error('Error updating name:', err));
     };
+
     const handleUpdateUnit = () => {
+        if (unitId === originalUnitId) return;
         fetch(`${API_URL}/api/addressList/${address._id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                unitId: unitId,
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ unitId }),
         })
         .then(res => res.json())
-        .then(data => {
-            console.log('Unit updated:', data);
+        .then(() => {
+            setAddress(prev => ({ ...prev, unitId }));
             setOriginalUnitId(unitId);
         })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+        .catch(err => console.error('Error updating unit:', err));
     };
+    const handleUpdateContact = (field) => {
+        const valueMap = { phoneNumber, bestTime, profession };
+        const originalMap = { phoneNumber: originalPhoneNumber, bestTime: originalBestTime, profession: originalProfession };
+        const setterMap = {
+            phoneNumber: setOriginalPhoneNumber,
+            bestTime: setOriginalBestTime,
+            profession: setOriginalProfession,
+        };
+        const value = valueMap[field];
+        if (value === originalMap[field]) { setEditingField(null); return; }
+
+        fetch(`${API_URL}/api/addressList/${address._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [field]: value }),
+        })
+        .then(res => res.json())
+        .then(() => {
+            setAddress(prev => ({ ...prev, [field]: value }));
+            setterMap[field](value);
+            setEditingField(null);
+            setContactSaved(field);
+            setTimeout(() => setContactSaved(null), 2000);
+        })
+        .catch(err => console.error(`Error updating ${field}:`, err));
+    };
+
+    const handleUpdateWorkerFields = (patch) => {
+        fetch(`${API_URL}/api/addressList/${address._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch),
+        })
+        .then(res => res.json())
+        .then(() => setAddress(prev => ({ ...prev, ...patch })))
+        .catch(err => console.error('Error updating worker fields:', err));
+    };
+
+    const handleOldWorkerChange = (checked) => {
+        setOldWorker(checked);
+        const patch = { oldWorker: checked };
+        if (!checked) { setOldWorkerTimeSpent(''); patch.oldWorkerTimeSpent = ''; }
+        handleUpdateWorkerFields(patch);
+    };
+
+    const handleOldWorkerTimeSpentChange = (val) => {
+        setOldWorkerTimeSpent(val);
+        handleUpdateWorkerFields({ oldWorkerTimeSpent: val });
+    };
+
+    const handleMassuratChange = (checked) => {
+        setMasturat(checked);
+        const patch = { masturat: checked };
+        if (!checked) { setMassuratTimeSpent(''); patch.massuratTimeSpent = ''; }
+        handleUpdateWorkerFields(patch);
+    };
+
+    const handleMassuratTimeSpentChange = (val) => {
+        setMassuratTimeSpent(val);
+        handleUpdateWorkerFields({ massuratTimeSpent: val });
+    };
+
     const handleUpdateResponse = () => {
         fetch(`${API_URL}/api/addressList/visit/${address._id}`, {
             method: 'PUT',
@@ -152,7 +238,10 @@ function AddressDetail({ address: initialAddress, isModal }) {
     };
 
     const handleNavigation = () => {
-        navigate(-1);
+        const ctx = JSON.parse(localStorage.getItem('landingContext')) || {};
+        const masjid = ctx.masjidID || address.masjidId;
+        const unit = ctx.unitID || address.unitId;
+        navigate(`/landing/${masjid}/${unit}`, { state: { isLoggedIn: true } });
     };
 
     if (accessDenied) {
@@ -176,18 +265,27 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 </div>
                 <p><strong>ID:</strong> {address._id}</p>
 
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                    <label>
-                        <strong>First Name:</strong>
-                        <input type="text" value={firstName} placeholder="firstName" onChange={e => setFirstName(e.target.value)} readOnly={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed' } : {}} />
-                    </label>
-
-                    <label>
-                        <strong>Last Name:</strong>
-                        <input type="text" value={lastName} placeholder='lastName' onChange={e => setLastName(e.target.value)} readOnly={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed' } : {}} />
-                    </label>
-
-                    <button onClick={handleUpdate} disabled={!isAdmin || (firstName === originalFirstName && lastName === originalLastName)} style={!isAdmin || (firstName === originalFirstName && lastName === originalLastName) ? { opacity: 0.5, cursor: 'not-allowed', padding: '0.5rem 1rem' } : { padding: '0.5rem 1rem' }}>Update</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0' }}>
+                    {editingName ? (
+                        <>
+                            <input autoFocus type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
+                                placeholder="First name"
+                                onKeyDown={e => { if (e.key === 'Enter') handleUpdate(); if (e.key === 'Escape') { setFirstName(originalFirstName); setLastName(originalLastName); setEditingName(false); } }}
+                                style={{ width: '12ch', padding: '0.25rem 0.4rem', border: '1px solid #1976d2', borderRadius: '4px', fontSize: '0.9em' }} />
+                            <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
+                                placeholder="Last name"
+                                onKeyDown={e => { if (e.key === 'Enter') handleUpdate(); if (e.key === 'Escape') { setFirstName(originalFirstName); setLastName(originalLastName); setEditingName(false); } }}
+                                style={{ width: '12ch', padding: '0.25rem 0.4rem', border: '1px solid #1976d2', borderRadius: '4px', fontSize: '0.9em' }} />
+                            <button onClick={handleUpdate} title="Save" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}>✔</button>
+                            <button onClick={() => { setFirstName(originalFirstName); setLastName(originalLastName); setEditingName(false); }} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
+                        </>
+                    ) : (
+                        <>
+                            <strong style={{ fontSize: '1rem' }}>{firstName} {lastName}</strong>
+                            {nameSaved && <span style={{ color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
+                            <button onClick={() => setEditingName(true)} title="Edit name" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976d2', padding: '0 4px' }}>✏️</button>
+                        </>
+                    )}
                 </div>
             <div>
                 <label><strong>Masjid ID:</strong> {address.masjidId}</label>
@@ -206,23 +304,63 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 </div>
             </div>
             <div>
-                <label><strong>Address:</strong> {[address.address1, address.address2].filter(Boolean).join(', ')}</label>
+                <label><strong>Address:</strong> {[
+                    address.address1,
+                    address.city,
+                    [address.state, address.zipcode].filter(Boolean).join(' ')
+                ].filter(Boolean).join(' ')}</label>
             </div>
             <div>
                 <label><strong>Neighborhood:</strong> {address.area}</label>
             </div>
-            <div>
-                <label><strong>City:</strong> {address.city}</label>
-            </div>
-            <div>
-                <label><strong>State:</strong> {address.state}</label>
-            </div>
-            <div>
-                <label><strong>Zipcode:</strong> {address.zipcode}</label>
-            </div>
-            <div>
-                <label><strong>Phone Number:</strong> {address.phoneNumber}</label>
-            </div>
+            {/* Editable contact info — one field at a time */}
+            {[
+                { field: 'phoneNumber', label: 'Phone Number', value: phoneNumber, setter: setPhoneNumber, type: 'tel', placeholder: 'Phone number' },
+                { field: 'bestTime',    label: 'Best Time',    value: bestTime,    setter: setBestTime,    type: 'text', placeholder: 'e.g. Evenings' },
+                { field: 'profession',  label: 'Profession',   value: profession,  setter: setProfession,  type: 'text', placeholder: 'Profession' },
+            ].map(({ field, label, value, setter, type, placeholder }) => (
+                <div key={field} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0', borderBottom: '1px solid #f0f0f0' }}>
+                    <strong style={{ minWidth: '120px', fontSize: '0.9em', color: '#555' }}>{label}:</strong>
+                    {editingField === field ? (
+                        <>
+                            <input
+                                autoFocus
+                                type={type}
+                                value={value}
+                                onChange={e => setter(e.target.value)}
+                                placeholder={placeholder}
+                                onKeyDown={e => { if (e.key === 'Enter') handleUpdateContact(field); if (e.key === 'Escape') setEditingField(null); }}
+                                style={{ width: '14ch', padding: '0.25rem 0.4rem', border: '1px solid #1976d2', borderRadius: '4px', fontSize: '0.9em' }}
+                            />
+                            {/* ✔ Save */}
+                            <button
+                                onClick={() => handleUpdateContact(field)}
+                                title="Save"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}
+                            >✔</button>
+                            {/* ✕ Cancel */}
+                            <button
+                                onClick={() => { setter(field === 'phoneNumber' ? originalPhoneNumber : field === 'bestTime' ? originalBestTime : originalProfession); setEditingField(null); }}
+                                title="Cancel"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}
+                            >✕</button>
+                        </>
+                    ) : (
+                        <>
+                            <span style={{ width: '14ch', fontSize: '0.9em', color: value ? '#222' : '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {value || '—'}
+                                {contactSaved === field && <span style={{ marginLeft: '0.5rem', color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
+                            </span>
+                            {/* ✏ Edit */}
+                            <button
+                                onClick={() => setEditingField(field)}
+                                title="Edit"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976d2', padding: '0 4px' }}
+                            >✏️</button>
+                        </>
+                    )}
+                </div>
+            ))}
             {isAdmin && (
                 <div>
                     <label><strong>Latitude:</strong> {address.latitude}</label>
@@ -233,15 +371,45 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <label><strong>Longitude:</strong> {address.longitude}</label>
                 </div>
             )}
-            <div>
-                <label><strong>Best Time:</strong> {address.bestTime}</label>
+            {/* Old Worker */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', minWidth: '120px' }}>
+                    <input type="checkbox" checked={oldWorker} onChange={e => handleOldWorkerChange(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#1976d2' }} />
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Old Worker</strong>
+                </label>
+                {oldWorker && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9em' }}>
+                        <span style={{ color: '#555' }}>Time Spent:</span>
+                        <select value={oldWorkerTimeSpent} onChange={e => handleOldWorkerTimeSpentChange(e.target.value)}
+                            style={{ padding: '0.2rem 0.4rem', border: '1px solid #ccc', borderRadius: '4px', fontSize: '0.9em' }}>
+                            <option value="">-- Select --</option>
+                            {['5 Deeds', '3d', '40d', '4mo', '1y'].map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                    </label>
+                )}
             </div>
-            <div>
-                <label><strong>Profession:</strong> {address.profession}</label>
+            {/* Masturat */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', minWidth: '120px' }}>
+                    <input type="checkbox" checked={masturat} onChange={e => handleMassuratChange(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#7b1fa2' }} />
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Masturat</strong>
+                </label>
+                {masturat && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9em' }}>
+                        <span style={{ color: '#555' }}>Time Spent:</span>
+                        <select value={massuratTimeSpent} onChange={e => handleMassuratTimeSpentChange(e.target.value)}
+                            style={{ padding: '0.2rem 0.4rem', border: '1px solid #ccc', borderRadius: '4px', fontSize: '0.9em' }}>
+                            <option value="">-- Select --</option>
+                            {['Taleem', '3d', '10d', '40d'].map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                    </label>
+                )}
             </div>
-            <div>
-                <label><strong>Inactive:</strong> {address.inactive ? 'Yes' : 'No'}</label>
-            </div>
+            {isAdmin && (
+                <div>
+                    <label><strong>Inactive:</strong> {address.inactive ? 'Yes' : 'No'}</label>
+                </div>
+            )}
             <div>
                 <label><strong>Met:</strong> {address.met ? 'Yes' : 'No'}</label>
             </div>
