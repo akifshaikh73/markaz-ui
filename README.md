@@ -5,17 +5,17 @@
 The app implements a **three-tier role-based authentication system** with distinct user roles and entry points:
 
 ### 1. MasjidUser (Lowest — PIN-Only Access)
-**Routes**: `/masjid-login` (primary) or `/:masjidSlug` (public)  
-**Authentication**: Masjid ID + PIN-only  
+**Routes**: `/user-login` (Masjid PIN section) or `/:masjidSlug` (public)  
+**Authentication**: Masjid PIN, verified against `POST /api/masjids/login`  
 **Role**: `MasjidUser`  
 **Access**: Address listings for the selected masjid  
 **No Persistence**: Credentials NOT cached; logout returns to login screen on next session  
 **Use Case**: Volunteers, members, or casual visitors with PIN distribution
 
 **Flow**:
-1. User accesses `/masjid-login` or clicks link to `/:masjidSlug`
-2. Enters Masjid ID (if using `/masjid-login`) + PIN
-3. Role set to `MasjidUser`; `loginSource: 'pin'` or `'masjid-slug'`
+1. User accesses `/user-login` or clicks link to `/:masjidSlug`
+2. Enters Masjid PIN
+3. Role set to `MasjidUser`; `loginSource: 'masjid'` or `'masjid-slug'`
 4. Redirected to `/landing/:masjidID/:unitID`
 5. On logout: Credentials cleared; redirected to `/user-login` (main entry point)
 

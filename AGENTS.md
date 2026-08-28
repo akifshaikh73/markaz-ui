@@ -6,7 +6,7 @@ The app enforces role-based access control with three distinct roles:
 
 | Role | Entry Point | Authentication | Storage | Access Level |
 |------|-------------|-----------------|---------|--------------|
-| `MasjidUser` | `/user-login` (Masjid PIN) or `/:masjidSlug` or `/masjid-login` | Masjid PIN (plain, matched against `masjids.pin`) OR masjid slug | `userRole: 'MasjidUser'`; `loginSource: 'masjid'` or `'masjid-slug'` | Address listings for the matched masjid |
+| `MasjidUser` | `/user-login` (Masjid PIN) or `/:masjidSlug` | Masjid PIN (plain, matched against `masjids.pin`) OR masjid slug | `userRole: 'MasjidUser'`; `loginSource: 'masjid'` or `'masjid-slug'` | Address listings for the matched masjid |
 | `MasjidAdmin` | `/user-login` (Admin section — email + PIN) | Email + PIN (bcrypt-verified against `users` collection) | `userRole: 'MasjidAdmin'`; `userEmail`, `userPin`, `userMasjids`, `userMasjidSlug` cached; `loginSource: 'user'` | Full address management for assigned masjids; auto-login on PWA return |
 | `MarkazAdmin` | `/admin-login` | Markaz password (`REACT_APP_ADMIN_PASSWORD`) | `userRole: 'MarkazAdmin'`; `loginSource: 'markaz-admin'` | Global admin dashboard; manage all masjids and users |
 
@@ -26,7 +26,6 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 |------|-----------|----------------|-------|
 | `/` | `UserLogin` | None | PWA entry point — same as `/user-login` |
 | `/user-login` | `UserLogin` | None | MasjidAdmin entry: Email + PIN login; auto-login on PWA return if credentials cached; redirects to `/:masjidSlug` on success |
-| `/masjid-login` | `MasjidLogin` | None | MasjidUser entry: PIN-only login; Masjid ID + PIN → `MasjidUser` role; redirects to `/landing` on success |
 | `/:masjidSlug` | `MasjidLanding` | None | Public landing page; auto-grants `MasjidUser` role when user makes a selection; shows unit selector and three navigation options (Visitations, Full Listings, Quick Links); on return visits, auto-navigates to last viewed page; collapsible "Other Masjids" section for MasjidAdmin users |
 | `/admin-login` | `AdminPasswordLogin` | None | MarkazAdmin entry: Markaz password prompt; sets `userRole = 'MarkazAdmin'`; redirects to `/admin-home` on success |
 | `/admin-home` | `Home` | `MarkazAdmin` | Admin dashboard; redirects to `/admin-login` if not MarkazAdmin; shows navigation links and logout button |
@@ -83,8 +82,8 @@ Route `/user-login` (top section) → enter 4-digit PIN → `POST /api/masjids/l
 ### MasjidUser Entry — Direct Slug (Auto-Login)
 Route `/:masjidSlug` (e.g., `/msi`, `/diman`) → auto-extracts PIN from masjid config → caches: `userPin`, `userMasjidSlug`, `loginSource = 'masjid-slug-direct'` → MasjidLanding shows unit selector immediately → user selects unit and navigation option (no `/user-login` needed). If visiting different slug, auto-switches PIN (Option A). Return visits via same slug navigate directly to last viewed page.
 
-### MasjidUser Entry — Slug / MasjidLogin Form
-Route `/:masjidSlug` or `/masjid-login` → select unit → click Login button → `userRole = 'MasjidUser'`; `loginSource = 'masjid-slug'` → navigate to `/landing/:id/:unit`. (Alternative explicit login path)
+### MasjidUser Entry — Slug Selection
+Route `/:masjidSlug` → select unit → click Login button → `userRole = 'MasjidUser'`; `loginSource = 'masjid-slug'` → navigate to `/landing/:id/:unit`. (Alternative explicit login path)
 
 ### MasjidAdmin Entry — Email + PIN
 Route `/user-login` (expand "Masjid Admin Login" section) → enter email + PIN → `POST /api/users/login` (bcrypt verify) → `userRole = 'MasjidAdmin'`; `userEmail`, `userPin`, `userMasjids`, `userMasjidSlug` cached; `loginSource = 'user'` → navigate to primary `/:slug`.
@@ -120,7 +119,7 @@ Never hardcode `localhost` URLs.
 
 **Authentication & Role**:
 - `userRole` — Active role: `'MasjidUser'`, `'MasjidAdmin'`, `'MarkazAdmin'`, or `''` (empty = not logged in). Used by route protection components.
-- `loginSource` — Authentication entry point: `'masjid'` (Masjid PIN), `'masjid-slug'` (slug/MasjidLogin), `'user'` (email+PIN), `'markaz-admin'` (Markaz password). Guides logout routing and session resume.
+- `loginSource` — Authentication entry point: `'masjid'` (Masjid PIN), `'masjid-slug'` (slug login), `'user'` (email+PIN), `'markaz-admin'` (Markaz password). Guides logout routing and session resume.
 - `userMasjidSlug` — Masjid slug for session resume. Set on login; used by `UserLogin` `useEffect` to navigate without re-calling the API. Cleared on logout.
 
 **MasjidAdmin Credentials** (cached for session resume):
@@ -230,5 +229,4 @@ Deploy target: Render Static Site via `render.yaml` at repo root.
 - Guard all `useNavigate` / `navigate()` calls inside `useEffect` — never call during render.
 - `useEffect` deps must not include derived values that change every render (e.g., `array.length` after a setState).
 - The `FilterUI` prop is named `onFilter` (not `handleFilter`).
-- **Logout** navigates to `/masjid-login` with `{ state: { masjidID } }` so the login page restores the same masjid ID instead of defaulting to 156.
-- `MasjidLogin` initialises `masjidID` state as: `lockedMasjidID || location.state?.masjidID || 156`.
+- **Logout** navigates to `/user-login` (or `/admin-login` for `MarkazAdmin`).

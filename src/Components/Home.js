@@ -77,10 +77,6 @@ const Home = () => {
             <div style={card}>
                 <h2 style={sectionTitle}>Admin</h2>
 
-                <div style={linkRow}>
-                    <Link to="/masjid-login" style={linkStyle}>Any Masjid Login</Link>
-                    <span style={badge('#d32f2f')}>Protected</span>
-                </div>
                 <div style={{ ...linkRow, borderBottom: 'none' }}>
                     <Link to="/admin/masjids" style={linkStyle}>Masjid Management</Link>
                     <span style={badge('#d32f2f')}>Protected</span>

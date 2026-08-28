@@ -59,11 +59,10 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 
 ### 2b. MasjidUser — Slug Login Form (Alternative)
 **Entry Points:** 
-- Via `/masjid-login` form
 - Via `/:masjidSlug` with explicit "Login" button (less common now)
 
 **Flow:**
-1. User arrives at `/:masjidSlug` or `/masjid-login`
+1. User arrives at `/:masjidSlug`
 2. Selects unit from dropdown
 3. Clicks "Login" button
 4. On success:
@@ -160,7 +159,7 @@ graph TD
     AdminRole --> MasjidLanding2["Navigate to /:masjidSlug<br/>(MasjidLanding)"]
     
     %% Direct Slug Entry
-    LoginChoice -->|Skip - Direct URL| DirectSlug["/:masjidSlug<br/>or /masjid-login"]
+    LoginChoice -->|Skip - Direct URL| DirectSlug["/:masjidSlug"]
     DirectSlug --> SlugUnit["Select Unit"]
     SlugUnit --> SlugButton["Click Login"]
     SlugButton --> SlugRole["Role = MasjidUser<br/>loginSource = 'masjid-slug'"]
@@ -262,7 +261,7 @@ graph TD
 
 **Invalid/Non-existent Masjid Slug:**
 - `MasjidLanding` shows "Masjid Not Found" error
-- Button to return to `/masjid-login`
+- Button to return to `/user-login`
 
 ---
 

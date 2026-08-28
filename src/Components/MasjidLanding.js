@@ -65,7 +65,7 @@ const MasjidLanding = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
                 <h2>Masjid Not Found</h2>
                 <p>The masjid '{masjidSlug}' does not exist.</p>
-                <button onClick={() => navigate('/masjid-login')} style={{ padding: '0.5rem' }}>Go to Login</button>
+                <button onClick={() => navigate('/user-login')} style={{ padding: '0.5rem' }}>Go to Login</button>
             </div>
         );
     }

@@ -219,7 +219,7 @@ function Landing() {
 
     useEffect(() => {
         if (!location.state || !location.state.isLoggedIn) {
-            navigate('/masjid-login');
+            navigate('/user-login');
             return;
         }
 
@@ -260,12 +260,17 @@ function Landing() {
         <>
             <div style={{ position: 'fixed', top: '10px', left: '10px', display: 'flex', gap: '0.5rem', alignItems: 'center', zIndex: 1000 }}>
                 <StatusBadges />
-                <button
-                    onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
-                    style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', boxShadow: '0 1px 3px rgba(0,0,0,0.15)', letterSpacing: '0em' }}
-                >
-                    ⚡
-                </button>
+                {(() => {
+                    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
+                    return masjidSlug ? (
+                        <button
+                            onClick={() => navigate(`/${masjidSlug}`, { replace: true, state: { fromChildPage: true } })}
+                            style={{ background: '#f57c00', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', boxShadow: '0 1px 3px rgba(0,0,0,0.15)', letterSpacing: '0em' }}
+                        >
+                            🏠 Home
+                        </button>
+                    ) : null;
+                })()}
                 {isMarkazAdmin && (
                     <button onClick={() => navigate('/admin-home')} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                 )}
@@ -282,17 +287,6 @@ function Landing() {
                 )}
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)} style={{ background: '#43a047', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>⬇ Export Excel</button>}
                 <button onClick={() => setShowAddAddress(v => !v)} style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>+ Add Address</button>
-                {(() => {
-                    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
-                    return masjidSlug ? (
-                        <button 
-                            onClick={() => navigate(`/${masjidSlug}`, { replace: true, state: { fromChildPage: true } })}
-                            style={{ background: '#f57c00', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
-                        >
-                            🏠 Home
-                        </button>
-                    ) : null;
-                })()}
                 {localStorage.getItem('loginSource') !== 'masjid-slug-direct' && (
                     <button onClick={onLogout} style={{ background: '#d32f2f', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>Logout</button>
                 )}
