@@ -17,61 +17,29 @@ const labelStyle = { fontWeight: 600, display: 'block', marginBottom: '0.4rem' }
 const UserLogin = () => {
     const navigate = useNavigate();
 
-    // Masjid PIN section state
-    const [masjidPin, setMasjidPin] = useState('');
-    const [masjidLoading, setMasjidLoading] = useState(false);
-    const [masjidError, setMasjidError] = useState('');
+    // Login form state
+    const [email, setEmail] = useState('');
+    const [pin, setPin] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    // Admin login section state
-    const [showAdmin, setShowAdmin] = useState(false);
-    const [adminEmail, setAdminEmail] = useState('');
-    const [adminPin, setAdminPin] = useState('');
-    const [adminLoading, setAdminLoading] = useState(false);
-    const [adminError, setAdminError] = useState('');
+    // Result page state (after successful login)
+    const [successData, setSuccessData] = useState(null);
 
     useEffect(() => {
+        // Session resume: if already logged in, navigate straight to stored masjid
         const storedPin = localStorage.getItem('userPin');
         const loginSource = localStorage.getItem('loginSource');
         const storedSlug = localStorage.getItem('userMasjidSlug');
-        // Resume session: navigate straight to the stored slug without re-calling the API
-        // Works for both /user-login session resume AND direct slug access with cached PIN
+
         if (storedPin && loginSource && storedSlug) {
             navigate(`/${storedSlug}`, { replace: true, state: { isLoggedIn: true } });
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleMasjidPinLogin = async (pinValue) => {
-        setMasjidLoading(true);
-        setMasjidError('');
-        try {
-            const response = await fetch(`${API_URL}/api/masjids/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pin: pinValue }),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || data.error || 'Invalid PIN');
-
-            localStorage.setItem('userPin', pinValue);
-            localStorage.setItem('loginSource', 'masjid');
-            setUserRole('MasjidUser');
-
-            if (data.masjidSlug) {
-                localStorage.setItem('userMasjidSlug', data.masjidSlug);
-                navigate(`/${data.masjidSlug}`, { state: { isLoggedIn: true } });
-            } else {
-                throw new Error('Masjid has no login page configured');
-            }
-        } catch (err) {
-            setMasjidError(err.message || 'Login failed');
-            localStorage.removeItem('userPin');
-            setMasjidLoading(false);
-        }
-    };
-
     const handleAdminLogin = async (emailValue, pinValue) => {
-        setAdminLoading(true);
-        setAdminError('');
+        setLoading(true);
+        setError('');
         try {
             const response = await fetch(`${API_URL}/api/users/login`, {
                 method: 'POST',
@@ -81,140 +49,206 @@ const UserLogin = () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || data.error || 'Invalid credentials');
 
+            // Store credentials
             localStorage.setItem('userPin', pinValue);
             localStorage.setItem('userEmail', emailValue.trim());
             localStorage.setItem('loginSource', 'user');
             setUserRole('MasjidAdmin');
+
+            // Store list of accessible masjids
             if (data.masjids && Array.isArray(data.masjids)) {
                 localStorage.setItem('userMasjids', JSON.stringify(data.masjids));
             }
 
-            const slug = data.masjidSlug || (data.masjids && data.masjids[0]);
-            if (slug) {
-                localStorage.setItem('userMasjidSlug', slug);
-                navigate(`/${slug}`, { state: { isLoggedIn: true } });
-            } else {
-                throw new Error('No masjid access found for this account');
+            // Store primary/default masjid
+            const defaultSlug = data.masjidSlug || (data.masjids && data.masjids[0]);
+            if (defaultSlug) {
+                localStorage.setItem('userMasjidSlug', defaultSlug);
             }
+
+            // Show result page with masjid options
+            setSuccessData({
+                email: emailValue.trim(),
+                defaultSlug,
+                masjids: data.masjids || [],
+            });
+            setLoading(false);
         } catch (err) {
-            setAdminError(err.message || 'Login failed');
+            setError(err.message || 'Login failed');
             localStorage.removeItem('userPin');
             localStorage.removeItem('userEmail');
-            setAdminLoading(false);
+            setLoading(false);
         }
     };
 
-    const handleMasjidSubmit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        if (!masjidPin.trim()) { setMasjidError('Masjid PIN is required'); return; }
-        handleMasjidPinLogin(masjidPin.trim());
+        if (!email.trim()) {
+            setError('Email is required');
+            return;
+        }
+        if (!pin.trim()) {
+            setError('PIN is required');
+            return;
+        }
+        handleAdminLogin(email, pin.trim());
     };
 
-    const handleAdminSubmit = (e) => {
-        e.preventDefault();
-        if (!adminEmail.trim()) { setAdminError('Email is required'); return; }
-        if (!adminPin.trim()) { setAdminError('PIN is required'); return; }
-        handleAdminLogin(adminEmail, adminPin.trim());
+    const handleMasjidNavigation = (masjidSlug) => {
+        navigate(`/${masjidSlug}`, { state: { isLoggedIn: true } });
     };
 
-    const loading = masjidLoading || adminLoading;
+    // Result page: show list of accessible masjids
+    if (successData) {
+        return (
+            <div style={{ maxWidth: '500px', margin: '2rem auto', padding: '0 1rem' }}>
+                <div style={{ padding: '2rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fff' }}>
+                    <h2 style={{ marginTop: 0, marginBottom: '0.5rem', fontSize: '1.3rem', color: '#333' }}>
+                        Welcome, {successData.email}!
+                    </h2>
+                    <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                        Select a masjid to access:
+                    </p>
 
+                    {/* Default masjid with continue button */}
+                    {successData.defaultSlug && (
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => handleMasjidNavigation(successData.defaultSlug)}
+                                style={{
+                                    ...btnStyle,
+                                    background: '#388e3c',
+                                    color: '#fff',
+                                    fontSize: '1rem',
+                                    padding: '1rem',
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Continue to Masjid
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Other masjids list */}
+                    {successData.masjids && successData.masjids.length > 1 && (
+                        <div>
+                            <p style={{ fontSize: '0.9rem', color: '#999', marginBottom: '0.75rem' }}>
+                                Or access another masjid:
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {successData.masjids.map((slug) => (
+                                    <button
+                                        key={slug}
+                                        type="button"
+                                        onClick={() => handleMasjidNavigation(slug)}
+                                        style={{
+                                            ...btnStyle,
+                                            background: '#f5f5f5',
+                                            color: '#1976d2',
+                                            border: '1px solid #1976d2',
+                                            padding: '0.75rem',
+                                            fontSize: '0.95rem',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.background = '#e3f2fd';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.background = '#f5f5f5';
+                                        }}
+                                    >
+                                        {slug}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #eee' }}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                localStorage.removeItem('userPin');
+                                localStorage.removeItem('userEmail');
+                                localStorage.removeItem('userMasjids');
+                                localStorage.removeItem('userMasjidSlug');
+                                localStorage.removeItem('loginSource');
+                                localStorage.removeItem('userRole');
+                                setSuccessData(null);
+                                setEmail('');
+                                setPin('');
+                            }}
+                            style={{
+                                ...btnStyle,
+                                background: '#fff',
+                                color: '#d32f2f',
+                                border: '1px solid #d32f2f',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                            }}
+                        >
+                            Login as Different User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Login form
     return (
         <div style={{ maxWidth: '340px', margin: '3rem auto', padding: '0 1rem' }}>
+            <div style={{ padding: '1.75rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fff' }}>
+                <h2 style={{ marginTop: 0, marginBottom: '1.25rem', fontSize: '1.2rem' }}>User Login</h2>
 
-            {/* ── Section 1: Masjid PIN ── */}
-            <div style={{ padding: '1.75rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fff', marginBottom: '1rem' }}>
-                <h2 style={{ marginTop: 0, marginBottom: '1.25rem', fontSize: '1.2rem' }}>Masjid Login</h2>
-                <form onSubmit={handleMasjidSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div>
                         <label style={labelStyle}>
-                            Masjid PIN <span style={{ color: '#d32f2f' }}>*</span>
+                            Email <span style={{ color: '#d32f2f' }}>*</span>
                         </label>
                         <input
-                            type="password"
-                            value={masjidPin}
-                            onChange={e => setMasjidPin(e.target.value)}
-                            placeholder="Enter Masjid PIN"
+                            type="email"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            placeholder="Enter email address"
                             style={inputStyle}
                             disabled={loading}
                             autoFocus
                         />
                     </div>
-                    {masjidError && (
+                    <div>
+                        <label style={labelStyle}>
+                            PIN <span style={{ color: '#d32f2f' }}>*</span>
+                        </label>
+                        <input
+                            type="password"
+                            value={pin}
+                            onChange={e => setPin(e.target.value)}
+                            placeholder="Enter PIN"
+                            style={inputStyle}
+                            disabled={loading}
+                        />
+                    </div>
+                    {error && (
                         <div style={{ padding: '0.6rem 0.75rem', background: '#ffebee', color: '#c62828', borderRadius: '4px', fontSize: '0.9rem' }}>
-                            {masjidError}
+                            {error}
                         </div>
                     )}
                     <button
                         type="submit"
                         disabled={loading}
-                        style={{ ...btnStyle, background: '#1976d2', color: '#fff', opacity: masjidLoading ? 0.6 : 1, cursor: masjidLoading ? 'not-allowed' : 'pointer' }}
+                        style={{ ...btnStyle, background: '#388e3c', color: '#fff', opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
                     >
-                        {masjidLoading ? 'Logging in...' : 'Login'}
+                        {loading ? 'Logging in...' : 'User Login'}
                     </button>
                 </form>
+
+                <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #eee', textAlign: 'center', fontSize: '0.9rem', color: '#666' }}>
+                    <a href="/masjid-login" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>← Masjid Login</a>
+                </div>
             </div>
-
-            {/* ── Section 2: Masjid Admin Login (expandable) ── */}
-            <div style={{ border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fff', overflow: 'hidden' }}>
-                <button
-                    type="button"
-                    onClick={() => { setShowAdmin(v => !v); setAdminError(''); }}
-                    style={{
-                        width: '100%', padding: '0.9rem 1.25rem', background: showAdmin ? '#f5f5f5' : '#fff',
-                        border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between',
-                        alignItems: 'center', fontSize: '0.95rem', fontWeight: 600, color: '#333',
-                    }}
-                >
-                    <span>Masjid Admin Login</span>
-                    <span style={{ fontSize: '0.75rem', transform: showAdmin ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
-                </button>
-
-                {showAdmin && (
-                    <form onSubmit={handleAdminSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem', borderTop: '1px solid #eee' }}>
-                        <div>
-                            <label style={labelStyle}>
-                                Email ID <span style={{ color: '#d32f2f' }}>*</span>
-                            </label>
-                            <input
-                                type="email"
-                                value={adminEmail}
-                                onChange={e => setAdminEmail(e.target.value)}
-                                placeholder="Enter email address"
-                                style={inputStyle}
-                                disabled={loading}
-                                autoFocus
-                            />
-                        </div>
-                        <div>
-                            <label style={labelStyle}>
-                                User PIN <span style={{ color: '#d32f2f' }}>*</span>
-                            </label>
-                            <input
-                                type="password"
-                                value={adminPin}
-                                onChange={e => setAdminPin(e.target.value)}
-                                placeholder="Enter User PIN"
-                                style={inputStyle}
-                                disabled={loading}
-                            />
-                        </div>
-                        {adminError && (
-                            <div style={{ padding: '0.6rem 0.75rem', background: '#ffebee', color: '#c62828', borderRadius: '4px', fontSize: '0.9rem' }}>
-                                {adminError}
-                            </div>
-                        )}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{ ...btnStyle, background: '#388e3c', color: '#fff', opacity: adminLoading ? 0.6 : 1, cursor: adminLoading ? 'not-allowed' : 'pointer' }}
-                        >
-                            {adminLoading ? 'Logging in...' : 'Admin Login'}
-                        </button>
-                    </form>
-                )}
-            </div>
-
         </div>
     );
 };

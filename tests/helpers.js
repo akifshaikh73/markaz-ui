@@ -3,12 +3,12 @@
 const PIN = process.env.TEST_MASJID_PIN || '1208';
 
 /**
- * Logs in via the Masjid PIN form on /user-login and waits for the
+ * Logs in via the Masjid PIN form on /masjid-login and waits for the
  * MasjidLanding ("home") page to load.
  * @param {import('@playwright/test').Page} page
  */
 async function loginWithMasjidPin(page) {
-    await page.goto('/user-login');
+    await page.goto('/masjid-login');
     await page.getByPlaceholder('Enter Masjid PIN').fill(PIN);
     await page.getByRole('button', { name: 'Login', exact: true }).click();
     // MasjidLanding shows the masjid name as an <h2>; any masjid name qualifies.

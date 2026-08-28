@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import AdminPasswordLogin from './Components/AdminPasswordLogin';
+import MasjidLogin from './Components/MasjidLogin';
 import UserLogin from './Components/UserLogin';
 import MasjidLanding from './Components/MasjidLanding';
 import MasjidManagement from './Components/MasjidManagement';
@@ -30,7 +31,7 @@ const ProtectedUserRoute = () => {
     const location = useLocation();
     const userRole = localStorage.getItem('userRole');
     if (!['MasjidUser', 'MasjidAdmin', 'MarkazAdmin'].includes(userRole)) {
-        return <Navigate to="/user-login" state={{ from: location }} replace />;
+        return <Navigate to="/masjid-login" state={{ from: location }} replace />;
     }
     return <Outlet />;
 };
@@ -40,9 +41,10 @@ function App() {
         <MasjidProvider>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<UserLogin />} />
-                    <Route path="/admin-home" element={<Home />} />
+                    <Route path="/" element={<Navigate to="/masjid-login" replace />} />
+                    <Route path="/masjid-login" element={<MasjidLogin />} />
                     <Route path="/user-login" element={<UserLogin />} />
+                    <Route path="/admin-home" element={<Home />} />
                     <Route path="/:masjidSlug" element={<MasjidLanding />} />
                     <Route path="/admin-login" element={<AdminPasswordLogin />} />
                     <Route element={<ProtectedUserRoute />}>
