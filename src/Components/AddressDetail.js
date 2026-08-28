@@ -16,6 +16,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [originalLastName, setOriginalLastName] = useState('');
     const [unitId, setUnitId] = useState('');
     const [originalUnitId, setOriginalUnitId] = useState('');
+    const [editingUnit, setEditingUnit] = useState(false);
+    const [unitError, setUnitError] = useState('');
     const [response, setResponse] = useState('');
     const [comments, setComments] = useState('');
     const [modifiedDate, setModifiedDate] = useState(localDateString());
@@ -122,16 +124,27 @@ function AddressDetail({ address: initialAddress, isModal }) {
     };
 
     const handleUpdateUnit = () => {
-        if (unitId === originalUnitId) return;
+        const validUnits = masjidUnitsMap[String(address.masjidId)] || [];
+        if (!validUnits.some(unit => String(unit) === unitId)) {
+            setUnitError(validUnits.length > 0 ? `Enter a valid unit: ${validUnits.join(', ')}` : 'Unit options are unavailable.');
+            return;
+        }
+        if (unitId === originalUnitId) {
+            setEditingUnit(false);
+            setUnitError('');
+            return;
+        }
         fetch(`${API_URL}/api/addressList/${address._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ unitId }),
+            body: JSON.stringify({ unitId: Number(unitId) }),
         })
         .then(res => res.json())
         .then(() => {
-            setAddress(prev => ({ ...prev, unitId }));
+            setAddress(prev => ({ ...prev, unitId: Number(unitId) }));
             setOriginalUnitId(unitId);
+            setEditingUnit(false);
+            setUnitError('');
         })
         .catch(err => console.error('Error updating unit:', err));
     };
@@ -311,16 +324,44 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 <label><strong>Masjid ID:</strong> {address.masjidId}</label>
             </div>
             <div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                    <label>
-                        <strong>Unit ID:</strong>
-                        <select value={unitId} onChange={e => setUnitId(e.target.value)} disabled={!isAdmin} style={!isAdmin ? { background: '#f0f0f0', cursor: 'not-allowed', marginLeft: '0.5rem', padding: '0.25rem' } : { marginLeft: '0.5rem', padding: '0.25rem' }}>
-                            {(masjidUnitsMap[String(address.masjidId)] || [unitId]).map(u => (
-                                <option key={u} value={String(u)}>{u}</option>
-                            ))}
-                        </select>
-                    </label>
-                    <button onClick={handleUpdateUnit} disabled={!isAdmin || unitId === originalUnitId} style={!isAdmin || unitId === originalUnitId ? { opacity: 0.5, cursor: 'not-allowed', padding: '0.5rem 1rem' } : { padding: '0.5rem 1rem' }}>Update</button>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.4rem 0', flexWrap: 'wrap' }}>
+                    <strong>Unit ID:</strong>
+                    {editingUnit ? (
+                        <>
+                            <input
+                                autoFocus
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={unitId}
+                                onChange={e => {
+                                    if (/^\d*$/.test(e.target.value)) {
+                                        setUnitId(e.target.value);
+                                        setUnitError('');
+                                    }
+                                }}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') handleUpdateUnit();
+                                    if (e.key === 'Escape') {
+                                        setUnitId(originalUnitId);
+                                        setEditingUnit(false);
+                                        setUnitError('');
+                                    }
+                                }}
+                                aria-invalid={Boolean(unitError)}
+                                aria-describedby={unitError ? 'unit-error' : undefined}
+                                style={{ width: '6ch', padding: '0.25rem 0.4rem', border: `1px solid ${unitError ? '#c62828' : '#1976d2'}`, borderRadius: '4px', fontSize: '0.9em' }}
+                            />
+                            <button onClick={handleUpdateUnit} title="Save unit" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}>✔</button>
+                            <button onClick={() => { setUnitId(originalUnitId); setEditingUnit(false); setUnitError(''); }} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
+                        </>
+                    ) : (
+                        <>
+                            <span>{originalUnitId}</span>
+                            <button onClick={() => setEditingUnit(true)} title="Edit unit" aria-label="Edit unit" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976d2', padding: '0 4px' }}>✏️</button>
+                        </>
+                    )}
+                    {unitError && <span id="unit-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em' }}>{unitError}</span>}
                 </div>
             </div>
             <div>

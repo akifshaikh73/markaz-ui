@@ -5,6 +5,14 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-08-28
+
+- **feat(AddressDetail):** Allow all authenticated users, including MasjidUser, to edit an address unit through a pencil-triggered numeric text field that validates against the masjid's configured units
+- **fix(RouteView, VisitationView):** Preserve the route unit ID directly from navigation state for area-cache lookup and remove an obsolete ESLint suppression from the used masjid slug
+- **docs(architecture):** Remove duplicate route and authentication-flow documentation from `AGENTS.md` and correct the Markaz admin password route description
+
+---
+
 ## 2026-08-27 (AddressDetail Back-Navigation Regression Fix + Docs)
 
 - **fix(VisitationView, MasjidLanding):** Unit `0` was being treated as "no unit selected" because of plain truthiness checks (`if (unitID)`) — `0` is falsy in JS despite being a valid unit id. Selecting unit 0 on MasjidLanding and navigating to Visitations now correctly filters to unit 0 instead of loading all units; the same fix applies to restoring a cached unit 0 from `landingContext` on MasjidLanding
