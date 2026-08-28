@@ -194,29 +194,6 @@ function Landing() {
             });
     };
 
-    const onLogout = () => {
-        const wasMarkaz = getUserRole() === 'MarkazAdmin';
-        setAdmin(false);
-        // Clear user credentials (prevents auto-login)
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userPin');
-        localStorage.removeItem('userMasjids');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('loginSource');
-        // Clear data and context
-        localStorage.removeItem('addressList');
-        localStorage.removeItem('searchParams');
-        localStorage.removeItem('areaFilter');
-        localStorage.removeItem('landingContext');
-        localStorage.removeItem('preferredMasjid');
-        sessionStorage.clear();
-        if (wasMarkaz) {
-            navigate('/admin-login');
-        } else {
-            navigate('/user-login');
-        }
-    };
-
     useEffect(() => {
         if (!location.state || !location.state.isLoggedIn) {
             navigate('/user-login');
@@ -287,9 +264,6 @@ function Landing() {
                 )}
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)} style={{ background: '#43a047', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>⬇ Export Excel</button>}
                 <button onClick={() => setShowAddAddress(v => !v)} style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>+ Add Address</button>
-                {localStorage.getItem('loginSource') !== 'masjid-slug-direct' && (
-                    <button onClick={onLogout} style={{ background: '#d32f2f', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>Logout</button>
-                )}
             </div>
             <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} onReset={handleReset} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
             {selectedIds.length > 0 && (

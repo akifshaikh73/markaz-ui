@@ -175,12 +175,6 @@ function VisitationView() {
                 </button>
                 <StatusBadges />
                 <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, whiteSpace: 'nowrap' }}>Visitations</h2>
-                <button
-                    onClick={() => navigate(`/quick-links/${masjidID}`, { state: { isLoggedIn: true, masjidID } })}
-                    style={{ marginLeft: 'auto', background: '#1976d2', color: '#fff', border: 'none', padding: '0.3rem 0.7rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap' }}
-                >
-                    ⚡ Links
-                </button>
             </div>
 
             {/* All selectors in one row at top */}
