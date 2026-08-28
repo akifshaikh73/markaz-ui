@@ -45,7 +45,6 @@ function VisitationView() {
     const [fetchError, setFetchError] = useState('');
     const [sortMode, setSortMode] = useState('leastRecent'); // 'leastRecent' or 'mostRecent'
     const [selectedIds, setSelectedIds] = useState([]);
-    const [unitAutoSelected, setUnitAutoSelected] = useState(false);
 
     // On mount — fetch all listings for the masjid (no unit filter)
     useEffect(() => {
@@ -75,19 +74,6 @@ function VisitationView() {
             setTotal(parseInt(countMode));
         }
     }, [countMode, customCount]);
-
-    // Auto-select a random unit on first load only if no unitID was passed from MasjidLanding
-    useEffect(() => {
-        if (!unitAutoSelected && filterUnit === '' && allListings.length > 0 && !location.state?.unitID) {
-            const active = allListings.filter(a => !a.inactive);
-            const validUnits = [...new Set(active.map(a => String(a.unitId ?? '—')))].filter(u => u !== '0' && u !== '—').sort();
-            if (validUnits.length > 0) {
-                const randomUnit = validUnits[Math.floor(Math.random() * validUnits.length)];
-                setFilterUnit(randomUnit);
-                setUnitAutoSelected(true);
-            }
-        }
-    }, [unitAutoSelected, filterUnit, allListings, location.state?.unitID]);
 
     // Save filterUnit and filterArea to sessionStorage whenever they change
     useEffect(() => {
@@ -325,7 +311,7 @@ function VisitationView() {
                                                         onChange={() => handleToggleId(a._id)}
                                                         style={{ cursor: 'pointer', accentColor: '#e65100', flexShrink: 0 }}
                                                     />
-                                                    <Link to={`/address/${a._id}`} style={{ color: '#1976d2' }}>{a._id}</Link>
+                                                    <Link to={`/address/${a._id}`} state={{ from: `${location.pathname}${location.search}` }} replace style={{ color: '#1976d2' }}>{a._id}</Link>
                                                 </td>
                                                 <td style={{ ...td, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
                                                 <td style={{ ...td, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.address1, a.address2].filter(Boolean).join(', ')}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>

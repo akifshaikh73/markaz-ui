@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { formatDate } from '../utils';
 
 function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onUnitToggle, isAdmin = false }) {
+    const location = useLocation();
     const visitHistory = Array.isArray(address.visitHistory) ? address.visitHistory : [];
 
     const commentsWithDate = [...visitHistory]
@@ -28,7 +29,7 @@ function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onU
                     title="Select for area assignment"
                     style={{ marginRight: '5px', cursor: 'pointer', accentColor: '#1976d2' }}
                 />
-                <Link to={{ pathname: `/address/${address._id}`, state: { address } }}>
+                <Link to={`/address/${address._id}`} state={{ address, from: `${location.pathname}${location.search}` }} replace>
                     {address._id}
                 </Link>
             </td>

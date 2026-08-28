@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { formatDate, localDateString } from '../utils';
 import { getAdmin } from '../config';
 import { useMasjidConfig } from '../hooks/useMasjids';
@@ -36,6 +36,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [masturat, setMasturat] = useState(false);
     const [massuratTimeSpent, setMassuratTimeSpent] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
 
@@ -238,10 +239,21 @@ function AddressDetail({ address: initialAddress, isModal }) {
     };
 
     const handleNavigation = () => {
+        // Prefer the explicit source page passed by the link that brought us here —
+        // works even after a refresh, unlike browser history which can point elsewhere.
+        // Always replace (not push) so we don't leave a duplicate history entry that
+        // throws off other pages' navigate(-1)/back-button behavior.
+        const from = location.state?.from;
+        if (from) {
+            // Landing requires isLoggedIn in state or it bounces to /user-login;
+            // other pages (e.g. Route) need their original state restored or they render empty.
+            navigate(from, { replace: true, state: { isLoggedIn: true, ...(location.state?.fromState || {}) } });
+            return;
+        }
         const ctx = JSON.parse(localStorage.getItem('landingContext')) || {};
         const masjid = ctx.masjidID || address.masjidId;
         const unit = ctx.unitID || address.unitId;
-        navigate(`/landing/${masjid}/${unit}`, { state: { isLoggedIn: true } });
+        navigate(`/landing/${masjid}/${unit}`, { replace: true, state: { isLoggedIn: true } });
     };
 
     if (accessDenied) {
@@ -262,6 +274,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     {localStorage.getItem('loginSource') === 'admin' && getAdmin() && (
                         <button onClick={() => navigate('/admin-home')} style={{ fontSize: '0.75rem', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>⌂ Home</button>
                     )}
+                    {!isModal && (() => {
+                        const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
+                        return masjidSlug ? (
+                            <button onClick={() => navigate(`/${masjidSlug}`)} style={{ background: '#f57c00', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}>
+                                🏠 Home
+                            </button>
+                        ) : null;
+                    })()}
                 </div>
                 <p><strong>ID:</strong> {address._id}</p>
 

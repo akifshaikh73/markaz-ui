@@ -370,6 +370,14 @@ function RouteView() {
             {/* Toolbar */}
             <div style={{ padding: '10px 16px', background: '#f5f5f5', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate(-1)}>← Back to List</button>
+                {(() => {
+                    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
+                    return masjidSlug ? (
+                        <button onClick={() => navigate(`/${masjidSlug}`)} style={{ background: '#f57c00', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}>
+                            🏠 Home
+                        </button>
+                    ) : null;
+                })()}
                 <button onClick={handleClearRoute} style={{ padding: '4px 12px', background: '#ff5252', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9em' }}>✕ Clear Route</button>
                 
                 {addressesToRoute.length >= 1 && (
@@ -592,11 +600,11 @@ function RouteView() {
                                             style={{ cursor: 'pointer' }}
                                         />
                                     </td>
-                                    <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{i + 1}</td>
-                                    <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{[l.firstName, l.lastName].filter(Boolean).join(' ') || '—'}</td>
-                                    <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{[l.address1, l.address2].filter(Boolean).join(', ')}</td>
-                                    <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{l.area || '—'}</td>
-                                    <td style={td} onClick={() => navigate(`/address/${l._id}`)}>{l.latitude && l.longitude ? '✅' : '❌'}</td>
+                                    <td style={td} onClick={() => navigate(`/address/${l._id}`, { replace: true, state: { from: `${location.pathname}${location.search}`, fromState: location.state } })}>{i + 1}</td>
+                                    <td style={td} onClick={() => navigate(`/address/${l._id}`, { replace: true, state: { from: `${location.pathname}${location.search}`, fromState: location.state } })}>{[l.firstName, l.lastName].filter(Boolean).join(' ') || '—'}</td>
+                                    <td style={td} onClick={() => navigate(`/address/${l._id}`, { replace: true, state: { from: `${location.pathname}${location.search}`, fromState: location.state } })}>{[l.address1, l.address2].filter(Boolean).join(', ')}</td>
+                                    <td style={td} onClick={() => navigate(`/address/${l._id}`, { replace: true, state: { from: `${location.pathname}${location.search}`, fromState: location.state } })}>{l.area || '—'}</td>
+                                    <td style={td} onClick={() => navigate(`/address/${l._id}`, { replace: true, state: { from: `${location.pathname}${location.search}`, fromState: location.state } })}>{l.latitude && l.longitude ? '✅' : '❌'}</td>
                                 </tr>
                             ))}
                         </tbody>
