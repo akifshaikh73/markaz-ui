@@ -23,7 +23,10 @@ const MasjidLanding = () => {
     // Set initial unit once masjidConfig is available
     useEffect(() => {
         if (!masjidConfig) return;
-        const lastUnit = cachedContext.masjidID === String(masjidConfig._id ?? masjidConfig.id) && cachedContext.unitID
+        // Note: unit "0" is a valid unit id and must not be treated as falsy
+        const hasCachedUnit = cachedContext.masjidID === String(masjidConfig._id ?? masjidConfig.id)
+            && cachedContext.unitID !== undefined && cachedContext.unitID !== null && cachedContext.unitID !== '';
+        const lastUnit = hasCachedUnit
             ? (cachedContext.unitID === 'all' ? 'all' : parseInt(cachedContext.unitID))
             : (Array.isArray(masjidConfig.units) ? masjidConfig.units[0] : '');
         setUnitID(lastUnit !== undefined && lastUnit !== null && lastUnit !== '' ? lastUnit : '');

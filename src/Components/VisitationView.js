@@ -30,7 +30,9 @@ function VisitationView() {
     const visitationStorageKey = `visitationFilters_${masjidID}`;
     const [filterUnit, setFilterUnit] = useState(() => {
         // First priority: unitID from location state (passed from MasjidLanding)
-        if (location.state?.unitID) return String(location.state.unitID);
+        // Note: unit "0" is a valid unit id and must not be treated as falsy
+        const passedUnitID = location.state?.unitID;
+        if (passedUnitID !== undefined && passedUnitID !== null && passedUnitID !== '') return String(passedUnitID);
         // Second priority: saved filters from sessionStorage
         const saved = sessionStorage.getItem(visitationStorageKey);
         return saved ? JSON.parse(saved).unit : '';

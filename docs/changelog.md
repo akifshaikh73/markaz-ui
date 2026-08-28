@@ -7,6 +7,7 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ## 2026-08-27 (AddressDetail Back-Navigation Regression Fix + Docs)
 
+- **fix(VisitationView, MasjidLanding):** Unit `0` was being treated as "no unit selected" because of plain truthiness checks (`if (unitID)`) — `0` is falsy in JS despite being a valid unit id. Selecting unit 0 on MasjidLanding and navigating to Visitations now correctly filters to unit 0 instead of loading all units; the same fix applies to restoring a cached unit 0 from `landingContext` on MasjidLanding
 - **refactor(auth):** Removed insecure `/masjid-login` route and `MasjidLogin.js` component (accepted any PIN without API verification); `Home.js`, `Landing.js`, and `MasjidLanding.js` now point to `/user-login` (the verified Masjid PIN flow) instead
 - **fix(navigation):** `AddressDetail`'s back button (`handleNavigation`) now uses an explicit `from`/`fromState` value in router `state` (set by `AddressRow`, `VisitationView`, `RouteView`) instead of `navigate(-1)`, so it reliably returns to Landing, Visitation, or Route regardless of source
 - **fix(navigation):** Both directions of the `AddressDetail` hop (opening it and its back button) now use `replace: true` instead of `push`, so visiting a detail page never grows the history stack — this was the root cause of `RouteView`'s "← Back to List" landing on the wrong page after a detail-page round trip
