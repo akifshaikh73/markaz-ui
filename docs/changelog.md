@@ -5,6 +5,21 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-08-27 (AddressDetail Back-Navigation Regression Fix + Docs)
+
+- **refactor(auth):** Removed insecure `/masjid-login` route and `MasjidLogin.js` component (accepted any PIN without API verification); `Home.js`, `Landing.js`, and `MasjidLanding.js` now point to `/user-login` (the verified Masjid PIN flow) instead
+- **fix(navigation):** `AddressDetail`'s back button (`handleNavigation`) now uses an explicit `from`/`fromState` value in router `state` (set by `AddressRow`, `VisitationView`, `RouteView`) instead of `navigate(-1)`, so it reliably returns to Landing, Visitation, or Route regardless of source
+- **fix(navigation):** Both directions of the `AddressDetail` hop (opening it and its back button) now use `replace: true` instead of `push`, so visiting a detail page never grows the history stack — this was the root cause of `RouteView`'s "← Back to List" landing on the wrong page after a detail-page round trip
+- **fix(navigation):** `RouteView`'s `listings`/`masjidID`/`masjidRef` context is now restored via `fromState` when returning from `AddressDetail`, fixing the "empty map" bug on Route → AddressDetail → Back
+- **fix(VisitationView):** Removed the random-unit auto-selection effect entirely; unit/area filters now only ever come from a passed `unitID` (from MasjidLanding) or the last saved `sessionStorage` filter — never randomized
+- **feat(navigation):** Added a 🏠 Home button to `RouteView` and `AddressDetail`; replaced the ⚡ Quick Links button on `Landing`'s top-left with a 🏠 Home button (duplicate top-right Home button removed)
+- **test(e2e):** Added Playwright regression suite (`tests/visitation-navigation.spec.js`, `tests/landing-navigation.spec.js`) covering AddressDetail back-navigation and the full Route round-trip for both Visitation and Landing entry points
+- **docs(page-flow):** Rewrote Visitation/Landing/AddressDetail/Route sections to document the push-vs-replace navigation pattern; added Mermaid flowchart + sequence diagram of the AddressDetail/Route round-trip; fixed stale `/masjid-management`/`/user-management` route references
+- **docs(login-flow):** Removed fictional "Slug Login Form" alternate path, fixed stale section/file references, corrected the Mermaid diagram's direct-slug branch
+- **docs:** Cross-linked `docs/page-flow.md` and `docs/login_flow.md` from `AGENTS.md` and `README.md` so navigation changes are checked against documented flows before shipping
+
+---
+
 ## 2026-08-24 (AddressDetail Improvements)
 
 - **fix(AddressDetail):** Restore correct masjid/unit on back navigation by reading `landingContext` from localStorage instead of `navigate(-1)`
@@ -12,6 +27,7 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 - **refactor(AddressDetail):** Inline name editing UI; address format changed to space-separated with no stray dashes; inactive field hidden from non-admins
 
 ---
+
 
 ## 2026-08-24 (Mobile UX & Code Quality)
 

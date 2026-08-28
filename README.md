@@ -1,5 +1,7 @@
 # Markaz Visitation UI
 
+> See [docs/page-flow.md](docs/page-flow.md) for the full page navigation and back-navigation flow (including Mermaid diagrams), and [docs/login_flow.md](docs/login_flow.md) for authentication flows.
+
 ## Authentication & Role System
 
 The app implements a **three-tier role-based authentication system** with distinct user roles and entry points:

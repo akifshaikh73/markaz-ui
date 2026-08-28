@@ -7,7 +7,7 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 ## Login Flows Overview
 
 ### 1. MasjidUser — Masjid PIN Login
-**Entry Point:** `/user-login` (top "Visitations Log" section)
+**Entry Point:** `/user-login` (top "Masjid Login" section)
 
 **Flow:**
 1. User enters 4-digit Masjid PIN
@@ -54,24 +54,6 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 **Multi-Slug Behavior (Option A):**
 - If user is logged into `/msi` and visits `/diman`, PIN auto-switches to `/diman`'s PIN
 - Allows seamless multi-masjid access
-
----
-
-### 2b. MasjidUser — Slug Login Form (Alternative)
-**Entry Points:** 
-- Via `/:masjidSlug` with explicit "Login" button (less common now)
-
-**Flow:**
-1. User arrives at `/:masjidSlug`
-2. Selects unit from dropdown
-3. Clicks "Login" button
-4. On success:
-   - Role set to `'MasjidUser'`
-   - `loginSource` set to `'masjid-slug'` (different from auto-login)
-   - Navigate to `/landing/:masjidID/:unitID`
-5. Logout button appears in header
-
-**Note:** This is an alternative path; most users will use auto-login (2) instead
 
 ---
 
@@ -158,12 +140,10 @@ graph TD
     EmailSuccess -->|Yes| AdminRole["Role = MasjidAdmin<br/>loginSource = 'user'<br/>Cache: email, pin, masjids"]
     AdminRole --> MasjidLanding2["Navigate to /:masjidSlug<br/>(MasjidLanding)"]
     
-    %% Direct Slug Entry
+    %% Direct Slug Entry (auto-login, no form)
     LoginChoice -->|Skip - Direct URL| DirectSlug["/:masjidSlug"]
-    DirectSlug --> SlugUnit["Select Unit"]
-    SlugUnit --> SlugButton["Click Login"]
-    SlugButton --> SlugRole["Role = MasjidUser<br/>loginSource = 'masjid-slug'"]
-    SlugRole --> SlugLanding["Navigate to<br/>/landing/:id/:unit"]
+    DirectSlug --> SlugAutoCache["Auto-cache PIN from masjid config\nRole = MasjidUser\nloginSource = 'masjid-slug-direct'"]
+    SlugAutoCache --> MasjidLanding3["MasjidLanding\n(Unit selector + 3 buttons)"]
     
     %% MarkazAdmin
     LoginChoice -->|Admin Password<br/>/admin-login| AdminPW["Enter Markaz Password"]
@@ -174,8 +154,10 @@ graph TD
     %% MasjidLanding flows
     MasjidLanding1 --> MasjidSelect1["Select Unit"]
     MasjidLanding2 --> MasjidSelect2["Select Unit"]
+    MasjidLanding3 --> MasjidSelect3["Select Unit"]
     MasjidSelect1 --> NavChoice["Click Navigation Button"]
     MasjidSelect2 --> NavChoice
+    MasjidSelect3 --> NavChoice
     Resume --> NavChoice
     
     NavChoice -->|Visitations| Visits["Navigate to /visitation<br/>Save: lastView_slug='visitations'"]
@@ -189,7 +171,6 @@ graph TD
     Quick --> App
     AdminHome --> App
     Logout --> LoginPage
-    SlugLanding --> App
     
     %% Return visits
     App --> ReturnCheck{Return via<br/>/:masjidSlug?}
@@ -277,7 +258,8 @@ graph TD
 
 ## Related Files
 
+- [page-flow.md](page-flow.md) — Full page navigation flow (post-login routing, back navigation, AddressDetail/Route round-trips)
 - [MasjidLanding.js](../src/Components/MasjidLanding.js) — Slug-based landing and navigation selection
 - [UserLogin.js](../src/Components/UserLogin.js) — PIN/Email login form with session resume
-- [AdminLogin.js](../src/Components/AdminLogin.js) — MarkazAdmin password prompt
+- [AdminPasswordLogin.js](../src/Components/AdminPasswordLogin.js) — MarkazAdmin password prompt
 - [config.js](../src/config.js) — `setUserRole()` function and role management

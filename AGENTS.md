@@ -1,5 +1,7 @@
 # Markaz Visitation UI — Project Guidelines
 
+> **Before changing any navigation/routing code** (back buttons, `navigate()`, `<Link>`, route guards), read [docs/page-flow.md](docs/page-flow.md) (full page navigation + back-navigation flows) and [docs/login_flow.md](docs/login_flow.md) (authentication flows). Update both docs in the same change if the flow changes — this is how the AddressDetail/Route back-button regressions kept recurring.
+
 ## Three-Tier Role System
 
 The app enforces role-based access control with three distinct roles:
