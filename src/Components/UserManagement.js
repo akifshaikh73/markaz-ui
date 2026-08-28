@@ -86,7 +86,6 @@ const UserManagement = () => {
         <div style={{ maxWidth: '1100px', margin: '2rem auto', padding: '0 1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate('/admin-home')} style={{ ...btnStyle, background: '#f0f0f0', color: '#333' }}>← Home</button>
-                <button onClick={() => navigate(-1)} style={{ ...btnStyle, background: '#f0f0f0', color: '#333' }}>← Back</button>
                 <h2 style={{ margin: 0 }}>User Management</h2>
                 <button onClick={handleLogout} style={{ ...btnStyle, background: '#d32f2f', color: '#fff', marginLeft: 'auto' }}>Logout</button>
             </div>

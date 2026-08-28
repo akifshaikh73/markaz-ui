@@ -45,10 +45,10 @@ const MasjidLanding = () => {
     // Auto-cache masjid PIN when accessing via direct slug (no /user-login needed)
     useEffect(() => {
         if (!masjidConfig || !masjidConfig.pin) return;
-        
+
         const cachedSlug = localStorage.getItem('userMasjidSlug');
         const cachedPin = localStorage.getItem('userPin');
-        
+
         // Cache PIN if: not cached OR different slug (Option A: auto-switch)
         if (!cachedPin || cachedSlug !== masjidSlug) {
             localStorage.setItem('userPin', masjidConfig.pin);
@@ -97,6 +97,9 @@ const MasjidLanding = () => {
     };
 
     const handleUserLogout = () => {
+        // Capture loginSource before clearing localStorage
+        const loginSource = localStorage.getItem('loginSource');
+
         // Clear user login session
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userPin');
@@ -117,7 +120,14 @@ const MasjidLanding = () => {
             }
         });
         sessionStorage.clear();
-        navigate('/user-login');
+
+        // Route based on login source
+        if (loginSource === 'user') {
+            navigate('/user-login');
+        } else {
+            // loginSource is 'masjid' or 'masjid-slug-direct'
+            navigate('/masjid-login');
+        }
     };
 
     return (
@@ -164,12 +174,12 @@ const MasjidLanding = () => {
                 const otherMasjids = userMasjids.filter(m => m !== currentMasjidSlug);
                 return otherMasjids.length > 0 ? (
                     <div style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '4px', border: '1px solid #ddd' }}>
-                        <button 
+                        <button
                             onClick={() => setShowUserMasjids(!showUserMasjids)}
-                            style={{ 
-                                width: '100%', 
-                                display: 'flex', 
-                                alignItems: 'center', 
+                            style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
                                 justifyContent: 'space-between',
                                 background: 'none',
                                 border: 'none',
@@ -196,7 +206,7 @@ const MasjidLanding = () => {
                 ) : null;
             })()}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <button 
+                <button
                     onClick={handleNavigateVisitations}
                     style={{ padding: '1rem', background: '#f57c00', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem', transition: 'all 0.2s' }}
                     onMouseEnter={e => e.target.style.background = '#e67e22'}
@@ -205,7 +215,7 @@ const MasjidLanding = () => {
                     <span>📊 Visitations</span>
                     <span style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 400 }}>Daily and weekly visitations</span>
                 </button>
-                <button 
+                <button
                     onClick={handleNavigateListings}
                     style={{ padding: '1rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem', transition: 'all 0.2s' }}
                     onMouseEnter={e => e.target.style.background = '#1565c0'}
@@ -214,7 +224,7 @@ const MasjidLanding = () => {
                     <span>📋 Full Listings</span>
                     <span style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 400 }}>Full address list and search</span>
                 </button>
-                <button 
+                <button
                     onClick={handleNavigateQuickLinks}
                     style={{ padding: '1rem', background: '#388e3c', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem', transition: 'all 0.2s' }}
                     onMouseEnter={e => e.target.style.background = '#2e7d32'}
