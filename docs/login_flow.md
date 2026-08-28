@@ -7,7 +7,7 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 ## Login Flows Overview
 
 ### 1. MasjidUser — Masjid PIN Login
-**Entry Point:** `/user-login` (top "Masjid Login" section)
+**Entry Point:** `/masjid-login`
 
 **Flow:**
 1. User enters 4-digit Masjid PIN
@@ -58,24 +58,31 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 ---
 
 ### 3. MasjidAdmin — Email + PIN Login
-**Entry Point:** `/user-login` (collapsed "Masjid Admin Login" section)
+**Entry Point:** `/user-login`
 
 **Flow:**
-1. User expands "Masjid Admin Login" section
+1. User navigates to `/user-login`
 2. Enters email (required) and PIN (required)
 3. System calls `POST /api/users/login` — bcrypt-verifies credentials against `users` collection
 4. On success:
    - Role set to `'MasjidAdmin'`
    - `loginSource` set to `'user'`
    - Caches to localStorage: `userEmail`, `userPin`, `userMasjids` (array of masjid slugs), `userMasjidSlug` (primary masjid)
-   - Navigate to primary `/:masjidSlug`
-5. On MasjidLanding:
+   - **Show result page** with list of accessible masjid slugs
+5. On result page:
+   - Display welcome message with user's email
+   - Show "Continue to Masjid" button (to default masjid)
+   - Show links to other accessible masjids
+   - User clicks masjid link to navigate to that masjid
+6. After navigation to `/:masjidSlug`:
+   - Navigate to primary `/:masjidSlug` (MasjidLanding page)
+7. On MasjidLanding:
    - Email logout button appears in header
    - "Other Masjids" section shows all masjids user has access to (as collapsible list)
    - User can select unit and click button to navigate to desired view
 
 **Return Visits:**
-- On next visit to `/user-login`, if `userPin`, `loginSource`, and `userMasjidSlug` all exist in localStorage → navigate directly to cached slug (no API call)
+- On next visit to `/user-login`, if `userPin`, `loginSource='user'`, and `userMasjidSlug` all exist in localStorage → navigate directly to cached slug (no API call, no form shown)
 
 ---
 
@@ -100,10 +107,10 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 ---
 
 ### 5. Session Resume (PWA/Return Visit)
-**Trigger:** User returns to `/user-login` with cached credentials
+**Trigger:** User returns to `/masjid-login` or `/user-login` with cached credentials
 
 **Flow:**
-1. `UserLogin` component checks localStorage for `userPin`, `loginSource`, and `userMasjidSlug`
+1. Both `MasjidLogin` and `UserLogin` components check localStorage for `userPin`, `loginSource`, and `userMasjidSlug` on mount
 2. If all three exist:
    - **Skip login form entirely**
    - Navigate directly to cached `/:masjidSlug`
@@ -111,7 +118,7 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 3. If any missing:
    - Display normal login form
 
-**Purpose:** Enables PWA fast re-entry and seamless app resumption
+**Purpose:** Enables PWA fast re-entry and seamless app resumption (works for both login types)
 
 ---
 
@@ -119,73 +126,84 @@ All authentication paths in Markaz Visitation UI with entry points, API calls, r
 
 ```mermaid
 graph TD
-    Start([User Arrives at App]) --> Check{Cached Credentials?}
-    
-    Check -->|Yes: userPin + loginSource + userMasjidSlug| Resume["Resume to /:masjidSlug<br/>(MasjidLanding)"]
-    Check -->|No| LoginPage["Navigate to /user-login"]
-    
-    LoginPage --> LoginChoice{Login Type?}
-    
-    %% MasjidUser PIN Login
-    LoginChoice -->|Masjid PIN<br/>Top Section| PIN["Enter 4-digit PIN"]
-    PIN --> PINCall["POST /api/masjids/login"]
+    Start([User Arrives at App]) --> URLCheck{URL?}
+
+    URLCheck -->|Visit / or refresh| Redirect["Redirect to /masjid-login"]
+    URLCheck -->|Visit /masjid-login| MasjidLoginPage["MasjidLogin Component"]
+    URLCheck -->|Visit /user-login| UserLoginPage["UserLogin Component"]
+    URLCheck -->|Direct slug /:masjidSlug| DirectSlug["MasjidLanding"]
+
+    Redirect --> MasjidLoginPage
+
+    %% MasjidLogin component
+    MasjidLoginPage --> SessionCheck1{Cached Credentials?<br/>userPin + loginSource<br/>+ userMasjidSlug}
+    SessionCheck1 -->|Yes| Resume1["Resume to /:masjidSlug<br/>(MasjidLanding)"]
+    SessionCheck1 -->|No| ShowMasjidForm["Show PIN Form"]
+
+    ShowMasjidForm --> PINForm["Enter 4-digit Masjid PIN"]
+    PINForm --> PINCall["POST /api/masjids/login"]
     PINCall --> PINSuccess{Valid?}
     PINSuccess -->|Yes| PINRole["Role = MasjidUser<br/>loginSource = 'masjid'"]
-    PINRole --> MasjidLanding1["Navigate to /:masjidSlug<br/>(MasjidLanding)"]
-    
-    %% MasjidAdmin Email Login
-    LoginChoice -->|Masjid Admin<br/>Email + PIN| Email["Enter Email + PIN"]
-    Email --> EmailCall["POST /api/users/login"]
-    EmailCall --> EmailSuccess{Valid?}
-    EmailSuccess -->|Yes| AdminRole["Role = MasjidAdmin<br/>loginSource = 'user'<br/>Cache: email, pin, masjids"]
-    AdminRole --> MasjidLanding2["Navigate to /:masjidSlug<br/>(MasjidLanding)"]
-    
+    PINRole --> PINNav["Navigate to /:masjidSlug<br/>(MasjidLanding)"]
+    PINSuccess -->|No| PINError["Show Error"]
+    PINError --> ShowMasjidForm
+
+    %% UserLogin component
+    UserLoginPage --> SessionCheck2{Cached Credentials?<br/>userPin + loginSource<br/>+ userMasjidSlug}
+    SessionCheck2 -->|Yes| Resume2["Resume to /:masjidSlug<br/>(MasjidLanding)"]
+    SessionCheck2 -->|No| ShowUserForm["Show Email/PIN Form"]
+
+    ShowUserForm --> UserForm["Enter Email + PIN"]
+    UserForm --> UserCall["POST /api/users/login"]
+    UserCall --> UserSuccess{Valid?}
+    UserSuccess -->|Yes| UserRole["Role = MasjidAdmin<br/>loginSource = 'user'<br/>Cache: email, pin, masjids"]
+    UserRole --> ResultPage["Show Masjid List Result Page<br/>- Default masjid button<br/>- Other masjids links"]
+    UserSuccess -->|No| UserError["Show Error"]
+    UserError --> ShowUserForm
+
+    ResultPage --> UserSelectMasjid["User clicks masjid"]
+    UserSelectMasjid --> UserNav["Navigate to /:masjidSlug<br/>(MasjidLanding)"]
+
     %% Direct Slug Entry (auto-login, no form)
-    LoginChoice -->|Skip - Direct URL| DirectSlug["/:masjidSlug"]
-    DirectSlug --> SlugAutoCache["Auto-cache PIN from masjid config\nRole = MasjidUser\nloginSource = 'masjid-slug-direct'"]
-    SlugAutoCache --> MasjidLanding3["MasjidLanding\n(Unit selector + 3 buttons)"]
-    
-    %% MarkazAdmin
-    LoginChoice -->|Admin Password<br/>/admin-login| AdminPW["Enter Markaz Password"]
-    AdminPW --> AdminPWValid{Valid?}
-    AdminPWValid -->|Yes| AdminRole2["Role = MarkazAdmin"]
-    AdminRole2 --> AdminHome["Navigate to /admin-home"]
-    
+    DirectSlug --> SlugAutoCache["Auto-cache PIN from masjid config<br/>Role = MasjidUser<br/>loginSource = 'masjid-slug-direct'"]
+    SlugAutoCache --> MasjidLanding3["MasjidLanding<br/>(Unit selector + 3 buttons)"]
+
     %% MasjidLanding flows
-    MasjidLanding1 --> MasjidSelect1["Select Unit"]
-    MasjidLanding2 --> MasjidSelect2["Select Unit"]
-    MasjidLanding3 --> MasjidSelect3["Select Unit"]
-    MasjidSelect1 --> NavChoice["Click Navigation Button"]
-    MasjidSelect2 --> NavChoice
-    MasjidSelect3 --> NavChoice
-    Resume --> NavChoice
-    
+    Resume1 --> MasjidLanding1["MasjidLanding<br/>(Unit selector + 3 buttons)"]
+    PINNav --> MasjidLanding2["MasjidLanding<br/>(Unit selector + 3 buttons)"]
+    UserNav --> MasjidLanding4["MasjidLanding<br/>(Unit selector + 3 buttons)"]
+    Resume2 --> MasjidLanding5["MasjidLanding<br/>(Unit selector + 3 buttons)"]
+
+    MasjidLanding1 --> MasjidSelect["Select Unit"]
+    MasjidLanding2 --> MasjidSelect
+    MasjidLanding3 --> MasjidSelect
+    MasjidLanding4 --> MasjidSelect
+    MasjidLanding5 --> MasjidSelect
+
+    MasjidSelect --> NavChoice["Click Navigation Button"]
+
     NavChoice -->|Visitations| Visits["Navigate to /visitation<br/>Save: lastView_slug='visitations'"]
     NavChoice -->|Full Listings| List["Navigate to /landing/:id/:unit<br/>Save: lastView_slug='listings'"]
     NavChoice -->|Quick Links| Quick["Navigate to /quick-links/:id<br/>Save: lastView_slug='quicklinks'"]
-    
-    NavChoice -->|Logout| Logout["Clear localStorage<br/>Clear lastView_*<br/>Navigate to /user-login"]
-    
+
+    NavChoice -->|Logout| Logout["Clear localStorage<br/>Clear lastView_*<br/>Navigate to /masjid-login"]
+
     Visits --> App["User in App"]
     List --> App
     Quick --> App
-    AdminHome --> App
-    Logout --> LoginPage
-    
-    %% Return visits
-    App --> ReturnCheck{Return via<br/>/:masjidSlug?}
-    ReturnCheck -->|Yes| AutoNav["Check lastView_slug<br/>Auto-navigate to<br/>last viewed page"]
-    ReturnCheck -->|No| App
-    AutoNav --> App
+    Logout --> Redirect
 
     style Start fill:#e1f5ff
     style App fill:#c8e6c9
-    style Resume fill:#fff9c4
+    style Resume1 fill:#fff9c4
+    style Resume2 fill:#fff9c4
     style MasjidLanding1 fill:#ffe0b2
     style MasjidLanding2 fill:#ffe0b2
-    style AdminHome fill:#f8bbd0
+    style MasjidLanding3 fill:#ffe0b2
+    style MasjidLanding4 fill:#ffe0b2
+    style MasjidLanding5 fill:#ffe0b2
+    style ResultPage fill:#f8bbd0
     style Logout fill:#ffccbc
-    style AutoNav fill:#b3e5fc
 ```
 
 ---
@@ -259,7 +277,9 @@ graph TD
 ## Related Files
 
 - [page-flow.md](page-flow.md) — Full page navigation flow (post-login routing, back navigation, AddressDetail/Route round-trips)
+- [MasjidLogin.js](../src/Components/MasjidLogin.js) — Masjid PIN login form with session resume
+- [UserLogin.js](../src/Components/UserLogin.js) — User email/PIN login form + result page with masjid list
 - [MasjidLanding.js](../src/Components/MasjidLanding.js) — Slug-based landing and navigation selection
-- [UserLogin.js](../src/Components/UserLogin.js) — PIN/Email login form with session resume
 - [AdminPasswordLogin.js](../src/Components/AdminPasswordLogin.js) — MarkazAdmin password prompt
+- [App.js](../src/App.js) — Routes and entry point redirects
 - [config.js](../src/config.js) — `setUserRole()` function and role management

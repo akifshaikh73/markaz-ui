@@ -6,8 +6,37 @@ Complete navigation flows for all major pages in Markaz Visitation UI, including
 
 ## 1. Authentication & Login Flow
 
-### 1.1 UserLogin Entry
-**Route:** `/user-login` (or `/` PWA entry)
+### 1.1 Homepage Entry
+**Route:** `/` (or refresh on any login page)
+
+**Flow:**
+```
+/ (homepage)
+  ↓
+Redirect to /masjid-login (primary entry point for most users)
+```
+
+### 1.2 Masjid Login Entry
+**Route:** `/masjid-login`
+
+**Flow:**
+```
+/masjid-login
+  ↓
+Check localStorage for cached credentials (userPin, loginSource, userMasjidSlug)
+  ↓
+If all three exist:
+  → Navigate to /:masjidSlug (skip login form entirely) — seamless session resume
+  ↓
+Else show Masjid PIN form:
+  → User enters 4-digit PIN
+  → POST /api/masjids/login
+  → Set: userPin, loginSource='masjid', userMasjidSlug
+  → Navigate to /:masjidSlug with state: { isLoggedIn: true }
+```
+
+### 1.3 User Login Entry
+**Route:** `/user-login`
 
 **Flow:**
 ```
@@ -16,20 +45,15 @@ Complete navigation flows for all major pages in Markaz Visitation UI, including
 Check localStorage for cached credentials (userPin, loginSource, userMasjidSlug)
   ↓
 If all three exist:
-  → Navigate to /:masjidSlug (skip login form entirely)
+  → Navigate to /:masjidSlug (skip login form entirely) — seamless session resume
   ↓
-Else show login form:
-  ├─ Masjid PIN (top section)
-  │   → POST /api/masjids/login
-  │   → Set: userPin, loginSource='masjid', userMasjidSlug
-  │   → Navigate to /:masjidSlug with state: { isLoggedIn: true }
-  │
-  ├─ Masjid Admin Email+PIN (collapsible section)
-  │   → POST /api/users/login
-  │   → Set: userPin, userEmail, userMasjids, userMasjidSlug, loginSource='user'
-  │   → Navigate to /:masjidSlug with state: { isLoggedIn: true }
-  │
-  └─ (Link to /admin-login or direct slug access)
+Else show User Email/PIN form:
+  ├─ User enters Email + PIN
+  │ → POST /api/users/login
+  │ → Set: userPin, userEmail, userMasjids (array), userMasjidSlug, loginSource='user'
+  │ → Show result page with list of accessible masjids
+  │ → User selects masjid from list OR clicks "Continue to Masjid" button
+  │ → Navigate to /:masjidSlug with state: { isLoggedIn: true }
 ```
 
 ---

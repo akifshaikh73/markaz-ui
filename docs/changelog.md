@@ -7,6 +7,10 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ## 2026-08-28
 
+- **feat(auth):** Split Masjid PIN and user email/PIN authentication into separate `/masjid-login` and `/user-login` entry points, redirect the homepage to Masjid Login, resume each session from its stored login source, and show a user's accessible masjids after successful login
+- **fix(navigation):** Route MasjidLanding logout to the corresponding login page and remove redundant Back, Landing logout, and Visitation quick-links controls
+- **test(auth):** Add Playwright coverage for the separated login flows, homepage redirect, validation, session resume, and login-page navigation
+- **docs(auth):** Document the separate login entry points and their revised page flow
 - **feat(AddressDetail):** Allow all authenticated users, including MasjidUser, to edit an address unit through a pencil-triggered numeric text field that validates against the masjid's configured units
 - **fix(RouteView, VisitationView):** Preserve the route unit ID directly from navigation state for area-cache lookup and remove an obsolete ESLint suppression from the used masjid slug
 - **docs(architecture):** Remove duplicate route and authentication-flow documentation from `AGENTS.md` and correct the Markaz admin password route description
