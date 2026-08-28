@@ -22,7 +22,7 @@ function VisitationView() {
     const masjidID = getMasjidID();
     
     // Get masjid slug for back navigation (used in back button onClick)
-    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid'); // eslint-disable-line no-unused-vars
+    const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
 
     const [total, setTotal] = useState(10);
     const [countMode, setCountMode] = useState('10'); // '5', '10', '25', 'custom'

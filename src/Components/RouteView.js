@@ -53,7 +53,7 @@ function RouteView() {
         return [];
     };
 
-    const { masjidID: passedMasjidID, masjidRef: passedMasjidRef } = location.state || {};
+    const { masjidID: passedMasjidID, unitID: passedUnitID, masjidRef: passedMasjidRef } = location.state || {};
 
     // All state declarations AFTER functions but BEFORE effects
     const [showRoute, setShowRoute] = useState(false);
@@ -279,15 +279,7 @@ function RouteView() {
 
     const plotted = listings.filter(l => l.latitude && l.longitude);
 
-    const getMasjidAndUnitFromState = () => {
-        if (location.state?.masjidID && location.state?.unitID) {
-            return { masjidID: location.state.masjidID, unitID: location.state.unitID };
-        }
-        return { masjidID: null, unitID: null };
-    };
-
-    const { masjidID, unitID } = getMasjidAndUnitFromState();
-    const unitAreasKey = masjidID && unitID ? `unitAreas_${masjidID}_${unitID}` : null;
+    const unitAreasKey = passedMasjidID && passedUnitID ? `unitAreas_${passedMasjidID}_${passedUnitID}` : null;
     
     const getCachedAreas = () => {
         if (unitAreasKey) {
