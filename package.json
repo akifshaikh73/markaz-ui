@@ -24,6 +24,7 @@
     "build": "react-scripts build",
     "start:prod": "react-scripts build && serve -s build",
     "test": "react-scripts test",
+    "test:e2e": "playwright test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -45,6 +46,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "serve": "^14.2.6"
   }
 }
