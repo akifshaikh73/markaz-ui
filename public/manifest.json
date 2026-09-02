@@ -18,7 +18,7 @@
       "type": "image/x-icon"
     }
   ],
-  "start_url": "/user-login",
+  "start_url": "/masjid-login",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#1976d2",

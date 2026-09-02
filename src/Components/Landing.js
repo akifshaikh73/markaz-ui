@@ -4,7 +4,7 @@ import SearchForm from './Search';
 import AddressList from './AddressList';
 import AddAddress from './AddAddress';
 import { exportToExcel } from '../exportExcel';
-import { setAdmin, getAdmin, getUserRole } from '../config';
+import { getAdmin, getUserRole } from '../config';
 import StatusBadges from './StatusBadges';
 import { useMasjidConfig } from '../hooks/useMasjids';
 
