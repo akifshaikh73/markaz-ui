@@ -34,7 +34,7 @@ function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onU
                 </Link>
             </td>
             <td>{`${address.firstName || ''} ${address.lastName || ''}`.trim()}</td>
-            <td>{[address.address1, address.address2].filter(Boolean).join(', ')}</td>
+            <td style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal' }}>{[address.address1, address.address2].filter(Boolean).join(', ')}</td>
             {isAdmin && (
                 <td>
                     <input type="checkbox" checked={!!isUnitSelected} onChange={onUnitToggle} style={{ marginRight: '5px', cursor: 'pointer' }} />

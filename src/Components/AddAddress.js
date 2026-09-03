@@ -13,7 +13,7 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
     const [city, setCity] = useState('');
     const [addrState, setAddrState] = useState('');
     const [zipcode, setZipcode] = useState('');
-    const [unitId, setUnitId] = useState(unitOptions[0] || '');
+    const [unitId, setUnitId] = useState(unitOptions[0] !== undefined ? unitOptions[0] : '');
 
     const [response, setResponse] = useState('');
     const [comment, setComment] = useState('');

@@ -5,6 +5,14 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-09-02
+
+- **feat(visitation):** Add Address is now available to general users in Visitation View, with a combined Name/Address search beside the Unit and Area filters.
+- **fix(ui):** Improve mobile address wrapping and make Address Detail controls more prominent across iPhone and Android.
+- **feat(pwa):** Allow the installed PWA to use both portrait and landscape orientations.
+
+---
+
 ## 2026-08-28
 
 - **feat(auth):** Split Masjid PIN and user email/PIN authentication into separate `/masjid-login` and `/user-login` entry points, redirect the homepage to Masjid Login, resume each session from its stored login source, and show a user's accessible masjids after successful login

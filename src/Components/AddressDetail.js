@@ -316,7 +316,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         <>
                             <strong style={{ fontSize: '1rem' }}>{firstName} {lastName}</strong>
                             {nameSaved && <span style={{ color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
-                            <button onClick={() => setEditingName(true)} title="Edit name" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976d2', padding: '0 4px' }}>✏️</button>
+                            <button onClick={() => setEditingName(true)} title="Edit name" aria-label="Edit name" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '1.15rem', color: '#1976d2', padding: '0 4px' }}>✎</button>
                         </>
                     )}
                 </div>
@@ -358,14 +358,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     ) : (
                         <>
                             <span>{originalUnitId}</span>
-                            <button onClick={() => setEditingUnit(true)} title="Edit unit" aria-label="Edit unit" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976d2', padding: '0 4px' }}>✏️</button>
+                            <button onClick={() => setEditingUnit(true)} title="Edit unit" aria-label="Edit unit" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '1.15rem', color: '#1976d2', padding: '0 4px' }}>✎</button>
                         </>
                     )}
                     {unitError && <span id="unit-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em' }}>{unitError}</span>}
                 </div>
             </div>
             <div>
-                <label><strong>Address:</strong> {[
+                <label style={{ display: 'block', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}><strong>Address:</strong> {[
                     address.address1,
                     address.city,
                     [address.state, address.zipcode].filter(Boolean).join(' ')
@@ -417,7 +417,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                                 onClick={() => setEditingField(field)}
                                 title="Edit"
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976d2', padding: '0 4px' }}
-                            >✏️</button>
+                            >✎</button>
                         </>
                     )}
                 </div>
@@ -498,7 +498,23 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         <strong>Comments:</strong>
                         <input type="text" value={comments} onChange={e => setComments(e.target.value)} placeholder="Add comments..." style={{ marginLeft: '0.5rem', padding: '0.25rem', minWidth: '200px' }} />
                     </label>
-                    <button onClick={handleUpdateResponse} disabled={!response} style={!response ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>Update Response</button>
+                    <button
+                        onClick={handleUpdateResponse}
+                        disabled={!response}
+                        style={{
+                            background: response ? '#e65100' : '#6b7280',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '0.55rem 1rem',
+                            borderRadius: '5px',
+                            cursor: response ? 'pointer' : 'not-allowed',
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            opacity: 1,
+                        }}
+                    >
+                        Update Response
+                    </button>
                 </div>
                 {address.visitHistory && [...address.visitHistory]
                     .sort((a, b) => {
@@ -528,9 +544,6 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 )}
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'center' }}>
-                {!isModal && (
-                    <button onClick={handleNavigation}>← Back</button>
-                )}
                 {address.latitude && address.longitude && (
                     <button
                         onClick={() => navigate('/route', { state: { listings: [address] } })}
@@ -538,6 +551,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
                     >
                         🗺 Route
+                    </button>
+                )}
+                {!isModal && (
+                    <button
+                        onClick={handleNavigation}
+                        style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.55rem 1rem', borderRadius: '5px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
+                    >
+                        ← Back
                     </button>
                 )}
             </div>

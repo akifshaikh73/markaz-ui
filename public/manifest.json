@@ -20,7 +20,7 @@
   ],
   "start_url": "/masjid-login",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "theme_color": "#1976d2",
   "background_color": "#ffffff"
 }

@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { formatDate } from '../utils';
+import { getAdmin } from '../config';
 import StatusBadges from './StatusBadges';
+import AddAddress from './AddAddress';
+import { useMasjidConfig } from '../hooks/useMasjids';
 
 function VisitationView() {
     const navigate = useNavigate();
@@ -20,6 +23,7 @@ function VisitationView() {
     };
     
     const masjidID = getMasjidID();
+    const { masjidUnitsMap } = useMasjidConfig();
     
     // Get masjid slug for back navigation (used in back button onClick)
     const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
@@ -41,12 +45,15 @@ function VisitationView() {
         const saved = sessionStorage.getItem(visitationStorageKey);
         return saved ? JSON.parse(saved).area : '';
     });
+    const [searchText, setSearchText] = useState('');
     const [applied, setApplied] = useState(null);
     const [allListings, setAllListings] = useState([]);
     const [loading, setLoading] = useState(false);
     const [fetchError, setFetchError] = useState('');
     const [sortMode, setSortMode] = useState('leastRecent'); // 'leastRecent' or 'mostRecent'
     const [selectedIds, setSelectedIds] = useState([]);
+    const [showAddAddress, setShowAddAddress] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // On mount — fetch all listings for the masjid (no unit filter)
     useEffect(() => {
@@ -66,7 +73,7 @@ function VisitationView() {
             })
             .catch(() => setFetchError('Failed to load listings'))
             .finally(() => setLoading(false));
-    }, [masjidID, API_URL]);
+    }, [masjidID, API_URL, refreshKey]);
 
     // Sync total with countMode
     useEffect(() => {
@@ -94,7 +101,7 @@ function VisitationView() {
 
     // Filtered area options based on selected unit
     const filteredAreaOptions = useMemo(() => {
-        if (!filterUnit) return areaOptions;
+        if (filterUnit === '') return areaOptions;
         const active = allListings.filter(a => !a.inactive && String(a.unitId ?? '—') === filterUnit);
         return [...new Set(active.map(a => (a.area && a.area.trim()) ? a.area.trim() : '(No Area)'))].sort();
     }, [filterUnit, allListings, areaOptions]);
@@ -102,10 +109,18 @@ function VisitationView() {
     const compute = useCallback(() => {
         const active = allListings.filter(a => {
             if (a.inactive) return false;
-            if (filterUnit && String(a.unitId ?? '—') !== filterUnit) return false;
+            if (filterUnit !== '' && String(a.unitId ?? '—') !== filterUnit) return false;
             if (filterArea) {
                 const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
                 if (area !== filterArea) return false;
+            }
+            if (searchText.trim()) {
+                const searchTerm = searchText.trim().toLowerCase();
+                const name = [a.firstName, a.lastName].filter(Boolean).join(' ');
+                const address = [a.address1, a.address2, a.city, a.state, a.zipcode]
+                    .filter(Boolean)
+                    .join(' ');
+                if (!`${name} ${address}`.toLowerCase().includes(searchTerm)) return false;
             }
             return true;
         });
@@ -141,7 +156,7 @@ function VisitationView() {
         }
 
         setApplied({ grouped: result, total: grandTotal });
-    }, [allListings, filterUnit, filterArea, sortMode, total]);
+    }, [allListings, filterUnit, filterArea, searchText, sortMode, total]);
 
     // Auto-compute when filters, sort mode, or total changes
     useEffect(() => {
@@ -175,7 +190,22 @@ function VisitationView() {
                 </button>
                 <StatusBadges />
                 <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, whiteSpace: 'nowrap' }}>Visitations</h2>
+                <button
+                    onClick={() => setShowAddAddress(value => !value)}
+                    style={{ marginLeft: 'auto', padding: '0.35rem 0.8rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                >
+                    {showAddAddress ? 'Close Add Address' : '+ Add Address'}
+                </button>
             </div>
+
+            {showAddAddress && (
+                <AddAddress
+                    masjidID={masjidID}
+                    unitOptions={masjidUnitsMap[String(masjidID)] || unitOptions}
+                    onClose={() => setShowAddAddress(false)}
+                    onCreated={() => setRefreshKey(value => value + 1)}
+                />
+            )}
 
             {/* All selectors in one row at top */}
             <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem', alignItems: 'center', flexWrap: 'nowrap', padding: '0.4rem 0.6rem', background: '#f5f5f5', borderRadius: '6px', overflow: 'auto', fontSize: '0.8rem' }}>
@@ -238,6 +268,16 @@ function VisitationView() {
                         <option value="">All</option>
                         {filteredAreaOptions.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                    Name / Address:
+                    <input
+                        type="search"
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        placeholder="Search"
+                        style={{ width: '180px', minWidth: '120px', padding: '0.25rem 0.4rem', border: '1px solid #1976d2', borderRadius: '4px', fontSize: '0.85rem' }}
+                    />
                 </label>
                 {applied && (
                     <>
