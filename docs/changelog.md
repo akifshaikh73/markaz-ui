@@ -5,6 +5,12 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-09-06
+
+- **fix(VisitationView):** Allow full address details to wrap in the visitation table instead of truncating them with ellipses.
+
+---
+
 ## 2026-09-02
 
 - **feat(visitation):** Add Address is now available to general users in Visitation View, with a combined Name/Address search beside the Unit and Area filters.

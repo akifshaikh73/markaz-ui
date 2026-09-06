@@ -350,7 +350,7 @@ function VisitationView() {
                                                     <Link to={`/address/${a._id}`} state={{ from: `${location.pathname}${location.search}` }} replace style={{ color: '#1976d2' }}>{a._id}</Link>
                                                 </td>
                                                 <td style={{ ...td, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
-                                                <td style={{ ...td, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.address1, a.address2].filter(Boolean).join(', ')}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
+                                                <td style={{ ...td, maxWidth: '120px', whiteSpace: 'normal', overflowWrap: 'anywhere', wordBreak: 'break-word', verticalAlign: 'top' }} title={[a.address1, a.address2].filter(Boolean).join(', ')}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
                                                 <td style={{ ...td, color: !a.lastModifiedDate ? '#b71c1c' : '#333' }}>
                                                     {visitedText} <span style={{ fontSize: '0.8em', color: '#999' }}>({responseText})</span>
                                                 </td>
