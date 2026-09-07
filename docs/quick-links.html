@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Quick links for Chicago Visitations local and hosted environments">
+  <title>Chicago Visitations Quick Links</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #5d6b78;
+      --line: #d7dee5;
+      --paper: #f6f8fa;
+      --card: #ffffff;
+      --orange: #c85b18;
+      --orange-dark: #8f3d0d;
+      --blue: #155e8a;
+      --blue-dark: #0b3d5b;
+      --green: #23734b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: linear-gradient(135deg, #eef4f7 0%, #fdfbf6 48%, #f3eee7 100%);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1060px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 64px;
+    }
+
+    header {
+      max-width: 760px;
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--orange-dark);
+      font: 700 0.78rem/1.2 Arial, sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 { line-height: 1.15; }
+    h1 { margin: 0; font-size: clamp(2.2rem, 6vw, 4.4rem); font-weight: 700; }
+    h2 { margin: 0; font-size: 1.55rem; }
+    h3 { margin: 0 0 6px; font-size: 1.12rem; }
+
+    .intro {
+      margin: 14px 0 0;
+      max-width: 650px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .environment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .environment {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: 0 12px 32px rgba(26, 43, 56, 0.08);
+    }
+
+    .environment-header {
+      padding: 22px 24px 18px;
+      color: #fff;
+      background: var(--blue-dark);
+    }
+
+    .environment:first-child .environment-header { background: var(--orange-dark); }
+
+    .environment-header p {
+      margin: 6px 0 0;
+      color: rgba(255, 255, 255, 0.78);
+      font: 0.88rem Arial, sans-serif;
+      overflow-wrap: anywhere;
+    }
+
+    .link-section { padding: 22px 24px 8px; }
+    .link-section + .link-section { border-top: 1px solid var(--line); }
+
+    .section-label {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font: 700 0.74rem Arial, sans-serif;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .links {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 50px;
+      padding: 10px 13px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--blue-dark);
+      background: var(--card);
+      text-decoration: none;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+    }
+
+    a:hover, a:focus-visible {
+      border-color: var(--blue);
+      background: #edf7fb;
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .local a:hover, .local a:focus-visible {
+      border-color: var(--orange);
+      background: #fff5ec;
+    }
+
+    .link-name { font: 700 0.98rem Arial, sans-serif; }
+    .link-path { color: var(--muted); font: 0.78rem/1.2 Consolas, "Courier New", monospace; text-align: right; overflow-wrap: anywhere; }
+
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font: 0.82rem/1.5 Arial, sans-serif;
+    }
+
+    @media (max-width: 760px) {
+      main { width: min(100% - 22px, 560px); padding-top: 30px; }
+      .environment-grid { grid-template-columns: 1fr; }
+      .environment-header, .link-section { padding-left: 18px; padding-right: 18px; }
+      a { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .link-path { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Chicago Visitations</p>
+      <h1>Quick Links</h1>
+      <p class="intro">Choose the environment and entry point you need. Masjid shortcuts open the masjid landing page, where you can select a unit and continue to Visitations, Full Listings, or Quick Links.</p>
+    </header>
+
+    <div class="environment-grid">
+      <section class="environment local" aria-labelledby="local-title">
+        <div class="environment-header">
+          <h2 id="local-title">Local Development</h2>
+          <p>http://localhost:3000</p>
+        </div>
+
+        <div class="link-section">
+          <p class="section-label">Login</p>
+          <ul class="links">
+            <li><a href="http://localhost:3000/admin-login"><span class="link-name">Markaz Admin Login</span><span class="link-path">/admin-login</span></a></li>
+            <li><a href="http://localhost:3000/masjid-login"><span class="link-name">Masjid Login</span><span class="link-path">/masjid-login</span></a></li>
+            <li><a href="http://localhost:3000/user-login"><span class="link-name">Masjid Admin User Login</span><span class="link-path">/user-login</span></a></li>
+          </ul>
+        </div>
+
+        <div class="link-section">
+          <p class="section-label">Popular Masjids</p>
+          <ul class="links">
+            <li><a href="http://localhost:3000/muthman"><span class="link-name">Masjid Uthhman</span><span class="link-path">/muthman</span></a></li>
+            <li><a href="http://localhost:3000/masjid-ds"><span class="link-name">Masjid Darussalam</span><span class="link-path">/masjid-ds</span></a></li>
+            <li><a href="http://localhost:3000/msi"><span class="link-name">MSI</span><span class="link-path">/msi</span></a></li>
+            <li><a href="http://localhost:3000/diman"><span class="link-name">Diman</span><span class="link-path">/diman</span></a></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="environment hosted" aria-labelledby="hosted-title">
+        <div class="environment-header">
+          <h2 id="hosted-title">Hosted Production</h2>
+          <p>https://markaz-ui.onrender.com</p>
+        </div>
+
+        <div class="link-section">
+          <p class="section-label">Login</p>
+          <ul class="links">
+            <li><a href="https://markaz-ui.onrender.com/admin-login"><span class="link-name">Markaz Admin Login</span><span class="link-path">/admin-login</span></a></li>
+            <li><a href="https://markaz-ui.onrender.com/masjid-login"><span class="link-name">Masjid Login</span><span class="link-path">/masjid-login</span></a></li>
+            <li><a href="https://markaz-ui.onrender.com/user-login"><span class="link-name">Masjid Admin User Login</span><span class="link-path">/user-login</span></a></li>
+          </ul>
+        </div>
+
+        <div class="link-section">
+          <p class="section-label">Popular Masjids</p>
+          <ul class="links">
+            <li><a href="https://markaz-ui.onrender.com/muthman"><span class="link-name">Masjid Uthhman</span><span class="link-path">/muthman</span></a></li>
+            <li><a href="https://markaz-ui.onrender.com/masjid-ds"><span class="link-name">Masjid Darussalam</span><span class="link-path">/masjid-ds</span></a></li>
+            <li><a href="https://markaz-ui.onrender.com/msi"><span class="link-name">MSI</span><span class="link-path">/msi</span></a></li>
+            <li><a href="https://markaz-ui.onrender.com/diman"><span class="link-name">Diman</span><span class="link-path">/diman</span></a></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      Local links require the React app to be running on port 3000. Use the hosted links for the deployed application. Access still requires the credentials appropriate for the selected role.
+    </footer>
+
+  </main>
+</body>
+</html>

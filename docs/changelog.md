@@ -7,6 +7,9 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ## 2026-09-06
 
+- **feat(bulk-unit-update):** Use the shared address selection for bulk unit changes so Masjid Users can select addresses and update their unit; remove the duplicate Unit checkbox column.
+- **fix(auth):** Preserve the Masjid Admin role when an email/PIN session enters its masjid landing page.
+- **docs(guides):** Add the functional manual, PWA installation and WhatsApp instructions, Quick Links reference page, and feature/bug tracker documentation.
 - **fix(VisitationView):** Allow full address details to wrap in the visitation table instead of truncating them with ellipses.
 
 ---
