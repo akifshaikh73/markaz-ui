@@ -36,10 +36,14 @@ const MasjidLanding = () => {
     useEffect(() => {
         if (!location.state?.isLoggedIn || !masjidConfig) return;
         const masjidId = masjidConfig._id ?? masjidConfig.id;
+        const isUserLoginSession = localStorage.getItem('loginSource') === 'user'
+            && Boolean(localStorage.getItem('userEmail'));
         localStorage.setItem('preferredMasjid', masjidSlug);
         localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
-        setUserRole('MasjidUser');
-        localStorage.setItem('loginSource', 'masjid-slug');
+        if (!isUserLoginSession) {
+            setUserRole('MasjidUser');
+            localStorage.setItem('loginSource', 'masjid-slug');
+        }
     }, [location.state?.isLoggedIn, masjidConfig]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Auto-cache masjid PIN when accessing via direct slug (no /user-login needed)
