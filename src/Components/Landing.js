@@ -34,7 +34,6 @@ function Landing() {
     });
     const [showAddAddress, setShowAddAddress] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
-    const [selectedUnitIds, setSelectedUnitIds] = useState([]);
     const [newArea, setNewArea] = useState('');
     const [newUnit, setNewUnit] = useState('');
     const [areaUpdateStatus, setAreaUpdateStatus] = useState(null);
@@ -169,7 +168,7 @@ function Landing() {
         ))
         .then(() => {
             setAddressList(prev => prev.map(a => ids.includes(a._id) ? { ...a, unitId: unitVal } : a));
-            setSelectedUnitIds([]);
+            setSelectedIds([]);
             setNewUnit('');
             setUnitUpdateStatus({ count: ids.length });
             setTimeout(() => setUnitUpdateStatus(null), 4000);
@@ -293,9 +292,9 @@ function Landing() {
                     <button onClick={() => setSelectedIds([])} style={{ padding: '0.3rem 0.6rem', background: 'none', border: '1px solid #aaa', cursor: 'pointer' }}>Clear</button>
                 </div>
             )}
-            {selectedUnitIds.length > 0 && (
+            {selectedIds.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 1.5rem 0.75rem', padding: '0.75rem 1rem', background: '#fce4ec', borderRadius: '6px', border: '1px solid #f48fb1' }}>
-                    <span style={{ fontWeight: 600, color: '#c2185b' }}>{selectedUnitIds.length} selected</span>
+                    <span style={{ fontWeight: 600, color: '#c2185b' }}>{selectedIds.length} selected</span>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
                         Set Unit:
                         <select
@@ -308,13 +307,13 @@ function Landing() {
                         </select>
                     </label>
                     <button
-                        onClick={() => handleBulkUpdateUnit(selectedUnitIds, newUnit)}
+                        onClick={() => handleBulkUpdateUnit(selectedIds, newUnit)}
                         disabled={newUnit === ''}
                         style={{ padding: '0.3rem 0.8rem', opacity: newUnit === '' ? 0.5 : 1, cursor: newUnit === '' ? 'not-allowed' : 'pointer' }}
                     >
                         Update
                     </button>
-                    <button onClick={() => setSelectedUnitIds([])} style={{ padding: '0.3rem 0.6rem', background: 'none', border: '1px solid #aaa', cursor: 'pointer' }}>Clear</button>
+                    <button onClick={() => setSelectedIds([])} style={{ padding: '0.3rem 0.6rem', background: 'none', border: '1px solid #aaa', cursor: 'pointer' }}>Clear</button>
                 </div>
             )}
             {unitUpdateStatus && (
@@ -346,7 +345,7 @@ function Landing() {
                     onCreated={() => {}}
                 />
             )}
-            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} selectedUnitIds={selectedUnitIds} onUnitSelectionChange={setSelectedUnitIds} isAdmin={getAdmin()} />
+            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} />
         </>
     );
 }

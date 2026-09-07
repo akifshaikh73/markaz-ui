@@ -148,6 +148,7 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 | Name | Type | Source | Purpose |
 |------|------|--------|---------|
 | `addressList` | React state | API (`/list` or `/filter/search/`) | The **working set** shown in the table. May be the full unit list or search results. |
+| `selectedIds` | React state | ID-column checkboxes | Shared selection for bulk Area and Unit updates. Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates; Area updates remain available to admin roles. Cleared after either update completes. |
 | `unitAreas` | React state | Derived from `addressList` on initial fetch | Sorted unique area/neighborhood names for the Neighborhood `<select>` dropdown and the "Set Neighborhood" datalist. Cached in `sessionStorage`. Only grows — new areas appended on bulk update. |
 | `areaFilter` | React state | User selects from Neighborhood `<select>` | Active neighborhood filter. `''` = no filter. `'__NO_AREA__'` = show unassigned addresses. |
 | `filteredAddressList` | Derived (render-time) | `addressList` filtered by `areaFilter` | What `AddressList` actually renders. Area and search filters compose — both apply to the same `addressList`. |
@@ -161,6 +162,7 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 | Initial page load (`/list`) | Set | Populated from fetched data |
 | Search / FilterUI button (`doSearch`) | Replaced with results | Not touched |
 | Bulk area update | Patched in-place | New area appended if new |
+| Bulk unit update | Patched in-place with the new `unitId` | Unchanged |
 | Unit switch | Cleared | Cleared |
 | Logout | Cleared | Cleared |
 

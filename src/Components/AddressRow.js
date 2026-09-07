@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatDate } from '../utils';
 
-function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onUnitToggle, isAdmin = false }) {
+function AddressRow({ address, isSelected, onToggle }) {
     const location = useLocation();
     const visitHistory = Array.isArray(address.visitHistory) ? address.visitHistory : [];
 
@@ -26,7 +26,7 @@ function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onU
                     type="checkbox"
                     checked={!!isSelected}
                     onChange={onToggle}
-                    title="Select for area assignment"
+                    title="Select for bulk updates"
                     style={{ marginRight: '5px', cursor: 'pointer', accentColor: '#1976d2' }}
                 />
                 <Link to={`/address/${address._id}`} state={{ address, from: `${location.pathname}${location.search}` }} replace>
@@ -35,12 +35,6 @@ function AddressRow({ address, isSelected, onToggle, isUnitSelected = false, onU
             </td>
             <td>{`${address.firstName || ''} ${address.lastName || ''}`.trim()}</td>
             <td style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal' }}>{[address.address1, address.address2].filter(Boolean).join(', ')}</td>
-            {isAdmin && (
-                <td>
-                    <input type="checkbox" checked={!!isUnitSelected} onChange={onUnitToggle} style={{ marginRight: '5px', cursor: 'pointer' }} />
-                    {address.unitId}
-                </td>
-            )}
             <td>
                 {address.area}
             </td>

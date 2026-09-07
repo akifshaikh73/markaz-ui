@@ -117,6 +117,7 @@ Never hardcode `localhost` URLs.
 
 **Address List & Filtering**:
 - `addressList` — working set from last fetch or search (cleared on logout)
+- `selectedIds` — IDs selected through the shared ID-column checkboxes for bulk Area and Unit updates; Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates, while Area updates remain admin-only; cleared after either update
 - `searchParams` — last search form values (cleared on logout)
 - `areaFilter` — last area filter text (cleared on logout)
 - `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
@@ -134,6 +135,7 @@ Never hardcode `localhost` URLs.
 | State | Source | Rule |
 |-------|--------|------|
 | `addressList` | `/list` on load; `/filter/search/` on search | Working set. Replaced by search results. Area filter applied on top. |
+| `selectedIds` | ID-column checkboxes | Shared selection for bulk Area and Unit updates. Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates; Area updates remain admin-only. The Unit column has been removed. |
 | `unitAreas` | Derived from initial `/list` fetch | Unique sorted area names. Cached in sessionStorage. Only grows (new areas appended on bulk update). |
 | `areaFilter` | Neighborhood `<select>` | Filters `addressList`. `''` = none; `'__NO_AREA__'` = unassigned addresses. |
 | `filteredAddressList` | Derived at render | `addressList` filtered by `areaFilter`. Area and search filters compose on the same dataset. |
