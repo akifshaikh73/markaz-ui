@@ -1,0 +1,11 @@
+{
+  "roles": [
+    { "path": "masjid-login", "name": "Markaz Visitations – Masjid PIN", "shortName": "Masjid PIN", "appleTitle": "Masjid PIN" },
+    { "path": "user-login", "name": "Markaz Visitations – Staff Login", "shortName": "Staff Login", "appleTitle": "Staff Login" },
+    { "path": "admin-login", "name": "Markaz Visitations – Markaz Admin", "shortName": "Markaz Admin", "appleTitle": "Markaz Admin" },
+    { "path": "muthman", "name": "Masjid Uthman – Markaz Visitations", "shortName": "Masjid Uthman", "appleTitle": "Masjid Uthman" },
+    { "path": "masjid-ds", "name": "Darusalam – Markaz Visitations", "shortName": "Darusalam", "appleTitle": "Darusalam" },
+    { "path": "msi", "name": "Glendale Heights – Markaz Visitations", "shortName": "Glendale Heights", "appleTitle": "Glendale Heights" },
+    { "path": "diman", "name": "Darul Eimaan – Markaz Visitations", "shortName": "Darul Eimaan", "appleTitle": "Darul Eimaan" }
+  ]
+}
