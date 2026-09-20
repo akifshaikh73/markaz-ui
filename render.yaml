@@ -6,9 +6,46 @@ services:
     staticPublishPath: build
     pullRequestPreviewsEnabled: true
     routes:
+      # PWA install roles — each gets its own static HTML entry so its manifest link
+      # (and thus Home Screen start_url) is correct as served, not just after client JS
+      # runs. Must stay in sync with scripts/pwa-roles.json. Order matters: these must
+      # come before the catch-all below (first match wins).
+      - type: rewrite
+        source: /masjid-login
+        destination: /masjid-login/index.html
+      - type: rewrite
+        source: /user-login
+        destination: /user-login/index.html
+      - type: rewrite
+        source: /admin-login
+        destination: /admin-login/index.html
+      - type: rewrite
+        source: /muthman
+        destination: /muthman/index.html
+      - type: rewrite
+        source: /masjid-ds
+        destination: /masjid-ds/index.html
+      - type: rewrite
+        source: /msi
+        destination: /msi/index.html
+      - type: rewrite
+        source: /diman
+        destination: /diman/index.html
+      - type: rewrite
+        source: /oswego
+        destination: /oswego/index.html
       - type: rewrite
         source: /*
         destination: /index.html
+    headers:
+      # Manifest filenames have no content hash, so they must not inherit a long cache —
+      # a stale cached copy would keep serving the wrong start_url.
+      - path: /*.html
+        name: Cache-Control
+        value: no-cache
+      - path: /manifest*.json
+        name: Cache-Control
+        value: no-cache
     envVars:
       - key: REACT_APP_API_URL
         value: https://visitation-api.onrender.com

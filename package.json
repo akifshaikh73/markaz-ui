@@ -22,6 +22,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "postbuild": "node scripts/generate-pwa-entries.js",
     "start:prod": "react-scripts build && serve -s build",
     "test": "react-scripts test",
     "test:e2e": "playwright test",
