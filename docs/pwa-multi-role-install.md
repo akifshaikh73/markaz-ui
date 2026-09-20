@@ -217,11 +217,11 @@ captured at install time and won't pick up server-side changes on its own.
 
 ## Part 3 — Markaz Visitation UI implementation (case study)
 
-Markaz Visitation UI is a Create React App app deployed as a Render Static Site (`render.yaml`
-at the repo root), not a Vite + CloudFront app like Pick n Drop in Part 1 — so there's no CDN
-function layer to write routing logic in. Render's declarative `routes` (evaluated top to
-bottom, first match wins) stands in for the CloudFront Function, and everything else happens at
-build time instead of at deploy-time infrastructure.
+Markaz Visitation UI is a Create React App app deployed as a Render Static Site, not a Vite +
+CloudFront app like Pick n Drop in Part 1 — so there's no CDN function layer to write routing
+logic in. The build-time half of the recipe (per-role manifest + HTML generation) is identical
+in spirit to Part 1. The deploy-time routing half turned out **not** to work the way `render.yaml`
+implies — see the pitfall below before copying this pattern to another Render-hosted app.
 
 This app has two kinds of "role": three fixed entry points defined as routes in `src/App.js`
 (`/masjid-login`, `/user-login`, `/admin-login`), and per-masjid landing pages (`/:masjidSlug`).
@@ -241,7 +241,8 @@ markaz-ui/
 ├── scripts/
 │   ├── pwa-roles.json             # curated list of installable roles/slugs — single source of truth
 │   └── generate-pwa-entries.js    # postbuild: derives per-role manifest + HTML from the list
-└── render.yaml                    # routes (one rewrite per role, before the catch-all) + headers
+└── render.yaml                    # documents the intended routes/headers (see pitfall — not
+                                    # actually applied by Render for this service)
 ```
 
 `scripts/generate-pwa-entries.js` runs as the `postbuild` npm script (wired in `package.json`),
@@ -253,32 +254,117 @@ so it fires automatically after every `react-scripts build` — no change to `re
    `apple-mobile-web-app-title` meta tag to the role's display name (handles iOS pre-16.4, which
    ignores the manifest entirely and uses that meta tag instead), writes `build/<path>/index.html`.
 
-`render.yaml` then has one `rewrite` route per role (`source: /<path>` →
-`destination: /<path>/index.html`), listed before the existing `/* → /index.html` SPA catch-all,
-plus a `headers` block forcing `Cache-Control: no-cache` on `*.html` and `manifest*.json` so a
-stale cached manifest can't keep serving the wrong `start_url`. Because these are `rewrite`
-rules (not `redirect`s), the browser URL bar is unaffected — React Router still boots against
-the real `window.location.pathname`, so `/muthman` still renders `MasjidLanding` exactly as
-before; only the manifest `<link>` in the initial HTML differs.
+This part works exactly as designed — verified locally by running `npm run build` and checking
+every `build/<role>/index.html` references the right `manifest-<role>.json`.
+
+### Pitfall: `render.yaml`'s `routes`/`headers` were never actually applied
+
+`render.yaml` has a `routes` block (one rewrite per role before the SPA catch-all) and a
+`headers` block (`Cache-Control: no-cache` on HTML/manifest files) — the natural way to express
+this on Render, mirroring the CloudFront Function in Part 1. **Neither took effect**, on
+production or on the PR preview built from this branch.
+
+Root cause: the `markaz-ui` Render service was created directly in the dashboard, not as a
+**Blueprint** (Render's Infrastructure-as-Code mode). Render only reads `render.yaml` for a
+Blueprint-managed service, and even then only for the initial creation of a service — routing
+rules for an existing, dashboard-created static site live entirely in that service's own
+Settings → Redirects/Rewrites, independent of any `render.yaml` in the repo. We confirmed this
+two ways:
+- The live service's `pullRequestPreviewsEnabled` setting didn't match what `render.yaml` said,
+  even after multiple deploys of a `render.yaml` with `pullRequestPreviewsEnabled: true`.
+- After deploying this branch, `curl`-ing every role path on the PR preview
+  (`https://markaz-ui-pr-26.onrender.com/muthman`, etc.) returned the **default** manifest, not
+  the role-specific one, despite the generated files existing correctly at
+  `/muthman/index.html` and `/manifest-muthman.json` directly.
+
+**Takeaway: on Render, don't assume `render.yaml` is authoritative for an existing service.**
+Check `GET https://api.render.com/v1/services/{serviceId}` (`pullRequestPreviewsEnabled`,
+`previews.generation`) against what `render.yaml` says before relying on any of `render.yaml`'s
+`routes`/`headers`/`envVars` having actually been synced. `render.yaml` is left in this repo as
+a record of intent (and as the config a future Blueprint conversion would adopt), but routing is
+currently managed out-of-band via the Render API/dashboard, as described next.
+
+### Actual routing mechanism: the Render REST API
+
+Render exposes a routes resource per service — this is what actually controls request routing,
+regardless of what `render.yaml` says:
+
+```
+GET    /v1/services/{serviceId}/routes
+POST   /v1/services/{serviceId}/routes    { "type": "rewrite", "source": "/<path>", "destination": "/<path>/index.html" }
+PATCH  /v1/services/{serviceId}/routes/{routeId}   { "priority": <n> }
+DELETE /v1/services/{serviceId}/routes/{routeId}
+```
+
+(Auth: `Authorization: Bearer <Render API key>`, generated from Render dashboard → Account
+Settings → API Keys.)
+
+**Priority gotcha**: routes are evaluated in ascending `priority` order — **lower number wins**.
+The pre-existing catch-all (`/* → /index.html`) sits at `priority: 0`. A `POST` to create a new
+route auto-assigns the *next positive integer* (1, 2, 3, …), which sorts **after** the catch-all
+and is therefore never reached — the catch-all matches `/*` first and wins every time. Creating
+the 8 role routes this way silently did nothing until each was `PATCH`ed to an explicit
+**negative** priority (e.g. `-1` through `-8`), which then correctly sorts before the catch-all.
+This is the opposite of what the dashboard UI's "drag rules above the catch-all" framing
+suggests — order in the UI list reflects priority, but new rules don't default to "on top."
+
+### Pitfall: mutated production instead of the PR preview
+
+While probing this API's schema, a test `POST` was run against the **production** service ID
+(`srv-d7sh4bhj2pic73fa5ojg`, `markaz-ui`) instead of the intended PR preview service ID
+(`srv-dao51o17lnhs73en4l40`, `markaz-ui-pr-26`) — both IDs had been in play in the same session
+and it's easy to reuse the wrong one. This created a real (if likely inert, given the priority
+gotcha above — it landed at `priority: 1`, after the catch-all) rewrite rule on the live site,
+pointing at a file (`/masjid-login/index.html`) that didn't exist in production's build yet.
+Caught and reverted via the same API before it could matter.
+
+**Takeaway**: when a service has both a production ID and a preview/staging ID in scope in the
+same session, double-check which one a mutating call targets *before* sending it — read-only
+calls (`GET`) are cheap to run against the wrong target by mistake; `POST`/`PATCH`/`DELETE`
+are not. Prefer testing schema/behavior against an ephemeral preview service first, never
+production.
 
 ### Adding a new installable masjid
 
 1. Append `{ "path": "<slug>", "name": "...", "shortName": "...", "appleTitle": "..." }` to
-   `scripts/pwa-roles.json`.
-2. Add the matching route to `render.yaml`, before the catch-all:
-   ```yaml
-   - type: rewrite
-     source: /<slug>
-     destination: /<slug>/index.html
+   `scripts/pwa-roles.json` (keeps the build-time generation and the doc's record of intent
+   in sync).
+2. Add the matching block to `render.yaml`'s `routes` (for documentation/future Blueprint
+   adoption — see pitfall above, this alone does **not** apply the change).
+3. Create the actual route via the Render API against the **production** service
+   (`srv-d7sh4bhj2pic73fa5ojg`) — only after the merge that adds the new role's build output has
+   deployed, otherwise the route points at a file that doesn't exist yet:
    ```
-3. Redeploy.
+   POST /v1/services/srv-d7sh4bhj2pic73fa5ojg/routes
+   { "type": "rewrite", "source": "/<slug>", "destination": "/<slug>/index.html" }
+   ```
+   then immediately `PATCH` its `priority` to a negative number (any value lower than every
+   existing role route's priority) so it actually takes effect.
+4. Re-run the verification checklist against production.
+
+### Known gap: `Cache-Control` headers
+
+`render.yaml`'s `headers` block (forcing `no-cache` on `*.html`/`manifest*.json`) has the same
+"not actually applied" problem as `routes`, for the same reason. Unlike routes, this hasn't been
+fixed yet — the live site currently serves Render's own default (`public, max-age=0,
+s-maxage=300`) on these paths, which happens to be short enough (5 min) that it's a minor risk
+rather than the long/immutable-cache failure mode this doc originally warned about, but it
+should still be fixed properly (likely a parallel `/v1/services/{serviceId}/headers` resource —
+unconfirmed, not yet investigated) before relying on it.
 
 ### Verification performed
 
-Steps 1–3 of the [Verification checklist](#verification-checklist) above were run against a
-local `npm run build`: `build/<role>/index.html` was generated for all seven roles
-(`masjid-login`, `user-login`, `admin-login`, `muthman`, `masjid-ds`, `msi`, `diman`), each
-referencing a distinct `manifest-<role>.json` with the correct `start_url`, and the unmatched
-catch-all (`build/index.html` itself, still pointing at the default `manifest.json` /
-`/masjid-login`) was unaffected. Step 4 (real iPhone install check) has to be done after the
-next Render deploy — it can't be verified from a build-only environment.
+Full [Verification checklist](#verification-checklist) run against the live PR preview
+(`https://markaz-ui-pr-26.onrender.com`, built from this branch) after fixing the route
+priorities above:
+- All 8 roles (`masjid-login`, `user-login`, `admin-login`, `muthman`, `masjid-ds`, `msi`,
+  `diman`, `oswego`) `curl`ed directly and confirmed to return a distinct
+  `rel="manifest" href="/manifest-<role>.json"` each, with no JS/browser involved.
+- `manifest-muthman.json` `curl`ed directly and confirmed `start_url: "/muthman"`.
+- An unmatched deep link (`/address/nonexistent`) still resolves (200) with the default
+  manifest — the new routes don't swallow anything else.
+- Real iPhone install check (iOS 16.4+) against the preview URL is still outstanding — needs to
+  be done on real hardware, can't be verified from this environment.
+- Production rollout (adding the same 8 routes to `srv-d7sh4bhj2pic73fa5ojg` with negative
+  priorities) is intentionally **not done yet** — see step 3 above, it has to wait until this PR
+  merges and production redeploys with the per-role build output.
