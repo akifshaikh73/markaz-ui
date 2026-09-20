@@ -6,6 +6,7 @@
     { "path": "muthman", "name": "Masjid Uthman – Markaz Visitations", "shortName": "Masjid Uthman", "appleTitle": "Masjid Uthman" },
     { "path": "masjid-ds", "name": "Darusalam – Markaz Visitations", "shortName": "Darusalam", "appleTitle": "Darusalam" },
     { "path": "msi", "name": "Glendale Heights – Markaz Visitations", "shortName": "Glendale Heights", "appleTitle": "Glendale Heights" },
-    { "path": "diman", "name": "Darul Eimaan – Markaz Visitations", "shortName": "Darul Eimaan", "appleTitle": "Darul Eimaan" }
+    { "path": "diman", "name": "Darul Eimaan – Markaz Visitations", "shortName": "Darul Eimaan", "appleTitle": "Darul Eimaan" },
+    { "path": "oswego", "name": "Oswego – Markaz Visitations", "shortName": "Oswego", "appleTitle": "Oswego" }
   ]
 }
