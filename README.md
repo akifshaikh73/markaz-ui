@@ -153,17 +153,19 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 | `areaFilter` | React state | User selects from Neighborhood `<select>` | Active neighborhood filter. `''` = no filter. `'__NO_AREA__'` = show unassigned addresses. |
 | `filteredAddressList` | Derived (render-time) | `addressList` filtered by `areaFilter` | What `AddressList` actually renders. Area and search filters compose — both apply to the same `addressList`. |
 | `searchParams` | React state | Search form submit | Last submitted search field values. |
-| `activeFilters` | React state | FilterUI buttons | `{ showInactive: bool, filterByStudents: bool }` |
+| `includeInactive` | React state | "Include Inactive" checkbox (`SearchForm`) | `false` = active-only (default). `true` = `addressList` is the **merged** result of an active-only fetch + an inactive-only fetch (the API's `showInactive` is an exclusive filter, not additive — there's no single-request "both" option). Reset to `false` on unit switch and on Reset. |
+| `activeFilters` (legacy, unused) | — | `FilterUI` (orphaned component, not rendered by `Landing`) | Documented here historically; superseded by `includeInactive` + the `/landing/inactive/...` route. Not wired up — do not assume it does anything. |
 
 ### Update Rules
 
 | Event | `addressList` | `unitAreas` |
 |-------|--------------|-------------|
-| Initial page load (`/list`) | Set | Populated from fetched data |
-| Search / FilterUI button (`doSearch`) | Replaced with results | Not touched |
+| Initial page load, `/landing/:masjidID/:unitID` | Set via `fetchBaseList()` → `/list` (or merged active+inactive fetch if `includeInactive`) | Populated from fetched data |
+| Initial page load, `/landing/inactive/:masjidID/:unitID` | Set via `fetchBaseList()` → `/filter/search/` with `showInactive: true` | Populated from fetched (inactive-only) data |
+| Search / "Include Inactive" checkbox (`doSearch`) | Replaced with results — merged active+inactive when `includeInactive` (or always inactive-only on the `/landing/inactive/...` route) | Not touched |
 | Bulk area update | Patched in-place | New area appended if new |
 | Bulk unit update | Patched in-place with the new `unitId` | Unchanged |
-| Unit switch | Cleared | Cleared |
+| Unit switch (`handleUnitChange`) | Refetched via `fetchBaseList()` — stays inactive-scoped if already on `/landing/inactive/...`; `includeInactive` resets to `false` (this was the original bug: it used to always refetch via `/list`, silently dropping the inactive filter) | Cleared |
 | Logout | Cleared | Cleared |
 
 ### Storage Layers

@@ -8,10 +8,11 @@ import { getAdmin, getUserRole } from '../config';
 import StatusBadges from './StatusBadges';
 import { useMasjidConfig } from '../hooks/useMasjids';
 
-function Landing() {
+function Landing({ showInactive: isInactiveView = false }) {
     const location = useLocation();
     const navigate = useNavigate();
     const { masjidID, unitID } = useParams();
+    const landingBase = isInactiveView ? `/landing/inactive/${masjidID}` : `/landing/${masjidID}`;
     const [selectedUnit, setSelectedUnit] = useState(unitID === 'all' ? '' : (unitID !== '' && !isNaN(parseInt(unitID)) ? parseInt(unitID) : ''));
     const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
     const cacheValid = cachedContext.masjidID === masjidID && cachedContext.unitID === unitID;
@@ -32,6 +33,7 @@ function Landing() {
         const cached = sessionStorage.getItem(unitAreasKey);
         return cached ? JSON.parse(cached) : [];
     });
+    const [includeInactive, setIncludeInactive] = useState(false);
     const [showAddAddress, setShowAddAddress] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [newArea, setNewArea] = useState('');
@@ -77,40 +79,72 @@ function Landing() {
         localStorage.removeItem('areaFilter');
         localStorage.removeItem('landingContext');
         setUnitAreas([]);
+        setIncludeInactive(false);
         if (val === '') {
             setSelectedUnit('');
             setSearchParams({});
             setAreaFilter('');
-            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}`)
-                .then(response => response.json())
-                .then(data => {
-                    const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
-                    setAddressList(filtered);
-                    localStorage.setItem('addressList', JSON.stringify(filtered));
-                });
+            fetchBaseList('', false).then(data => {
+                const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
+                setAddressList(filtered);
+                localStorage.setItem('addressList', JSON.stringify(filtered));
+            });
         } else {
             const newUnit = parseInt(val);
             setSelectedUnit(newUnit);
             setAddressList([]);
             setAreaFilter('');
             setSearchParams({});
-            navigate(`/landing/${masjidID}/${!isNaN(newUnit) ? newUnit : 'all'}`, { state: { isLoggedIn: true } });
+            navigate(`${landingBase}/${!isNaN(newUnit) ? newUnit : 'all'}`, { state: { isLoggedIn: true } });
         }
     };
 
     const API_URL = process.env.REACT_APP_API_URL || '';
 
-    const doSearch = (params) => {
+    // The API's showInactive is an exclusive filter, not additive — showInactive:true returns
+    // ONLY inactive records, omitted/false returns ONLY active ones. There's no server-side
+    // "both together" option, so "Include Inactive" is implemented by firing both queries
+    // and merging client-side.
+    const searchRequest = (body) => fetch(`${API_URL}/api/addressList/filter/search/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    }).then(r => r.json());
+
+    // Centralizes the "full list for this masjid/unit" fetch so every re-fetch path
+    // (initial load, unit switch, reset) stays scoped consistently — the original bug here
+    // was that only the first load checked isInactiveView, so switching units silently
+    // dropped back to the unfiltered list.
+    const fetchBaseList = (unit, wantInactive = includeInactive) => {
+        if (isInactiveView) {
+            const body = { masjidId: masjidID, showInactive: true };
+            if (unit !== '') body.unitId = unit;
+            return searchRequest(body);
+        }
+        if (wantInactive) {
+            const base = { masjidId: masjidID };
+            if (unit !== '') base.unitId = unit;
+            return Promise.all([searchRequest(base), searchRequest({ ...base, showInactive: true })])
+                .then(([active, inactive]) => [...active, ...inactive]);
+        }
+        const unitParam = unit !== '' ? `&unit_id=${unit}` : '';
+        return fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`).then(r => r.json());
+    };
+
+    const doSearch = (params, wantInactive = includeInactive) => {
         setSearchWarning(null);
         const body = { ...params };
         if (body.unitId === undefined || body.unitId === null || body.unitId === '') delete body.unitId;
-        fetch(`${API_URL}/api/addressList/filter/search/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        })
-            .then(response => response.json())
-            .then(data => {
+
+        const bodies = isInactiveView
+            ? [{ ...body, showInactive: true }]
+            : wantInactive
+                ? [{ ...body }, { ...body, showInactive: true }]
+                : [{ ...body }];
+
+        Promise.all(bodies.map(searchRequest))
+            .then(results => {
+                const data = results.flat();
                 const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
                 if (data.length === 0) {
                     setSearchWarning('no-results');
@@ -123,6 +157,20 @@ function Landing() {
                 localStorage.setItem('addressList', JSON.stringify(filtered));
                 localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
             });
+    };
+
+    const handleIncludeInactiveChange = (e) => {
+        const checked = e.target.checked;
+        setIncludeInactive(checked);
+        if (Object.keys(searchParams).length > 0) {
+            doSearch(searchParams, checked);
+            return;
+        }
+        fetchBaseList(selectedUnit, checked).then(data => {
+            const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
+            setAddressList(filtered);
+            localStorage.setItem('addressList', JSON.stringify(filtered));
+        });
     };
 
     const handleSearch = (params) => {
@@ -180,17 +228,15 @@ function Landing() {
         const baseParams = { masjidId: masjidID };
         setSearchParams(baseParams);
         setAreaFilter('');
+        setIncludeInactive(false);
         setSearchWarning(null);
         localStorage.setItem('searchParams', JSON.stringify(baseParams));
         localStorage.removeItem('areaFilter');
-        const unitParam = selectedUnit !== '' ? `&unit_id=${selectedUnit}` : '';
-        fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`)
-            .then(r => r.json())
-            .then(data => {
-                const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
-                setAddressList(filtered);
-                localStorage.setItem('addressList', JSON.stringify(filtered));
-            });
+        fetchBaseList(selectedUnit, false).then(data => {
+            const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
+            setAddressList(filtered);
+            localStorage.setItem('addressList', JSON.stringify(filtered));
+        });
     };
 
     useEffect(() => {
@@ -200,18 +246,15 @@ function Landing() {
         }
 
         if (addressList.length === 0) {
-            const unitParam = selectedUnit !== '' ? `&unit_id=${selectedUnit}` : '';
-            fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`)
-                .then(response => response.json())
-                .then(data => {
-                    const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
-                    setAddressList(filtered);
-                    localStorage.setItem('addressList', JSON.stringify(filtered));
-                    // Always extract and update areas from the fetched data
-                    const areas = [...new Set(filtered.map(a => a.area).filter(a => a && a.trim()))].sort();
-                    setUnitAreas(areas);
-                    sessionStorage.setItem(unitAreasKey, JSON.stringify(areas));
-                });
+            fetchBaseList(selectedUnit).then(data => {
+                const filtered = isMarkazAdmin ? data : data.filter(item => String(item.masjidId) === String(masjidID));
+                setAddressList(filtered);
+                localStorage.setItem('addressList', JSON.stringify(filtered));
+                // Always extract and update areas from the fetched data
+                const areas = [...new Set(filtered.map(a => a.area).filter(a => a && a.trim()))].sort();
+                setUnitAreas(areas);
+                sessionStorage.setItem(unitAreasKey, JSON.stringify(areas));
+            });
         }
     }, [masjidID, selectedUnit]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -264,7 +307,7 @@ function Landing() {
                 {getAdmin() && <button onClick={() => exportToExcel(addressList, masjidID, selectedUnit)} style={{ background: '#43a047', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>⬇ Export Excel</button>}
                 <button onClick={() => setShowAddAddress(v => !v)} style={{ background: '#1976d2', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>+ Add Address</button>
             </div>
-            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} onReset={handleReset} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} />
+            <SearchForm masjidID={masjidID} unitID={selectedUnit} unitOptions={unitOptions} onUnitChange={handleUnitChange} onSearch={handleSearch} onReset={handleReset} initialValues={searchParams} areaValue={areaFilter} onAreaChange={handleAreaChange} areaOptions={unitAreas} lockMasjidId={!isMarkazAdmin} includeInactiveValue={includeInactive} onIncludeInactiveChange={handleIncludeInactiveChange} />
             {selectedIds.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 1.5rem 0.75rem', padding: '0.75rem 1rem', background: '#e3f2fd', borderRadius: '6px', border: '1px solid #90caf9' }}>
                     <span style={{ fontWeight: 600, color: '#1565c0' }}>{selectedIds.length} selected</span>

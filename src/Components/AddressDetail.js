@@ -5,6 +5,26 @@ import { getAdmin } from '../config';
 import { useMasjidConfig } from '../hooks/useMasjids';
 import StatusBadges from './StatusBadges';
 
+// Unicode's ✎ pencil glyph renders differently (and sometimes mirrored) across OS/browser
+// font fallbacks, so laptop vs phone could show visibly different icons. An inline SVG
+// renders identically everywhere; scaleX(-1) reverses its default orientation.
+const PencilIcon = () => (
+    <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ display: 'block', transform: 'scaleX(-1)' }}
+    >
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+);
+
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
     const API_URL = process.env.REACT_APP_API_URL || '';
@@ -26,10 +46,12 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [bestTime, setBestTime] = useState('');
     const [profession, setProfession] = useState('');
+    const [ethnicity, setEthnicity] = useState('');
     const [originalPhoneNumber, setOriginalPhoneNumber] = useState('');
     const [originalBestTime, setOriginalBestTime] = useState('');
     const [originalProfession, setOriginalProfession] = useState('');
-    const [editingField, setEditingField] = useState(null); // 'phoneNumber' | 'bestTime' | 'profession'
+    const [originalEthnicity, setOriginalEthnicity] = useState('');
+    const [editingField, setEditingField] = useState(null); // 'phoneNumber' | 'bestTime' | 'profession' | 'ethnicity'
     const [editingName, setEditingName] = useState(false);
     const [nameSaved, setNameSaved] = useState(false);
     const [contactSaved, setContactSaved] = useState(null); // field name that just saved
@@ -37,6 +59,10 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [oldWorkerTimeSpent, setOldWorkerTimeSpent] = useState('');
     const [masturat, setMasturat] = useState(false);
     const [massuratTimeSpent, setMassuratTimeSpent] = useState('');
+    const [notes, setNotes] = useState('');
+    const [originalNotes, setOriginalNotes] = useState('');
+    const [editingNotes, setEditingNotes] = useState(false);
+    const [notesSaved, setNotesSaved] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -65,13 +91,17 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     setPhoneNumber(data.phoneNumber || '');
                     setBestTime(data.bestTime || '');
                     setProfession(data.profession || '');
+                    setEthnicity(data.ethnicity || '');
                     setOriginalPhoneNumber(data.phoneNumber || '');
                     setOriginalBestTime(data.bestTime || '');
                     setOriginalProfession(data.profession || '');
+                    setOriginalEthnicity(data.ethnicity || '');
                     setOldWorker(!!data.oldWorker);
                     setOldWorkerTimeSpent(data.oldWorkerTimeSpent || '');
                     setMasturat(!!data.masturat);
                     setMassuratTimeSpent(data.massuratTimeSpent || '');
+                    setNotes(data.notes || '');
+                    setOriginalNotes(data.notes || '');
                 })
                 .catch(err => console.error('[AddressDetail] fetch error:', err));
         } else {
@@ -85,13 +115,17 @@ function AddressDetail({ address: initialAddress, isModal }) {
             setPhoneNumber(initialAddress.phoneNumber || '');
             setBestTime(initialAddress.bestTime || '');
             setProfession(initialAddress.profession || '');
+            setEthnicity(initialAddress.ethnicity || '');
             setOriginalPhoneNumber(initialAddress.phoneNumber || '');
             setOriginalBestTime(initialAddress.bestTime || '');
             setOriginalProfession(initialAddress.profession || '');
+            setOriginalEthnicity(initialAddress.ethnicity || '');
             setOldWorker(!!initialAddress.oldWorker);
             setOldWorkerTimeSpent(initialAddress.oldWorkerTimeSpent || '');
             setMasturat(!!initialAddress.masturat);
             setMassuratTimeSpent(initialAddress.massuratTimeSpent || '');
+            setNotes(initialAddress.notes || '');
+            setOriginalNotes(initialAddress.notes || '');
         }
     }, [id, initialAddress, API_URL]);
 
@@ -149,12 +183,13 @@ function AddressDetail({ address: initialAddress, isModal }) {
         .catch(err => console.error('Error updating unit:', err));
     };
     const handleUpdateContact = (field) => {
-        const valueMap = { phoneNumber, bestTime, profession };
-        const originalMap = { phoneNumber: originalPhoneNumber, bestTime: originalBestTime, profession: originalProfession };
+        const valueMap = { phoneNumber, bestTime, profession, ethnicity };
+        const originalMap = { phoneNumber: originalPhoneNumber, bestTime: originalBestTime, profession: originalProfession, ethnicity: originalEthnicity };
         const setterMap = {
             phoneNumber: setOriginalPhoneNumber,
             bestTime: setOriginalBestTime,
             profession: setOriginalProfession,
+            ethnicity: setOriginalEthnicity,
         };
         const value = valueMap[field];
         if (value === originalMap[field]) { setEditingField(null); return; }
@@ -173,6 +208,25 @@ function AddressDetail({ address: initialAddress, isModal }) {
             setTimeout(() => setContactSaved(null), 2000);
         })
         .catch(err => console.error(`Error updating ${field}:`, err));
+    };
+
+    const handleUpdateNotes = () => {
+        if (notes === originalNotes) { setEditingNotes(false); return; }
+
+        fetch(`${API_URL}/api/addressList/${address._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes }),
+        })
+        .then(res => res.json())
+        .then(() => {
+            setAddress(prev => ({ ...prev, notes }));
+            setOriginalNotes(notes);
+            setEditingNotes(false);
+            setNotesSaved(true);
+            setTimeout(() => setNotesSaved(false), 2000);
+        })
+        .catch(err => console.error('Error updating notes:', err));
     };
 
     const handleUpdateWorkerFields = (patch) => {
@@ -208,6 +262,10 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const handleMassuratTimeSpentChange = (val) => {
         setMassuratTimeSpent(val);
         handleUpdateWorkerFields({ massuratTimeSpent: val });
+    };
+
+    const handleInactiveToggle = (checked) => {
+        handleUpdateWorkerFields({ inactive: checked });
     };
 
     const handleUpdateResponse = () => {
@@ -296,6 +354,11 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         ) : null;
                     })()}
                 </div>
+                {address.inactive && (
+                    <div style={{ margin: '0.5rem 0', padding: '0.6rem 1rem', background: '#fff3e0', border: '1px solid #ffb74d', borderRadius: '6px', color: '#e65100', fontWeight: 600 }}>
+                        ⚠ This listing is marked Inactive
+                    </div>
+                )}
                 <p><strong>ID:</strong> {address._id}</p>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0' }}>
@@ -316,7 +379,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         <>
                             <strong style={{ fontSize: '1rem' }}>{firstName} {lastName}</strong>
                             {nameSaved && <span style={{ color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
-                            <button onClick={() => setEditingName(true)} title="Edit name" aria-label="Edit name" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '1.15rem', color: '#1976d2', padding: '0 4px' }}>✎</button>
+                            <button onClick={() => setEditingName(true)} title="Edit name" aria-label="Edit name" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}><PencilIcon /></button>
                         </>
                     )}
                 </div>
@@ -358,7 +421,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     ) : (
                         <>
                             <span>{originalUnitId}</span>
-                            <button onClick={() => setEditingUnit(true)} title="Edit unit" aria-label="Edit unit" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '1.15rem', color: '#1976d2', padding: '0 4px' }}>✎</button>
+                            <button onClick={() => setEditingUnit(true)} title="Edit unit" aria-label="Edit unit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}><PencilIcon /></button>
                         </>
                     )}
                     {unitError && <span id="unit-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em' }}>{unitError}</span>}
@@ -379,7 +442,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 { field: 'phoneNumber', label: 'Phone Number', value: phoneNumber, setter: setPhoneNumber, type: 'tel', placeholder: 'Phone number' },
                 { field: 'bestTime',    label: 'Best Time',    value: bestTime,    setter: setBestTime,    type: 'text', placeholder: 'e.g. Evenings' },
                 { field: 'profession',  label: 'Profession',   value: profession,  setter: setProfession,  type: 'text', placeholder: 'Profession' },
-            ].map(({ field, label, value, setter, type, placeholder }) => (
+                { field: 'ethnicity',   label: 'Ethnicity',    value: ethnicity,   setter: setEthnicity,   type: 'text', placeholder: 'e.g. Arab, Somali, IndoPak, American', hint: 'e.g. Arab, Somali, IndoPak, American' },
+            ].map(({ field, label, value, setter, type, placeholder, hint }) => (
                 <div key={field} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0', borderBottom: '1px solid #f0f0f0' }}>
                     <strong style={{ minWidth: '120px', fontSize: '0.9em', color: '#555' }}>{label}:</strong>
                     {editingField === field ? (
@@ -401,7 +465,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                             >✔</button>
                             {/* ✕ Cancel */}
                             <button
-                                onClick={() => { setter(field === 'phoneNumber' ? originalPhoneNumber : field === 'bestTime' ? originalBestTime : originalProfession); setEditingField(null); }}
+                                onClick={() => { setter(field === 'phoneNumber' ? originalPhoneNumber : field === 'bestTime' ? originalBestTime : field === 'profession' ? originalProfession : originalEthnicity); setEditingField(null); }}
                                 title="Cancel"
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}
                             >✕</button>
@@ -412,12 +476,15 @@ function AddressDetail({ address: initialAddress, isModal }) {
                                 {value || '—'}
                                 {contactSaved === field && <span style={{ marginLeft: '0.5rem', color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
                             </span>
-                            {/* ✏ Edit */}
+                            {/* Edit */}
                             <button
                                 onClick={() => setEditingField(field)}
                                 title="Edit"
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976d2', padding: '0 4px' }}
-                            >✎</button>
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}
+                            ><PencilIcon /></button>
+                            {hint && (
+                                <span style={{ fontSize: '0.75em', color: '#999' }}>({hint})</span>
+                            )}
                         </>
                     )}
                 </div>
@@ -432,11 +499,11 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <label><strong>Longitude:</strong> {address.longitude}</label>
                 </div>
             )}
-            {/* Old Worker */}
+            {/* Mens Work (oldWorker) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', minWidth: '120px' }}>
                     <input type="checkbox" checked={oldWorker} onChange={e => handleOldWorkerChange(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#1976d2' }} />
-                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Old Worker</strong>
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Mens Work</strong>
                 </label>
                 {oldWorker && (
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9em' }}>
@@ -449,11 +516,11 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     </label>
                 )}
             </div>
-            {/* Masturat */}
+            {/* Ladies Work (masturat) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', minWidth: '120px' }}>
                     <input type="checkbox" checked={masturat} onChange={e => handleMassuratChange(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#7b1fa2' }} />
-                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Masturat</strong>
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Ladies Work</strong>
                 </label>
                 {masturat && (
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9em' }}>
@@ -466,11 +533,13 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     </label>
                 )}
             </div>
-            {isAdmin && (
-                <div>
-                    <label><strong>Inactive:</strong> {address.inactive ? 'Yes' : 'No'}</label>
-                </div>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={!!address.inactive} onChange={e => handleInactiveToggle(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#e65100' }} />
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Inactive</strong>
+                </label>
+                <span style={{ fontSize: '0.8em', color: '#999' }}>Toggle Inactive status.</span>
+            </div>
             <div>
                 <label><strong>Met:</strong> {address.met ? 'Yes' : 'No'}</label>
             </div>
@@ -529,6 +598,44 @@ function AddressDetail({ address: initialAddress, isModal }) {
                             <span><strong>Date:</strong> {formatDate(visit.createdDate)}</span>
                         </div>
                     ))}
+            </div>
+
+            {/* Notes — document-level, free-form; not tied to a specific visit (see Comments above) */}
+            <div style={{ padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Notes:</strong>
+                    {!editingNotes && (
+                        <button
+                            onClick={() => setEditingNotes(true)}
+                            title="Edit notes"
+                            aria-label="Edit notes"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}
+                        ><PencilIcon /></button>
+                    )}
+                    {notesSaved && <span style={{ color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
+                </div>
+                <div style={{ fontSize: '0.75em', color: '#999', margin: '0.15rem 0 0.35rem' }}>General notes about the listing.</div>
+                {editingNotes ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
+                        <textarea
+                            autoFocus
+                            value={notes}
+                            onChange={e => setNotes(e.target.value)}
+                            placeholder="General notes about the listing"
+                            rows={3}
+                            onKeyDown={e => { if (e.key === 'Escape') { setNotes(originalNotes); setEditingNotes(false); } }}
+                            style={{ width: '100%', maxWidth: '40ch', padding: '0.4rem', border: '1px solid #1976d2', borderRadius: '4px', fontSize: '0.9em', fontFamily: 'inherit', resize: 'vertical' }}
+                        />
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                            <button onClick={handleUpdateNotes} title="Save" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}>✔</button>
+                            <button onClick={() => { setNotes(originalNotes); setEditingNotes(false); }} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
+                        </div>
+                    </div>
+                ) : (
+                    <p style={{ margin: 0, fontSize: '0.9em', color: notes ? '#222' : '#aaa', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                        {notes || '—'}
+                    </p>
+                )}
             </div>
 
             <div>

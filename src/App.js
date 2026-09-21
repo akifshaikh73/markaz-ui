@@ -50,6 +50,7 @@ function App() {
                     <Route element={<ProtectedUserRoute />}>
                         <Route path="/quick-links/:masjidID" element={<QuickLinks />} />
                         <Route path="/report/:masjidID" element={<Report />} />
+                        <Route path="/landing/inactive/:masjidID/:unitID" element={<Landing showInactive />} />
                         <Route path="/landing/:masjidID/:unitID" element={<Landing />} />
                         <Route path="/address/:id" element={<AddressDetail />} />
                         <Route path="/map/:masjidID/:unitID" element={<MapView />} />

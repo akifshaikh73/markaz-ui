@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 
 
-function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch, onReset, initialValues = {}, areaValue = '', onAreaChange, areaOptions = [], lockMasjidId = false }) {
+function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch, onReset, initialValues = {}, areaValue = '', onAreaChange, areaOptions = [], lockMasjidId = false, includeInactiveValue = false, onIncludeInactiveChange }) {
     const [name, setName] = useState(initialValues.name || '');
     const [address, setAddress] = useState(initialValues.address || '');
     const [city, setCity] = useState(initialValues.city || '');
@@ -64,9 +64,18 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
                     ))}
                 </select>
             </label>
+            <label style={{ marginLeft: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <input
+                    type="checkbox"
+                    checked={includeInactiveValue}
+                    onChange={onIncludeInactiveChange}
+                    style={{ width: '15px', height: '15px', accentColor: '#e65100' }}
+                />
+                Include Inactive
+            </label>
             </div>
             <div>
-            
+
 
             <label>
                 ID:

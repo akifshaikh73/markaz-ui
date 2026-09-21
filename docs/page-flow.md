@@ -274,6 +274,56 @@ navigate('/route', { state: { listings, masjidID, unitID } })  [push]
 Map button → /map/:id/:unit
 ```
 
+### 4.6 Inactive Listings (dedicated route)
+**Route:** `/landing/inactive/:masjidID/:unitID` — same `Landing` component, rendered with the
+`showInactive` prop (`<Route path="/landing/inactive/:masjidID/:unitID" element={<Landing showInactive />} />`
+in `App.js`, registered alongside the plain `/landing/:masjidID/:unitID` route).
+
+```
+Reports page → "Inactive Listings" tile
+  ↓
+navigate(`/landing/inactive/${masjidID}/${unitID ?? 'all'}`, { state: { isLoggedIn: true } })
+  (unitID read from landingContext, matching Report.js's existing masjidID lookup)
+  ↓
+Landing renders with showInactive=true → isInactiveView derived from the prop, not
+location.state — this is what makes it survive the interactions below
+  ↓
+fetchBaseList() branches on isInactiveView:
+  → POST /api/addressList/filter/search/ { masjidId, unitId?, showInactive: true }
+  (instead of the plain GET /list used by the non-inactive route)
+```
+
+**Why a dedicated route instead of router state:** an earlier version signaled this via
+`location.state.showInactive` on the initial navigation only. It broke the moment the user did
+anything that re-navigated within Landing — most visibly, switching units via the unit `<select>`
+calls `handleUnitChange()`, which builds its own `navigate()` call from scratch and had no way to
+know the previous state carried `showInactive: true`, so it silently fell back to the unfiltered
+list. Baking the mode into the URL (via the `showInactive` prop on the route element) instead of
+transient state means every internal navigation that already knows "am I on the inactive route"
+(via `landingBase = isInactiveView ? '/landing/inactive/:masjidID' : '/landing/:masjidID'`) can
+carry it forward, and it also survives a page refresh, which router state never did anyway.
+
+**What stays scoped automatically, and why:**
+- **Unit switch** (§ handleUnitChange) — navigates via `landingBase`, so switching units while on
+  `/landing/inactive/...` re-navigates to `/landing/inactive/:masjidID/:newUnit`, not
+  `/landing/:masjidID/:newUnit`.
+- **Reset** (`handleReset`) and the **search form** (`doSearch`) — both call the same
+  `fetchBaseList()` (reset) or inject `showInactive: true` into the search body (`doSearch`), so
+  neither silently drops back to the full list.
+- **AddressDetail round-trip** (§6.2) — needs **no changes**. `AddressRow`'s link captures
+  `location.pathname` verbatim (`from: `${location.pathname}${location.search}`\``), so it
+  automatically carries `/landing/inactive/:id/:unit` when that's where the row was rendered, and
+  `AddressDetail`'s `handleNavigation()` just replays `from` as-is.
+
+**Known gap — not fixed by this route, existing limitation kept as-is:**
+- `AddressDetail`'s `from`-missing fallback (§6.2, direct link/refresh with no router state) falls
+  back to a plain `/landing/:masjid/:unit` built from `landingContext`, which has no "was this
+  inactive" flag — same pre-existing limitation as every other Landing filter (area, search) not
+  surviving that particular fallback path.
+- `MapView`'s "Full Listings" back-button (`MapView.js`) always targets the plain
+  `/landing/:masjidID/:unitID`, regardless of how Map View was reached. Admin-only path, not
+  touched by this change — flag if this becomes a real complaint.
+
 ---
 
 ## 5. Quick Links Page Flow
@@ -497,6 +547,7 @@ Back button → navigate(-1) → /admin-home
 | `/:masjidSlug` (login) | isLoggedIn | landingContext, lastView_* | Skip auto-nav | N/A |
 | `/visitation` | isLoggedIn, unitID | visitationFilters_* | Check sessionStorage | 🏠 Home → /:slug (replace) |
 | `/landing/:id/:unit` | isLoggedIn | areaFilter, addressList | Check sessionStorage | 🏠 Home → /:slug (replace) |
+| `/landing/inactive/:id/:unit` | isLoggedIn (`showInactive` prop from route, not state) | areaFilter, addressList | Check sessionStorage | 🏠 Home → /:slug (replace) |
 | `/quick-links/:id` | isLoggedIn, masjidID | (none) | (none) | → /:slug (replace) |
 | `/address/:id` | from, fromState (or none) | (none) | (none) | replace-navigate to `from`, or /landing fallback |
 | `/map/:id/:unit` | isLoggedIn | (none) | (none) | Browser back |

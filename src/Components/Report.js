@@ -21,6 +21,19 @@ function Report() {
 
     const masjidID = getMasjidID();
 
+    // Get unitID from location state or localStorage, mirroring getMasjidID()
+    const getUnitID = () => {
+        if (location.state?.unitID) return location.state.unitID;
+        try {
+            const ctx = JSON.parse(localStorage.getItem('landingContext') || '{}');
+            return ctx.unitID ?? null;
+        } catch {
+            return null;
+        }
+    };
+
+    const unitID = getUnitID();
+
     const reports = [
         {
             id: 'inactive-listings',
@@ -28,7 +41,7 @@ function Report() {
             icon: '📭',
             description: 'View and manage inactive addresses',
             enabled: true,
-            onClick: () => navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true, showInactive: true } })
+            onClick: () => navigate(`/landing/inactive/${masjidID}/${unitID ?? 'all'}`, { state: { isLoggedIn: true } })
         },
         {
             id: 'unvisited',

@@ -134,16 +134,40 @@ Never hardcode `localhost` URLs.
 
 | State | Source | Rule |
 |-------|--------|------|
-| `addressList` | `/list` on load; `/filter/search/` on search | Working set. Replaced by search results. Area filter applied on top. |
+| `addressList` | `fetchBaseList()` — `/list` on `/landing/:masjidID/:unitID`, or `/filter/search/` with `showInactive: true` on `/landing/inactive/:masjidID/:unitID`; `/filter/search/` on search | Working set. Replaced by search/reset/unit-switch results. Area filter applied on top. |
 | `selectedIds` | ID-column checkboxes | Shared selection for bulk Area and Unit updates. Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates; Area updates remain admin-only. The Unit column has been removed. |
-| `unitAreas` | Derived from initial `/list` fetch | Unique sorted area names. Cached in sessionStorage. Only grows (new areas appended on bulk update). |
+| `unitAreas` | Derived from initial `fetchBaseList()` load | Unique sorted area names. Cached in sessionStorage. Only grows (new areas appended on bulk update). |
 | `areaFilter` | Neighborhood `<select>` | Filters `addressList`. `''` = none; `'__NO_AREA__'` = unassigned addresses. |
 | `filteredAddressList` | Derived at render | `addressList` filtered by `areaFilter`. Area and search filters compose on the same dataset. |
+| `includeInactive` | "Include Inactive" checkbox (`SearchForm`) | `false` = active-only (default, matches the API's default). `true` = `fetchBaseList()`/`doSearch()` fire **two** requests (active-only + `showInactive: true`) and concatenate — the API's `showInactive` is exclusive (returns only-active or only-inactive, never both), so this is the only way to show them side by side. Resets to `false` on unit switch and Reset. |
 
 **Key invariant**: `doSearch()` only updates `addressList` — never `unitAreas`. Area dropdown options always reflect the full unit dataset (from initial fetch, cached in sessionStorage) regardless of active searches.
 
+**Inactive Listings (`/landing/inactive/:masjidID/:unitID`)**: a dedicated route, not a transient
+router-state flag — `App.js` renders `<Landing showInactive />` for it. Landing derives
+`isInactiveView` from that prop (not `location.state`) so the mode survives unit switches,
+resets, and searches, not just the initial load — see `docs/page-flow.md` §4.6 for the full
+rationale (an earlier `location.state.showInactive`-based version lost the filter on unit
+switch, since `handleUnitChange`'s `navigate()` call didn't carry it forward). `fetchBaseList()`
+centralizes the `isInactiveView` branch (`POST /filter/search/` with `showInactive: true` vs
+plain `GET /list`) so every re-fetch path (initial load, unit switch, `handleReset`) stays
+scoped consistently, and `doSearch()` injects `showInactive: true` into the search body when
+active so the search form also stays scoped. `Report.js`'s "Inactive Listings" tile navigates to
+`/landing/inactive/:masjidID/:unitID` (unit from `landingContext`, or `all` if unknown).
+
+**Inactive rows — visual treatment**: `AddressRow` gives any row with `address.inactive === true`
+a light orange row background plus an "INACTIVE" badge next to the name — applies whenever
+`addressList` contains inactive records, i.e. on `/landing/inactive/...` or when `includeInactive`
+is checked. `AddressDetail` shows an orange banner ("This listing is marked Inactive") to anyone viewing an
+inactive address, and a checkbox — open to any authenticated role (MasjidUser included, not
+admin-gated) — to toggle `inactive` directly (`PUT /api/addressList/:id { inactive }`) for the
+case a listing becomes active again (e.g. after a move), without needing to route through a
+specific visit-response value.
+
 **Address data shape** (key fields):
-`_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `inactive`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`
+`_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `ethnicity`, `notes`, `inactive`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`
+
+`notes` is document-level free text ("General notes about the listing") — unlike `visitHistory[].comments`, it isn't tied to a specific visit and doesn't require logging a response.
 
 `visitHistory` entries: `{ response, comments, createdDate }` — `createdDate` may be a MongoDB `{ $date }` object.
 

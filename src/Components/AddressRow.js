@@ -17,7 +17,7 @@ function AddressRow({ address, isSelected, onToggle }) {
     const lastVisit = visitHistory.length > 0 ? visitHistory[visitHistory.length - 1] : null;
 
     return (
-        <tr>
+        <tr style={address.inactive ? { background: '#fff3e0' } : undefined}>
             <td className="m-u-id-col">
                 {address.masjidId}-{address.unitId}-{address._id}
             </td>
@@ -33,7 +33,14 @@ function AddressRow({ address, isSelected, onToggle }) {
                     {address._id}
                 </Link>
             </td>
-            <td>{`${address.firstName || ''} ${address.lastName || ''}`.trim()}</td>
+            <td>
+                {`${address.firstName || ''} ${address.lastName || ''}`.trim()}
+                {address.inactive && (
+                    <span style={{ marginLeft: '6px', fontSize: '0.7em', fontWeight: 700, color: '#e65100', border: '1px solid #ffb74d', borderRadius: '3px', padding: '1px 4px' }}>
+                        INACTIVE
+                    </span>
+                )}
+            </td>
             <td style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal' }}>{[address.address1, address.address2].filter(Boolean).join(', ')}</td>
             <td>
                 {address.area}
