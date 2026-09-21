@@ -88,6 +88,25 @@ be revalidated), and both manifest files deploy the same way — **not** with th
 filenames don't change on every edit. Both new paths are added to the CloudFront invalidation
 list on every deploy.
 
+### Routing diagram — CloudFront
+
+```mermaid
+flowchart LR
+    Req["Browser<br/>GET /pickndrop/teacher"] --> CDN["CloudFront Distribution"]
+    CDN --> Fn["CloudFront Function (viewer-request)<br/>PlatformUiSpaRouter"]
+    Fn -->|"/pickndrop/teacher/*<br/>(no '.' in last segment)"| T["Rewrite URI →<br/>/pickndrop/teacher/index.html"]
+    Fn -->|"anything else"| D["Rewrite URI →<br/>/pickndrop/index.html"]
+    T --> S3["S3 Origin"]
+    D --> S3
+    S3 --> Resp["Browser receives HTML with<br/>role-specific &lt;link rel=manifest&gt;"]
+
+    style Fn fill:#e3f2fd,stroke:#1976d2
+    style Resp fill:#c8e6c9
+```
+
+The routing decision happens entirely inside the CloudFront Function, before the S3 origin is
+even hit — one Lambda-at-the-edge-style check per request, no origin round-trip involved.
+
 ### Runtime swap (defense in depth, not the primary mechanism)
 
 `src/main.tsx` still flips the manifest `<link>`'s `href` client-side, keyed off
@@ -162,6 +181,26 @@ multiple manifest files, routed at the CDN/server layer:
    filename, so a stale cached copy can persist for the full TTL.
 6. **Invalidate all of it** on deploy: every role's HTML file and every role's manifest file,
    not just the default ones.
+
+### Routing diagram — generic pattern
+
+```mermaid
+flowchart LR
+    Req["Browser<br/>GET /&lt;role-path&gt;"] --> Layer["CDN / server routing layer<br/>(CloudFront Function, Render routes,<br/>Nginx try_files, Lambda@Edge, …)"]
+    Layer -->|"role path matches<br/>(checked before the catch-all)"| Role["Serve &lt;role&gt;/index.html<br/>(same JS/CSS bundle as default)"]
+    Layer -->|"no role match"| Def["Serve default index.html"]
+    Role --> RoleManifest["&lt;link rel=manifest<br/>href=manifest-&lt;role&gt;.json&gt;"]
+    Def --> DefManifest["&lt;link rel=manifest<br/>href=manifest.json&gt; (default)"]
+    RoleManifest --> Install["Add to Home Screen reads<br/>THIS manifest → correct start_url"]
+    DefManifest --> Install
+
+    style Layer fill:#e3f2fd,stroke:#1976d2
+    style Install fill:#c8e6c9
+```
+
+Every concrete implementation (Parts 1 and 3) is this same shape: a role-aware check that runs
+*before* the SPA catch-all, at whatever layer actually serves the static files — everything else
+(per-role manifest, per-role HTML) is just build output, not infrastructure.
 
 ### Platform behavior differences (why you can't skip step 3)
 
@@ -308,6 +347,38 @@ the 8 role routes this way silently did nothing until each was `PATCH`ed to an e
 This is the opposite of what the dashboard UI's "drag rules above the catch-all" framing
 suggests — order in the UI list reflects priority, but new rules don't default to "on top."
 
+### Routing diagram — Render
+
+```mermaid
+flowchart LR
+    Req["Browser<br/>GET /muthman"] --> Render["Render Static Site<br/>(markaz-ui)"]
+    Render --> Routes["Routes table<br/>(ascending priority — lowest wins)"]
+
+    subgraph RT[" "]
+        direction TB
+        R1["priority -8 — /oswego"]
+        R2["priority -4 — /muthman"]
+        R3["… other role routes …"]
+        RC["priority 8 (auto-drifts up<br/>on every insert) — /* catch-all"]
+    end
+
+    Routes --> RT
+    RT -->|"first source match wins"| Match["/muthman matches<br/>the priority -4 rule"]
+    Match --> Serve["Serve build/muthman/index.html"]
+    Serve --> Resp["Browser receives HTML with<br/>&lt;link rel=manifest href=manifest-muthman.json&gt;"]
+
+    YAML["render.yaml (in repo)<br/>routes / headers block"] -.->|"NOT read — this service<br/>isn't Blueprint-managed"| Render
+
+    style RT fill:#fff3e0,stroke:#ffb74d
+    style Resp fill:#c8e6c9
+    style YAML fill:#ffebee,stroke:#e57373,stroke-dasharray: 5 5
+```
+
+The dashed line is the pitfall made visible: `render.yaml` looks like it should be the thing
+controlling this, and it sits right next to the service in the repo, but it's disconnected from
+the actual request path — the **Routes table** (managed via the REST API / dashboard, not the
+file) is the only thing that matters at request time.
+
 ### Pitfall: mutated production instead of the PR preview
 
 While probing this API's schema, a test `POST` was run against the **production** service ID
@@ -326,21 +397,30 @@ production.
 
 ### Adding a new installable masjid
 
+Run **`/add-masjid-pwa <slug>`** (`.claude/commands/add-masjid-pwa.md`) — it does exactly the
+steps below, in the safe order, including the production service-identity check and the
+route-priority fix learned from the pitfalls above.
+
+Manually, the steps are:
+
 1. Append `{ "path": "<slug>", "name": "...", "shortName": "...", "appleTitle": "..." }` to
    `scripts/pwa-roles.json` (keeps the build-time generation and the doc's record of intent
    in sync).
 2. Add the matching block to `render.yaml`'s `routes` (for documentation/future Blueprint
    adoption — see pitfall above, this alone does **not** apply the change).
-3. Create the actual route via the Render API against the **production** service
-   (`srv-d7sh4bhj2pic73fa5ojg`) — only after the merge that adds the new role's build output has
-   deployed, otherwise the route points at a file that doesn't exist yet:
+3. Commit and push to `master` (triggers a production redeploy), and **wait for that deploy to
+   go live** before the next step — the route below points at a file that doesn't exist until
+   this deploy finishes.
+4. Create the actual route via the Render API against the **production** service
+   (`srv-d7sh4bhj2pic73fa5ojg`, `markaz-ui`, `https://markaz-ui.onrender.com` — verify all three
+   match before sending anything mutating; see the pitfall above):
    ```
    POST /v1/services/srv-d7sh4bhj2pic73fa5ojg/routes
    { "type": "rewrite", "source": "/<slug>", "destination": "/<slug>/index.html" }
    ```
-   then immediately `PATCH` its `priority` to a negative number (any value lower than every
-   existing role route's priority) so it actually takes effect.
-4. Re-run the verification checklist against production.
+   then immediately `PATCH` its `priority` to a negative number so it actually takes effect.
+5. Re-run the verification checklist against production, and append a line to the
+   [Rollout log](#rollout-log) below.
 
 ### Known gap: `Cache-Control` headers
 
@@ -354,17 +434,23 @@ unconfirmed, not yet investigated) before relying on it.
 
 ### Verification performed
 
-Full [Verification checklist](#verification-checklist) run against the live PR preview
-(`https://markaz-ui-pr-26.onrender.com`, built from this branch) after fixing the route
-priorities above:
+Full [Verification checklist](#verification-checklist) run first against the PR preview
+(`https://markaz-ui-pr-26.onrender.com`), then against **production**
+(`https://markaz-ui.onrender.com`) after merge + redeploy:
 - All 8 roles (`masjid-login`, `user-login`, `admin-login`, `muthman`, `masjid-ds`, `msi`,
-  `diman`, `oswego`) `curl`ed directly and confirmed to return a distinct
+  `diman`, `oswego`) `curl`ed directly on both and confirmed to return a distinct
   `rel="manifest" href="/manifest-<role>.json"` each, with no JS/browser involved.
-- `manifest-muthman.json` `curl`ed directly and confirmed `start_url: "/muthman"`.
+- Each role's manifest `curl`ed directly and confirmed the correct `start_url`.
 - An unmatched deep link (`/address/nonexistent`) still resolves (200) with the default
-  manifest — the new routes don't swallow anything else.
-- Real iPhone install check (iOS 16.4+) against the preview URL is still outstanding — needs to
-  be done on real hardware, can't be verified from this environment.
-- Production rollout (adding the same 8 routes to `srv-d7sh4bhj2pic73fa5ojg` with negative
-  priorities) is intentionally **not done yet** — see step 3 above, it has to wait until this PR
-  merges and production redeploys with the per-role build output.
+  manifest on both — the new routes don't swallow anything else.
+- Real iPhone install check (iOS 16.4+) is still outstanding — needs to be done on real
+  hardware, can't be verified from this environment.
+
+### Rollout log
+
+Append-only log of installable masjid roles added after the initial 4, and their verification
+status. The [`/add-masjid-pwa`](#adding-a-new-installable-masjid) command maintains this.
+
+| Date | Slug | Masjid | Status |
+|---|---|---|---|
+| 2026-09-20 | `oswego` | Oswego Unit | ✅ verified on production |

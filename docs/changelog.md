@@ -5,6 +5,13 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-09-21
+
+- **feat(inactive-addresses):** Add inactive-address routes, filtering, reporting, display markers, and inline editing for inactive status.
+- **feat(ethnicity):** Add ethnicity fields to address details and editing.
+- **feat(notes):** Add editable general notes to address details.
+- **docs(pwa):** Document CloudFront and Render routing behavior, production rollout verification, and add the `/add-masjid-pwa` command for repeatable installable-role setup.
+
 ## 2026-09-06
 
 - **feat(bulk-unit-update):** Use the shared address selection for bulk unit changes so Masjid Users can select addresses and update their unit; remove the duplicate Unit checkbox column.
