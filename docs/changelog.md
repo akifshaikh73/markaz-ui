@@ -7,6 +7,8 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ## 2026-09-26
 
+- **feat(landing):** Add a Student Listings view at `/landing/students/:masjidID/:unitID` that shows only addresses with students; the filter carries through search, reset, unit switch and "Include Inactive". Linked from MasjidLanding ("🎓 Student Listings", after Full Listings) and the Quick Links "Student List" tile (now enabled, after Full List).
+- **fix(landing):** Include the view (`all`/`inactive`/`students`) in `landingContext` so switching between the full, inactive and student routes for the same masjid and unit no longer shows the previous route's cached address list.
 - **fix(address):** Send `visitedDate` instead of `lastModifiedDate` when creating an address with an initial visit, so the visitation history log is created (previously only `lastModifiedDate` was updated).
 - **feat(address):** Add phone number capture to address creation, search, and Visitation View filtering.
 - **fix(AddressDetail):** Show the Route button disabled with a tooltip when an address lacks coordinates instead of hiding it entirely.

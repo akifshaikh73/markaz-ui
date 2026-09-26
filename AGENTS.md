@@ -28,10 +28,12 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 |------|-----------|----------------|-------|
 | `/` | `UserLogin` | None | PWA entry point — same as `/user-login` |
 | `/user-login` | `UserLogin` | None | MasjidAdmin entry: Email + PIN login; auto-login on PWA return if credentials cached; redirects to `/:masjidSlug` on success |
-| `/:masjidSlug` | `MasjidLanding` | None | Public landing page; auto-grants `MasjidUser` role when user makes a selection; shows unit selector and three navigation options (Visitations, Full Listings, Quick Links); on return visits, auto-navigates to last viewed page; collapsible "Other Masjids" section for MasjidAdmin users |
+| `/:masjidSlug` | `MasjidLanding` | None | Public landing page; auto-grants `MasjidUser` role when user makes a selection; shows unit selector and four navigation options (Visitations, Full Listings, Student Listings, Quick Links); on return visits, auto-navigates to last viewed page; collapsible "Other Masjids" section for MasjidAdmin users |
 | `/admin-login` | `AdminPasswordLogin` | None | MarkazAdmin entry: Markaz password prompt; sets `userRole = 'MarkazAdmin'`; redirects to `/admin-home` on success |
 | `/admin-home` | `Home` | `MarkazAdmin` | Admin dashboard; redirects to `/admin-login` if not MarkazAdmin; shows navigation links and logout button |
 | `/landing/:masjidID/:unitID` | `Landing` | Any authenticated | Protected — main address list view; accessible to MasjidUser, MasjidAdmin, or MarkazAdmin |
+| `/landing/inactive/:masjidID/:unitID` | `Landing showInactive` | Any authenticated | Protected — inactive addresses only |
+| `/landing/students/:masjidID/:unitID` | `Landing showStudents` | Any authenticated | Protected — addresses with a non-empty `students` array only |
 | `/address/:id` | `AddressDetail` | Any authenticated | Protected — address detail/edit view; requires any authenticated role |
 | `/map/:masjidID/:unitID` | `MapView` | Any authenticated | Protected — Leaflet map view; requires any authenticated role |
 | `/admin/masjids` | `MasjidManagement` | `MarkazAdmin` | Protected — browse/search all masjids; MarkazAdmin only |
@@ -123,7 +125,7 @@ Never hardcode `localhost` URLs.
 - `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
 
 **Context & Preferences**:
-- `landingContext` — `{ masjidID, unitID }` last visited (cleared on logout; used to restore unit selection)
+- `landingContext` — `{ masjidID, unitID, view? }` last visited (cleared on logout; used to restore unit selection). `view` (`'all'` | `'inactive'` | `'students'`, missing = `'all'`) is written by Landing and must match for Landing to reuse the cached `addressList`.
 - `preferredMasjid` — masjid slug cached for PWA app launch (cleared on logout)
 - `lastView_<masjidSlug>` — Last viewed page for masjid slug access: `'visitations'`, `'listings'`, or `'quicklinks'` (cleared on logout; auto-navigates to stored view on subsequent slug visits)
 
@@ -134,7 +136,7 @@ Never hardcode `localhost` URLs.
 
 | State | Source | Rule |
 |-------|--------|------|
-| `addressList` | `fetchBaseList()` — `/list` on `/landing/:masjidID/:unitID`, or `/filter/search/` with `showInactive: true` on `/landing/inactive/:masjidID/:unitID`; `/filter/search/` on search | Working set. Replaced by search/reset/unit-switch results. Area filter applied on top. |
+| `addressList` | `fetchBaseList()` — `/list` on `/landing/:masjidID/:unitID`, `/filter/search/` with `showInactive: true` on `/landing/inactive/:masjidID/:unitID`, or `/filter/search/` with `filterByStudents: true` on `/landing/students/:masjidID/:unitID`; `/filter/search/` on search | Working set. Replaced by search/reset/unit-switch results. Area filter applied on top. |
 | `selectedIds` | ID-column checkboxes | Shared selection for bulk Area and Unit updates. Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates; Area updates remain admin-only. The Unit column has been removed. |
 | `unitAreas` | Derived from initial `fetchBaseList()` load | Unique sorted area names. Cached in sessionStorage. Only grows (new areas appended on bulk update). |
 | `areaFilter` | Neighborhood `<select>` | Filters `addressList`. `''` = none; `'__NO_AREA__'` = unassigned addresses. |
@@ -154,6 +156,13 @@ plain `GET /list`) so every re-fetch path (initial load, unit switch, `handleRes
 scoped consistently, and `doSearch()` injects `showInactive: true` into the search body when
 active so the search form also stays scoped. `Report.js`'s "Inactive Listings" tile navigates to
 `/landing/inactive/:masjidID/:unitID` (unit from `landingContext`, or `all` if unknown).
+
+**Student Listings (`/landing/students/:masjidID/:unitID`)**: same pattern as Inactive Listings —
+`App.js` renders `<Landing showStudents />`, Landing derives `isStudentView` from the prop, and
+`viewFilter = { filterByStudents: true }` is merged into every `fetchBaseList()` and `doSearch()`
+request so the scope survives unit switch, reset, search and "Include Inactive". Linked from
+MasjidLanding ("🎓 Student Listings", after "📋 Full Listings") and the Quick Links "Student List"
+tile (after "Full List"). See `docs/page-flow.md` §4.7.
 
 **Inactive rows — visual treatment**: `AddressRow` gives any row with `address.inactive === true`
 a light orange row background plus an "INACTIVE" badge next to the name — applies whenever

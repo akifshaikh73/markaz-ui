@@ -162,17 +162,18 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 |-------|--------------|-------------|
 | Initial page load, `/landing/:masjidID/:unitID` | Set via `fetchBaseList()` → `/list` (or merged active+inactive fetch if `includeInactive`) | Populated from fetched data |
 | Initial page load, `/landing/inactive/:masjidID/:unitID` | Set via `fetchBaseList()` → `/filter/search/` with `showInactive: true` | Populated from fetched (inactive-only) data |
-| Search / "Include Inactive" checkbox (`doSearch`) | Replaced with results — merged active+inactive when `includeInactive` (or always inactive-only on the `/landing/inactive/...` route) | Not touched |
+| Initial page load, `/landing/students/:masjidID/:unitID` | Set via `fetchBaseList()` → `/filter/search/` with `filterByStudents: true` | Populated from fetched (student-only) data |
+| Search / "Include Inactive" checkbox (`doSearch`) | Replaced with results — merged active+inactive when `includeInactive` (or always inactive-only on the `/landing/inactive/...` route); always carries `filterByStudents: true` on the `/landing/students/...` route | Not touched |
 | Bulk area update | Patched in-place | New area appended if new |
 | Bulk unit update | Patched in-place with the new `unitId` | Unchanged |
-| Unit switch (`handleUnitChange`) | Refetched via `fetchBaseList()` — stays inactive-scoped if already on `/landing/inactive/...`; `includeInactive` resets to `false` (this was the original bug: it used to always refetch via `/list`, silently dropping the inactive filter) | Cleared |
+| Unit switch (`handleUnitChange`) | Refetched via `fetchBaseList()` — stays inactive-/student-scoped if already on `/landing/inactive/...` or `/landing/students/...`; `includeInactive` resets to `false` (this was the original bug: it used to always refetch via `/list`, silently dropping the inactive filter) | Cleared |
 | Logout | Cleared | Cleared |
 
 ### Storage Layers
 
 | Storage | Keys | Scope | Cleared by |
 |---------|------|-------|-----------|
-| `localStorage` | `addressList`, `searchParams`, `areaFilter`, `activeFilters`, `landingContext` | Browser (survives refresh) | Logout, unit switch |
+| `localStorage` | `addressList`, `searchParams`, `areaFilter`, `activeFilters`, `landingContext` (`{ masjidID, unitID, view? }` — cached `addressList` is reused only when masjid, unit and view all match) | Browser (survives refresh) | Logout, unit switch |
 | `sessionStorage` | `unitAreas_<masjidID>_<unitID>` | Browser tab | Logout (`sessionStorage.clear()`), unit switch, tab close |
 | React state | All of the above + `filteredAddressList` | Component lifetime | Component unmount |
 

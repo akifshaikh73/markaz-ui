@@ -233,7 +233,7 @@ graph TD
 | `userMasjids` | JSON array of masjid slugs | MasjidAdmin login | "Other Masjids" dropdown | Logout |
 | `userMasjidSlug` | Primary masjid slug | Any login | Session resume navigation | Logout |
 | `lastView_<slug>` | `'visitations'` \| `'listings'` \| `'quicklinks'` | Navigation button click | Auto-navigate on return | Logout |
-| `landingContext` | `{ masjidID, unitID }` | Navigation button | Unit selection persistence | Logout |
+| `landingContext` | `{ masjidID, unitID, view? }` (`view` written by Landing: `'all'` \| `'inactive'` \| `'students'`) | Navigation button | Unit selection persistence | Logout |
 | `preferredMasjid` | Masjid slug | Navigation button | PWA app launch preference | Logout |
 
 ---

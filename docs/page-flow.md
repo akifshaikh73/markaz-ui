@@ -324,6 +324,35 @@ carry it forward, and it also survives a page refresh, which router state never 
   `/landing/:masjidID/:unitID`, regardless of how Map View was reached. Admin-only path, not
   touched by this change — flag if this becomes a real complaint.
 
+### 4.7 Student Listings (dedicated route)
+**Route:** `/landing/students/:masjidID/:unitID` — same `Landing` component, rendered with the
+`showStudents` prop (`<Route path="/landing/students/:masjidID/:unitID" element={<Landing showStudents />} />`).
+Shows only addresses whose `students` array is non-empty. Built exactly like §4.6, for the same
+reasons (URL-based mode survives unit switch, reset, search, and refresh).
+
+```
+MasjidLanding → "🎓 Student Listings" button (right after "📋 Full Listings")
+  → navigate(`/landing/students/${masjidId}/${unitID}`, { state: { isLoggedIn: true } })
+Quick Links → "Student List" tile (right after "Full List")
+  → navigate(`/landing/students/${masjidID}/${unitID ?? 'all'}`, { state: { isLoggedIn: true } })
+  ↓
+Landing: view = 'students', landingBase = '/landing/students/:masjidID',
+viewFilter = { filterByStudents: true }
+  ↓
+fetchBaseList() / doSearch() merge viewFilter into every request:
+  → POST /api/addressList/filter/search/ { masjidId, unitId?, filterByStudents: true }
+  → with "Include Inactive": a second request adds showInactive: true, results concatenated
+```
+
+- **Unit switch** navigates via `landingBase`, so it stays on `/landing/students/...`.
+- **AddressDetail round-trip** replays `from` verbatim, so it returns to the student route.
+- **Cache key:** Landing stores `landingContext = { masjidID, unitID, view }` and only reuses the
+  cached `addressList` when `view` matches (`'all'` | `'inactive'` | `'students'`; a missing
+  `view` — e.g. written by MasjidLanding — counts as `'all'`). Without this, opening the student or
+  inactive route for the same masjid+unit as the last full-list visit showed the stale cached list.
+- Same known gaps as §4.6: the `from`-missing fallback in AddressDetail and MapView's back button
+  both target the plain `/landing/:masjid/:unit`.
+
 ---
 
 ## 5. Quick Links Page Flow
@@ -548,6 +577,7 @@ Back button → navigate(-1) → /admin-home
 | `/visitation` | isLoggedIn, unitID | visitationFilters_* | Check sessionStorage | 🏠 Home → /:slug (replace) |
 | `/landing/:id/:unit` | isLoggedIn | areaFilter, addressList | Check sessionStorage | 🏠 Home → /:slug (replace) |
 | `/landing/inactive/:id/:unit` | isLoggedIn (`showInactive` prop from route, not state) | areaFilter, addressList | Check sessionStorage | 🏠 Home → /:slug (replace) |
+| `/landing/students/:id/:unit` | isLoggedIn (`showStudents` prop from route, not state) | areaFilter, addressList | Check sessionStorage | 🏠 Home → /:slug (replace) |
 | `/quick-links/:id` | isLoggedIn, masjidID | (none) | (none) | → /:slug (replace) |
 | `/address/:id` | from, fromState (or none) | (none) | (none) | replace-navigate to `from`, or /landing fallback |
 | `/map/:id/:unit` | isLoggedIn | (none) | (none) | Browser back |
