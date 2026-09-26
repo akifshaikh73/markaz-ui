@@ -23,6 +23,19 @@ function QuickLinks() {
     const API_URL = process.env.REACT_APP_API_URL || '';
     const masjidSlug = localStorage.getItem('userMasjidSlug') || localStorage.getItem('preferredMasjid');
 
+    // Mirrors Report.js's fallback: QuickLinks isn't navigated to with a unitID in
+    // location.state, so read the last-used unit from the cached landing context.
+    const getUnitID = () => {
+        try {
+            const ctx = JSON.parse(localStorage.getItem('landingContext') || '{}');
+            return ctx.unitID ?? null;
+        } catch {
+            return null;
+        }
+    };
+
+    const unitID = getUnitID();
+
     const handleRouteClick = async () => {
         try {
             // Fetch masjid doc (cached in sessionStorage) for reference point
@@ -69,10 +82,26 @@ function QuickLinks() {
             onClick: () => navigate(`/report/${masjidID}`, { state: { isLoggedIn: true, masjidID } })
         },
         {
-            id: 'visitations-report',
-            label: 'Visitations Report',
-            icon: '📈',
-            description: 'Generate visitation reports',
+            id: 'inactive-listings',
+            label: 'Inactive Listings',
+            icon: '📭',
+            description: 'View and manage inactive addresses',
+            enabled: true,
+            onClick: () => navigate(`/landing/inactive/${masjidID}/${unitID ?? 'all'}`, { state: { isLoggedIn: true } })
+        },
+        {
+            id: 'student-list',
+            label: 'Student List',
+            icon: '🎓',
+            description: 'Manage the student list',
+            enabled: false,
+            onClick: null
+        },
+        {
+            id: 'businesses',
+            label: 'Businesses',
+            icon: '🏢',
+            description: 'Track local businesses',
             enabled: false,
             onClick: null
         },

@@ -10,6 +10,7 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 - **fix(address):** Send `visitedDate` instead of `lastModifiedDate` when creating an address with an initial visit, so the visitation history log is created (previously only `lastModifiedDate` was updated).
 - **feat(address):** Add phone number capture to address creation, search, and Visitation View filtering.
 - **fix(AddressDetail):** Show the Route button disabled with a tooltip when an address lacks coordinates instead of hiding it entirely.
+- **feat(quick-links):** Move Inactive Listings from the Reports page to a top-level Quick Link, add disabled "Student List" and "Businesses" placeholders, and remove the disabled "Visitations Report" link.
 
 ## 2026-09-21
 

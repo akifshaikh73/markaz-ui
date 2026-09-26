@@ -1,48 +1,10 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function Report() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const { masjidID: paramMasjidID } = useParams();
-
-    // Get masjidID from params or location state or localStorage
-    const getMasjidID = () => {
-        if (paramMasjidID) return paramMasjidID;
-        if (location.state?.masjidID) return location.state.masjidID;
-        try {
-            const ctx = JSON.parse(localStorage.getItem('landingContext') || '{}');
-            return ctx.masjidID || null;
-        } catch {
-            return null;
-        }
-    };
-
-    const masjidID = getMasjidID();
-
-    // Get unitID from location state or localStorage, mirroring getMasjidID()
-    const getUnitID = () => {
-        if (location.state?.unitID) return location.state.unitID;
-        try {
-            const ctx = JSON.parse(localStorage.getItem('landingContext') || '{}');
-            return ctx.unitID ?? null;
-        } catch {
-            return null;
-        }
-    };
-
-    const unitID = getUnitID();
 
     const reports = [
-        {
-            id: 'inactive-listings',
-            label: 'Inactive Listings',
-            icon: '📭',
-            description: 'View and manage inactive addresses',
-            enabled: true,
-            onClick: () => navigate(`/landing/inactive/${masjidID}/${unitID ?? 'all'}`, { state: { isLoggedIn: true } })
-        },
         {
             id: 'unvisited',
             label: 'Unvisited Addresses',
