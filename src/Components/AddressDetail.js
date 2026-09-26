@@ -337,6 +337,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
         );
     }
 
+    const hasCoordinates = Boolean(address.latitude) && Boolean(address.longitude);
+
     return (
         <div>
                 <h2>Address Detail</h2>
@@ -651,15 +653,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 )}
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'center' }}>
-                {address.latitude && address.longitude && (
-                    <button
-                        onClick={() => navigate('/route', { state: { listings: [address] } })}
-                        disabled={!address._id}
-                        style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
-                    >
-                        🗺 Route
-                    </button>
-                )}
+                <button
+                    onClick={() => navigate('/route', { state: { listings: [address] } })}
+                    disabled={!hasCoordinates || !address._id}
+                    title={hasCoordinates ? undefined : 'Missing coordinates for this address'}
+                    style={{ background: hasCoordinates ? '#e65100' : '#ccc', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: hasCoordinates ? 'pointer' : 'not-allowed', fontWeight: 700, fontSize: '0.9rem', opacity: hasCoordinates ? 1 : 0.6 }}
+                >
+                    🗺 Route
+                </button>
                 {!isModal && (
                     <button
                         onClick={handleNavigation}
