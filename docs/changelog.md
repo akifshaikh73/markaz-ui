@@ -5,6 +5,12 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-09-26
+
+- **fix(address):** Send `visitedDate` instead of `lastModifiedDate` when creating an address with an initial visit, so the visitation history log is created (previously only `lastModifiedDate` was updated).
+- **feat(address):** Add phone number capture to address creation, search, and Visitation View filtering.
+- **fix(AddressDetail):** Show the Route button disabled with a tooltip when an address lacks coordinates instead of hiding it entirely.
+
 ## 2026-09-21
 
 - **feat(inactive-addresses):** Add inactive-address routes, filtering, reporting, display markers, and inline editing for inactive status.

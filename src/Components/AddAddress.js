@@ -13,6 +13,7 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
     const [city, setCity] = useState('');
     const [addrState, setAddrState] = useState('');
     const [zipcode, setZipcode] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [unitId, setUnitId] = useState(unitOptions[0] !== undefined ? unitOptions[0] : '');
 
     const [response, setResponse] = useState('');
@@ -39,6 +40,7 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
             ...(city.trim()     && { city: city.trim() }),
             ...(addrState.trim()&& { state: addrState.trim() }),
             ...(zipcode.trim()  && { zipcode: zipcode.trim() }),
+            ...(phoneNumber.trim() && { phoneNumber: phoneNumber.trim() }),
             masjidId: parseInt(masjidID),
             unitId: parseInt(unitId),
         };
@@ -46,7 +48,7 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
         body.listingSource = 'render-app';
 
         if (response || comment) {
-            body.lastModifiedDate = `${visitDate}T00:00:00Z`;
+            body.visitedDate = visitDate;
             body.latestResponse = response;
             body.comments = comment;
         }
@@ -78,7 +80,7 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
                 <h3 style={{ margin: '0 0 0.5rem', color: '#2e7d32' }}>Address Created</h3>
                 <p style={{ margin: '0 0 0.25rem' }}>New ID: <strong>{createdId}</strong></p>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                    <button onClick={() => { setCreatedId(null); setFirstName(''); setLastName(''); setAddress1(''); setAddress2(''); setCity(''); setAddrState(''); setZipcode(''); setResponse(''); setComment(''); setVisitDate(localDateString()); }}>
+                    <button onClick={() => { setCreatedId(null); setFirstName(''); setLastName(''); setAddress1(''); setAddress2(''); setCity(''); setAddrState(''); setZipcode(''); setPhoneNumber(''); setResponse(''); setComment(''); setVisitDate(localDateString()); }}>
                         Add Another
                     </button>
                     {onClose && <button onClick={onClose}>Close</button>}
@@ -137,6 +139,11 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
                     <input type="text" value={zipcode} onChange={e => setZipcode(e.target.value)} style={fieldStyle} placeholder="60601" maxLength={10} />
                 </label>
             </div>
+
+            <label style={labelStyle}>
+                Phone Number
+                <input type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} style={fieldStyle} placeholder="Phone number" />
+            </label>
 
             <hr style={{ margin: '1rem 0', borderColor: '#eee' }} />
             <h4 style={{ margin: '0 0 0.75rem', fontWeight: 500 }}>Visitation Log (optional)</h4>
