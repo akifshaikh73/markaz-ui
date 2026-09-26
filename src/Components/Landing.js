@@ -8,14 +8,20 @@ import { getAdmin, getUserRole } from '../config';
 import StatusBadges from './StatusBadges';
 import { useMasjidConfig } from '../hooks/useMasjids';
 
-function Landing({ showInactive: isInactiveView = false }) {
+function Landing({ showInactive: isInactiveView = false, showStudents: isStudentView = false }) {
     const location = useLocation();
     const navigate = useNavigate();
     const { masjidID, unitID } = useParams();
-    const landingBase = isInactiveView ? `/landing/inactive/${masjidID}` : `/landing/${masjidID}`;
+    const view = isInactiveView ? 'inactive' : isStudentView ? 'students' : 'all';
+    const landingBase = view === 'all' ? `/landing/${masjidID}` : `/landing/${view}/${masjidID}`;
+    // Extra search criteria every request on this route must carry, so the student
+    // scope survives search, reset, unit switch and "Include Inactive" alike.
+    const viewFilter = isStudentView ? { filterByStudents: true } : {};
     const [selectedUnit, setSelectedUnit] = useState(unitID === 'all' ? '' : (unitID !== '' && !isNaN(parseInt(unitID)) ? parseInt(unitID) : ''));
     const cachedContext = JSON.parse(localStorage.getItem('landingContext')) || {};
-    const cacheValid = cachedContext.masjidID === masjidID && cachedContext.unitID === unitID;
+    // view is part of the cache key: without it, moving between the full, inactive and
+    // student routes for the same masjid+unit would show the previous route's cached list.
+    const cacheValid = cachedContext.masjidID === masjidID && cachedContext.unitID === unitID && (cachedContext.view || 'all') === view;
 
     const [addressList, setAddressList] = useState(cacheValid ? (JSON.parse(localStorage.getItem('addressList')) || []) : []);
     const [searchParams, setSearchParams] = useState(
@@ -46,7 +52,7 @@ function Landing({ showInactive: isInactiveView = false }) {
         localStorage.removeItem('addressList');
         localStorage.removeItem('searchParams');
         localStorage.removeItem('areaFilter');
-        localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
+        localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID, view }));
     }
 
     const { getMasjidById, masjidUnitsMap } = useMasjidConfig();
@@ -116,16 +122,17 @@ function Landing({ showInactive: isInactiveView = false }) {
     // was that only the first load checked isInactiveView, so switching units silently
     // dropped back to the unfiltered list.
     const fetchBaseList = (unit, wantInactive = includeInactive) => {
+        const base = { masjidId: masjidID, ...viewFilter };
+        if (unit !== '') base.unitId = unit;
         if (isInactiveView) {
-            const body = { masjidId: masjidID, showInactive: true };
-            if (unit !== '') body.unitId = unit;
-            return searchRequest(body);
+            return searchRequest({ ...base, showInactive: true });
         }
         if (wantInactive) {
-            const base = { masjidId: masjidID };
-            if (unit !== '') base.unitId = unit;
             return Promise.all([searchRequest(base), searchRequest({ ...base, showInactive: true })])
                 .then(([active, inactive]) => [...active, ...inactive]);
+        }
+        if (isStudentView) {
+            return searchRequest(base);
         }
         const unitParam = unit !== '' ? `&unit_id=${unit}` : '';
         return fetch(`${API_URL}/api/addressList/list?masjid_id=${masjidID}${unitParam}`).then(r => r.json());
@@ -133,7 +140,7 @@ function Landing({ showInactive: isInactiveView = false }) {
 
     const doSearch = (params, wantInactive = includeInactive) => {
         setSearchWarning(null);
-        const body = { ...params };
+        const body = { ...params, ...viewFilter };
         if (body.unitId === undefined || body.unitId === null || body.unitId === '') delete body.unitId;
 
         const bodies = isInactiveView
@@ -155,7 +162,7 @@ function Landing({ showInactive: isInactiveView = false }) {
                 }
                 setAddressList(filtered);
                 localStorage.setItem('addressList', JSON.stringify(filtered));
-                localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID }));
+                localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID, view }));
             });
     };
 
@@ -379,7 +386,7 @@ function Landing({ showInactive: isInactiveView = false }) {
                     This listing does not belong to this masjid.
                 </div>
             )}
-            <h2>{masjidConfig ? `${masjidConfig.name} - Address List` : 'Address List'}</h2>
+            <h2>{`${masjidConfig ? `${masjidConfig.name} - ` : ''}${isStudentView ? 'Student Listings' : isInactiveView ? 'Inactive Listings' : 'Address List'}`}</h2>
             {showAddAddress && (
                 <AddAddress
                     masjidID={masjidID}

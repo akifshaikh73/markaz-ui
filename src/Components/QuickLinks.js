@@ -66,6 +66,14 @@ function QuickLinks() {
             onClick: () => navigate(`/landing/${masjidID}/all`, { state: { isLoggedIn: true } })
         },
         {
+            id: 'student-list',
+            label: 'Student List',
+            icon: '🎓',
+            description: 'Addresses with students',
+            enabled: true,
+            onClick: () => navigate(`/landing/students/${masjidID}/${unitID ?? 'all'}`, { state: { isLoggedIn: true } })
+        },
+        {
             id: 'routes',
             label: 'Routes',
             icon: '🗺️',
@@ -88,14 +96,6 @@ function QuickLinks() {
             description: 'View and manage inactive addresses',
             enabled: true,
             onClick: () => navigate(`/landing/inactive/${masjidID}/${unitID ?? 'all'}`, { state: { isLoggedIn: true } })
-        },
-        {
-            id: 'student-list',
-            label: 'Student List',
-            icon: '🎓',
-            description: 'Manage the student list',
-            enabled: false,
-            onClick: null
         },
         {
             id: 'businesses',

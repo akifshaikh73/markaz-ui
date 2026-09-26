@@ -93,6 +93,12 @@ const MasjidLanding = () => {
         navigate(`/landing/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
     };
 
+    const handleNavigateStudents = () => {
+        localStorage.setItem('preferredMasjid', masjidSlug);
+        localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
+        navigate(`/landing/students/${masjidId}/${unitID}`, { state: { isLoggedIn: true } });
+    };
+
     const handleNavigateQuickLinks = () => {
         localStorage.setItem('preferredMasjid', masjidSlug);
         localStorage.setItem('landingContext', JSON.stringify({ masjidID: masjidId, unitID }));
@@ -227,6 +233,15 @@ const MasjidLanding = () => {
                 >
                     <span>📋 Full Listings</span>
                     <span style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 400 }}>Full address list and search</span>
+                </button>
+                <button
+                    onClick={handleNavigateStudents}
+                    style={{ padding: '1rem', background: '#7b1fa2', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.3rem', transition: 'all 0.2s' }}
+                    onMouseEnter={e => e.target.style.background = '#6a1b9a'}
+                    onMouseLeave={e => e.target.style.background = '#7b1fa2'}
+                >
+                    <span>🎓 Student Listings</span>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 400 }}>Addresses with students</span>
                 </button>
                 <button
                     onClick={handleNavigateQuickLinks}
