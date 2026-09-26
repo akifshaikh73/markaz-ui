@@ -6,6 +6,7 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
     const [name, setName] = useState(initialValues.name || '');
     const [address, setAddress] = useState(initialValues.address || '');
     const [city, setCity] = useState(initialValues.city || '');
+    const [phone, setPhone] = useState(initialValues.phone || '');
     const [masjidId, setMasjidId] = useState(initialValues.masjidId || masjidID || '');
     const [unitId, setUnitId] = useState(initialValues.unitId !== undefined && initialValues.unitId !== '' ? initialValues.unitId : (unitID !== undefined && unitID !== '' ? unitID : ''));
     const [_id, set_id] = useState(initialValues._id || '');
@@ -18,7 +19,7 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        const searchParams = {_id, name, address, city, masjidId, unitId };
+        const searchParams = {_id, name, address, city, phone, masjidId, unitId };
         if (onSearch) {
             onSearch(searchParams);
         }
@@ -29,6 +30,7 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
         setName('');
         setAddress('');
         setCity('');
+        setPhone('');
         if (onReset) onReset();
     };
 
@@ -93,6 +95,10 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
             <label>
                 City:
                 <input type="text" placeholder="City" value={city} onChange={e => setCity(e.target.value)} />
+            </label>
+            <label>
+                Phone:
+                <input type="tel" placeholder="Phone" value={phone} onChange={e => setPhone(e.target.value)} />
             </label>
             </div>
 

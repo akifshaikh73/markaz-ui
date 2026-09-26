@@ -120,7 +120,8 @@ function VisitationView() {
                 const address = [a.address1, a.address2, a.city, a.state, a.zipcode]
                     .filter(Boolean)
                     .join(' ');
-                if (!`${name} ${address}`.toLowerCase().includes(searchTerm)) return false;
+                const phone = a.phoneNumber || '';
+                if (!`${name} ${address} ${phone}`.toLowerCase().includes(searchTerm)) return false;
             }
             return true;
         });
@@ -270,7 +271,7 @@ function VisitationView() {
                     </select>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                    Name / Address:
+                    Name / Address / Phone:
                     <input
                         type="search"
                         value={searchText}
