@@ -73,7 +73,7 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
                     onChange={onIncludeInactiveChange}
                     style={{ width: '15px', height: '15px', accentColor: '#e65100' }}
                 />
-                Include Inactive
+                Include Invalid
             </label>
             </div>
             <div>

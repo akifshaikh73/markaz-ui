@@ -7,6 +7,7 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ## 2026-09-26
 
+- **style(labels):** Rename the Address Detail "Inactive" checkbox to "Invalid" (helper text "Invalid listing status") and the search "Include Inactive" checkbox to "Include Invalid". Labels only — still reads and writes the `inactive` field.
 - **feat(students):** Add an "Is Student" checkbox on Address Detail (saved as `isStudent`; requires the matching API release). The Student view now includes listings flagged `isStudent` as well as those with students; list rows show a 🎓 icon in the ID column, and on the Student view the Name cell shows a STUDENT badge and student names.
 - **feat(address-detail):** List every student (🎓 per line) directly under the listing name and remove the separate Students section at the bottom; show 🎓 beside the name when the listing is a student.
 - **style(address-detail):** Show ID, Masjid ID and Unit ID on a single row at the top.

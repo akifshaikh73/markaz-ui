@@ -548,9 +548,9 @@ function AddressDetail({ address: initialAddress, isModal }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
                     <input type="checkbox" checked={!!address.inactive} onChange={e => handleInactiveToggle(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#e65100' }} />
-                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Inactive</strong>
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Invalid</strong>
                 </label>
-                <span style={{ fontSize: '0.8em', color: '#999' }}>Toggle Inactive status.</span>
+                <span style={{ fontSize: '0.8em', color: '#999' }}>Invalid listing status</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
