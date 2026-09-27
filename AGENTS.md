@@ -33,7 +33,7 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 | `/admin-home` | `Home` | `MarkazAdmin` | Admin dashboard; redirects to `/admin-login` if not MarkazAdmin; shows navigation links and logout button |
 | `/landing/:masjidID/:unitID` | `Landing` | Any authenticated | Protected — main address list view; accessible to MasjidUser, MasjidAdmin, or MarkazAdmin |
 | `/landing/inactive/:masjidID/:unitID` | `Landing showInactive` | Any authenticated | Protected — inactive addresses only |
-| `/landing/students/:masjidID/:unitID` | `Landing showStudents` | Any authenticated | Protected — addresses with a non-empty `students` array only |
+| `/landing/students/:masjidID/:unitID` | `Landing showStudents` | Any authenticated | Protected — student listings only (`isStudent: true` or a non-empty `students` array) |
 | `/address/:id` | `AddressDetail` | Any authenticated | Protected — address detail/edit view; requires any authenticated role |
 | `/map/:masjidID/:unitID` | `MapView` | Any authenticated | Protected — Leaflet map view; requires any authenticated role |
 | `/admin/masjids` | `MasjidManagement` | `MarkazAdmin` | Protected — browse/search all masjids; MarkazAdmin only |
@@ -164,6 +164,19 @@ request so the scope survives unit switch, reset, search and "Include Inactive".
 MasjidLanding ("🎓 Student Listings", after "📋 Full Listings") and the Quick Links "Student List"
 tile (after "Full List"). See `docs/page-flow.md` §4.7.
 
+**Student listings — definition**: a listing is a student listing if the listing itself is a
+student (`isStudent: true`, set via the "Is Student" checkbox in `AddressDetail` (next to the Inactive toggle),
+saved with `PUT /api/addressList/:id { isStudent }`) **or** it has students associated with it
+(non-empty `students` array). The API's `filterByStudents` matches either (`$or`).
+
+**Student rows — visual treatment**: `AddressRow` shows a small 🎓 icon (tooltip "Has student data")
+after the ID link under that same rule, so every row on `/landing/students/...` carries it.
+`AddressDetail` lists every student (🎓 per line, `Student N` if unnamed) directly under the listing
+name — there is no separate Students section — and shows 🎓 beside the name when `isStudent` is set.
+On the student route only (`Landing` passes `showStudentInfo={isStudentView}` through `AddressList`
+to `AddressRow`), the Name cell also shows a purple "STUDENT" badge when `isStudent` is set and a
+"Students: <names>" line listing `students[].name`.
+
 **Inactive rows — visual treatment**: `AddressRow` gives any row with `address.inactive === true`
 a light orange row background plus an "INACTIVE" badge next to the name — applies whenever
 `addressList` contains inactive records, i.e. on `/landing/inactive/...` or when `includeInactive`
@@ -174,7 +187,7 @@ case a listing becomes active again (e.g. after a move), without needing to rout
 specific visit-response value.
 
 **Address data shape** (key fields):
-`_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `ethnicity`, `notes`, `inactive`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`
+`_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `ethnicity`, `notes`, `inactive`, `isStudent`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`
 
 `notes` is document-level free text ("General notes about the listing") — unlike `visitHistory[].comments`, it isn't tied to a specific visit and doesn't require logging a response.
 

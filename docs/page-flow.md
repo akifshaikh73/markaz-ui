@@ -327,7 +327,8 @@ carry it forward, and it also survives a page refresh, which router state never 
 ### 4.7 Student Listings (dedicated route)
 **Route:** `/landing/students/:masjidID/:unitID` — same `Landing` component, rendered with the
 `showStudents` prop (`<Route path="/landing/students/:masjidID/:unitID" element={<Landing showStudents />} />`).
-Shows only addresses whose `students` array is non-empty. Built exactly like §4.6, for the same
+Shows only student listings: the listing is flagged `isStudent: true` (AddressDetail "Is Student"
+checkbox) or its `students` array is non-empty — the API's `filterByStudents` matches either. Built exactly like §4.6, for the same
 reasons (URL-based mode survives unit switch, reset, search, and refresh).
 
 ```

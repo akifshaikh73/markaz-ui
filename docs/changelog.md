@@ -7,6 +7,9 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ## 2026-09-26
 
+- **feat(students):** Add an "Is Student" checkbox on Address Detail (saved as `isStudent`; requires the matching API release). The Student view now includes listings flagged `isStudent` as well as those with students; list rows show a 🎓 icon in the ID column, and on the Student view the Name cell shows a STUDENT badge and student names.
+- **feat(address-detail):** List every student (🎓 per line) directly under the listing name and remove the separate Students section at the bottom; show 🎓 beside the name when the listing is a student.
+- **style(address-detail):** Show ID, Masjid ID and Unit ID on a single row at the top.
 - **feat(landing):** Add a Student Listings view at `/landing/students/:masjidID/:unitID` that shows only addresses with students; the filter carries through search, reset, unit switch and "Include Inactive". Linked from MasjidLanding ("🎓 Student Listings", after Full Listings) and the Quick Links "Student List" tile (now enabled, after Full List).
 - **fix(landing):** Include the view (`all`/`inactive`/`students`) in `landingContext` so switching between the full, inactive and student routes for the same masjid and unit no longer shows the previous route's cached address list.
 - **fix(address):** Send `visitedDate` instead of `lastModifiedDate` when creating an address with an initial visit, so the visitation history log is created (previously only `lastModifiedDate` was updated).

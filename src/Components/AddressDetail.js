@@ -268,6 +268,10 @@ function AddressDetail({ address: initialAddress, isModal }) {
         handleUpdateWorkerFields({ inactive: checked });
     };
 
+    const handleIsStudentToggle = (checked) => {
+        handleUpdateWorkerFields({ isStudent: checked });
+    };
+
     const handleUpdateResponse = () => {
         fetch(`${API_URL}/api/addressList/visit/${address._id}`, {
             method: 'PUT',
@@ -361,7 +365,49 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         ⚠ This listing is marked Inactive
                     </div>
                 )}
-                <p><strong>ID:</strong> {address._id}</p>
+                <div style={{ display: 'flex', gap: '0.5rem 1.25rem', alignItems: 'center', padding: '0.4rem 0', flexWrap: 'wrap' }}>
+                    <span><strong>ID:</strong> {address._id}</span>
+                    <span><strong>Masjid ID:</strong> {address.masjidId}</span>
+                    <span style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <strong>Unit ID:</strong>
+                        {editingUnit ? (
+                            <>
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={unitId}
+                                    onChange={e => {
+                                        if (/^\d*$/.test(e.target.value)) {
+                                            setUnitId(e.target.value);
+                                            setUnitError('');
+                                        }
+                                    }}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleUpdateUnit();
+                                        if (e.key === 'Escape') {
+                                            setUnitId(originalUnitId);
+                                            setEditingUnit(false);
+                                            setUnitError('');
+                                        }
+                                    }}
+                                    aria-invalid={Boolean(unitError)}
+                                    aria-describedby={unitError ? 'unit-error' : undefined}
+                                    style={{ width: '6ch', padding: '0.25rem 0.4rem', border: `1px solid ${unitError ? '#c62828' : '#1976d2'}`, borderRadius: '4px', fontSize: '0.9em' }}
+                                />
+                                <button onClick={handleUpdateUnit} title="Save unit" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}>✔</button>
+                                <button onClick={() => { setUnitId(originalUnitId); setEditingUnit(false); setUnitError(''); }} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
+                            </>
+                        ) : (
+                            <>
+                                <span>{originalUnitId}</span>
+                                <button onClick={() => setEditingUnit(true)} title="Edit unit" aria-label="Edit unit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}><PencilIcon /></button>
+                            </>
+                        )}
+                        {unitError && <span id="unit-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em' }}>{unitError}</span>}
+                    </span>
+                </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0' }}>
                     {editingName ? (
@@ -380,55 +426,19 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     ) : (
                         <>
                             <strong style={{ fontSize: '1rem' }}>{firstName} {lastName}</strong>
+                            {address.isStudent && <span title="Listing is a student" aria-label="Listing is a student" role="img">🎓</span>}
                             {nameSaved && <span style={{ color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
                             <button onClick={() => setEditingName(true)} title="Edit name" aria-label="Edit name" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}><PencilIcon /></button>
                         </>
                     )}
                 </div>
-            <div>
-                <label><strong>Masjid ID:</strong> {address.masjidId}</label>
-            </div>
-            <div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.4rem 0', flexWrap: 'wrap' }}>
-                    <strong>Unit ID:</strong>
-                    {editingUnit ? (
-                        <>
-                            <input
-                                autoFocus
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={unitId}
-                                onChange={e => {
-                                    if (/^\d*$/.test(e.target.value)) {
-                                        setUnitId(e.target.value);
-                                        setUnitError('');
-                                    }
-                                }}
-                                onKeyDown={e => {
-                                    if (e.key === 'Enter') handleUpdateUnit();
-                                    if (e.key === 'Escape') {
-                                        setUnitId(originalUnitId);
-                                        setEditingUnit(false);
-                                        setUnitError('');
-                                    }
-                                }}
-                                aria-invalid={Boolean(unitError)}
-                                aria-describedby={unitError ? 'unit-error' : undefined}
-                                style={{ width: '6ch', padding: '0.25rem 0.4rem', border: `1px solid ${unitError ? '#c62828' : '#1976d2'}`, borderRadius: '4px', fontSize: '0.9em' }}
-                            />
-                            <button onClick={handleUpdateUnit} title="Save unit" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}>✔</button>
-                            <button onClick={() => { setUnitId(originalUnitId); setEditingUnit(false); setUnitError(''); }} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
-                        </>
-                    ) : (
-                        <>
-                            <span>{originalUnitId}</span>
-                            <button onClick={() => setEditingUnit(true)} title="Edit unit" aria-label="Edit unit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}><PencilIcon /></button>
-                        </>
-                    )}
-                    {unitError && <span id="unit-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em' }}>{unitError}</span>}
-                </div>
-            </div>
+                {Array.isArray(address.students) && address.students.length > 0 && (
+                    <div style={{ fontSize: '0.9em', color: '#6a1b9a', padding: '0 0 0.4rem' }}>
+                        {address.students.map((student, index) => (
+                            <div key={index}>🎓 {(student && student.name && student.name.trim()) || `Student ${index + 1}`}</div>
+                        ))}
+                    </div>
+                )}
             <div>
                 <label style={{ display: 'block', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}><strong>Address:</strong> {[
                     address.address1,
@@ -542,6 +552,13 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 </label>
                 <span style={{ fontSize: '0.8em', color: '#999' }}>Toggle Inactive status.</span>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid #f0f0f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={!!address.isStudent} onChange={e => handleIsStudentToggle(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#7b1fa2' }} />
+                    <strong style={{ fontSize: '0.9em', color: '#555' }}>Is Student</strong>
+                </label>
+                <span style={{ fontSize: '0.8em', color: '#999' }}>The listing itself is a student.</span>
+            </div>
             <div>
                 <label><strong>Met:</strong> {address.met ? 'Yes' : 'No'}</label>
             </div>
@@ -640,18 +657,6 @@ function AddressDetail({ address: initialAddress, isModal }) {
                 )}
             </div>
 
-            <div>
-                <h3>Students:</h3>
-                {address.students && address.students.length > 0 ? (
-                    address.students.map((student, index) => (
-                        <div key={index}>
-                            <p><strong>Student {index + 1}:</strong> {student.name}</p>
-                        </div>
-                    ))
-                ) : (
-                    <p>No students.</p>
-                )}
-            </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'center' }}>
                 <button
                     onClick={() => navigate('/route', { state: { listings: [address] } })}

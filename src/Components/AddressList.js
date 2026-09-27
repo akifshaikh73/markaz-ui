@@ -4,7 +4,7 @@ import AddressDetail from './AddressDetail';
 import AddressRow from './AddressRow';
 
 
-function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }) {
+function AddressList({ initialAddressList, selectedIds = [], onSelectionChange, showStudentInfo = false }) {
     console.log(initialAddressList);
     const [addressList, setAddressList] = useState(initialAddressList || []);
     const [selectedAddress, setSelectedAddress] = useState(null);
@@ -115,7 +115,7 @@ function AddressList({ initialAddressList, selectedIds = [], onSelectionChange }
                                 </td>
                             </tr>,
                             ...addresses.map(address => (
-                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} />
+                                <AddressRow key={address._id} address={address} isSelected={selectedIds.includes(address._id)} onToggle={() => handleToggle(address._id)} showStudentInfo={showStudentInfo} />
                             ))
                         ]);
                     })()}

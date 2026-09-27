@@ -2,8 +2,11 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatDate } from '../utils';
 
-function AddressRow({ address, isSelected, onToggle }) {
+function AddressRow({ address, isSelected, onToggle, showStudentInfo = false }) {
     const location = useLocation();
+    const studentNames = Array.isArray(address.students)
+        ? address.students.map(s => s && s.name).filter(n => n && n.trim())
+        : [];
     const visitHistory = Array.isArray(address.visitHistory) ? address.visitHistory : [];
 
     const commentsWithDate = [...visitHistory]
@@ -32,6 +35,9 @@ function AddressRow({ address, isSelected, onToggle }) {
                 <Link to={`/address/${address._id}`} state={{ address, from: `${location.pathname}${location.search}` }} replace>
                     {address._id}
                 </Link>
+                {(address.isStudent || (Array.isArray(address.students) && address.students.length > 0)) && (
+                    <span title="Has student data" aria-label="Has student data" role="img" style={{ marginLeft: '4px', fontSize: '0.9em' }}>🎓</span>
+                )}
             </td>
             <td>
                 {`${address.firstName || ''} ${address.lastName || ''}`.trim()}
@@ -39,6 +45,16 @@ function AddressRow({ address, isSelected, onToggle }) {
                     <span style={{ marginLeft: '6px', fontSize: '0.7em', fontWeight: 700, color: '#e65100', border: '1px solid #ffb74d', borderRadius: '3px', padding: '1px 4px' }}>
                         INACTIVE
                     </span>
+                )}
+                {showStudentInfo && address.isStudent && (
+                    <span style={{ marginLeft: '6px', fontSize: '0.7em', fontWeight: 700, color: '#7b1fa2', border: '1px solid #ce93d8', borderRadius: '3px', padding: '1px 4px' }}>
+                        STUDENT
+                    </span>
+                )}
+                {showStudentInfo && studentNames.length > 0 && (
+                    <div style={{ fontSize: '0.85em', color: '#6a1b9a', marginTop: '2px' }}>
+                        Students: {studentNames.join(', ')}
+                    </div>
                 )}
             </td>
             <td style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal' }}>{[address.address1, address.address2].filter(Boolean).join(', ')}</td>

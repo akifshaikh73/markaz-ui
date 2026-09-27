@@ -395,7 +395,7 @@ function Landing({ showInactive: isInactiveView = false, showStudents: isStudent
                     onCreated={() => {}}
                 />
             )}
-            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} />
+            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} showStudentInfo={isStudentView} />
         </>
     );
 }
