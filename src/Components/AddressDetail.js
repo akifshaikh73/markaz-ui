@@ -546,7 +546,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     <input type="checkbox" checked={!!address.isStudent} onChange={e => handleIsStudentToggle(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#7b1fa2' }} />
                     <strong style={{ fontSize: '0.9em', color: '#555' }}>Is Student</strong>
                 </label>
-                <span style={{ fontSize: '0.8em', color: '#999' }}>The listing itself is a student.</span>
+                <span style={{ fontSize: '0.8em', color: '#999' }}>Student or young adult</span>
             </div>
             <div>
                 <label><strong>Met:</strong> {address.met ? 'Yes' : 'No'}</label>
