@@ -170,12 +170,21 @@ saved with `PUT /api/addressList/:id { isStudent }`) **or** it has students asso
 (non-empty `students` array). The API's `filterByStudents` matches either (`$or`).
 
 **Student rows — visual treatment**: `AddressRow` shows a small 🎓 icon (tooltip "Has student data")
-after the ID link under that same rule, so every row on `/landing/students/...` carries it.
-`AddressDetail` lists every student (🎓 per line, `Student N` if unnamed) directly under the listing
-name — there is no separate Students section — and shows 🎓 beside the name when `isStudent` is set.
+after the ID link under that same rule (`hasStudentData()` in `src/students.js`), so every row on
+`/landing/students/...` carries it. `VisitationView` shows the same icon after the ID link in its table.
+`AddressDetail` lists every student (🎓 per line, `Student N` if unnamed, followed by the Goes to label and
+`b. <yob>` when set) directly under the listing name via `StudentEditor` — there is no separate Students
+section — and shows 🎓 beside the name when `isStudent` is set. `StudentEditor` supports inline add
+("+ Add student"), edit (pencil) and remove (✕ with confirm) for any authenticated role; every change
+saves the full array with `PUT /api/addressList/:id/students`.
 On the student route only (`Landing` passes `showStudentInfo={isStudentView}` through `AddressList`
 to `AddressRow`), the Name cell also shows a purple "STUDENT" badge when `isStudent` is set and a
-"Students: <names>" line listing `students[].name`.
+"Students: <names>" line listing `students[].name` (with the Goes to label in parentheses when set).
+
+**Student data shape**: `students[]` entries are `{ name, goesTo?, yob? }`. `goesTo` is stored as a
+legacy lowercase slug — `madrasa | high-school | college | work` — and mapped to labels (Madrasa,
+High-School, College-University, Work) by `GOES_TO_OPTIONS` / `goesToLabel()` in `src/students.js`,
+which must stay in sync with `GOES_TO_VALUES` in the API. Legacy students may have no `goesTo`.
 
 **Inactive rows — visual treatment**: `AddressRow` gives any row with `address.inactive === true`
 a light orange row background plus an "INACTIVE" badge next to the name — applies whenever
@@ -187,7 +196,7 @@ case a listing becomes active again (e.g. after a move), without needing to rout
 specific visit-response value.
 
 **Address data shape** (key fields):
-`_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `ethnicity`, `notes`, `inactive`, `isStudent`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]`
+`_id`, `firstName`, `lastName`, `masjidId`, `unitId`, `address1`, `city`, `state`, `area`, `latitude`, `longitude`, `phoneNumber`, `bestTime`, `profession`, `ethnicity`, `notes`, `inactive`, `isStudent`, `met`, `lastModifiedDate`, `visitHistory[]`, `students[]` (`{ name, goesTo?, yob? }`)
 
 `notes` is document-level free text ("General notes about the listing") — unlike `visitHistory[].comments`, it isn't tied to a specific visit and doesn't require logging a response.
 

@@ -4,26 +4,8 @@ import { formatDate, localDateString } from '../utils';
 import { getAdmin } from '../config';
 import { useMasjidConfig } from '../hooks/useMasjids';
 import StatusBadges from './StatusBadges';
-
-// Unicode's ✎ pencil glyph renders differently (and sometimes mirrored) across OS/browser
-// font fallbacks, so laptop vs phone could show visibly different icons. An inline SVG
-// renders identically everywhere; scaleX(-1) reverses its default orientation.
-const PencilIcon = () => (
-    <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ display: 'block', transform: 'scaleX(-1)' }}
-    >
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </svg>
-);
+import PencilIcon from './PencilIcon';
+import StudentEditor from './StudentEditor';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
@@ -229,6 +211,19 @@ function AddressDetail({ address: initialAddress, isModal }) {
         .catch(err => console.error('Error updating notes:', err));
     };
 
+    // Throws on failure so StudentEditor can show the server's validation message inline.
+    const handleSaveStudents = (students) =>
+        fetch(`${API_URL}/api/addressList/${address._id}/students`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ students }),
+        })
+        .then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || `Failed to save students (${res.status})`);
+            setAddress(prev => ({ ...prev, students: data.students, version: data.version }));
+        });
+
     const handleUpdateWorkerFields = (patch) => {
         fetch(`${API_URL}/api/addressList/${address._id}`, {
             method: 'PUT',
@@ -432,13 +427,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         </>
                     )}
                 </div>
-                {Array.isArray(address.students) && address.students.length > 0 && (
-                    <div style={{ fontSize: '0.9em', color: '#6a1b9a', padding: '0 0 0.4rem' }}>
-                        {address.students.map((student, index) => (
-                            <div key={index}>🎓 {(student && student.name && student.name.trim()) || `Student ${index + 1}`}</div>
-                        ))}
-                    </div>
-                )}
+                <StudentEditor students={address.students || []} onSave={handleSaveStudents} />
             <div>
                 <label style={{ display: 'block', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}><strong>Address:</strong> {[
                     address.address1,

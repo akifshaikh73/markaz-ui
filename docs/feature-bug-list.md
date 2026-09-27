@@ -18,6 +18,7 @@ Track planned features, defects, and maintenance work here. Keep active work in 
 | --- | --- | --- | --- | --- | --- | --- |
 | F-001 | Backlog | Medium | Increase the Address column width in the address list. | Address values have more horizontal space than the current automatic table layout. | Unassigned | Requested 2026-09-01; implement later. |
 | F-002 | Backlog | Medium | Add a New Address option to the Visitations page. | Users can start creating a new address from the Visitations page, and the new address is associated with the current masjid and selected unit. | Unassigned | Requested 2026-09-01; implement later. |
+| F-004 | In progress | Medium | Add and edit students (name, goes to, year of birth) on a listing. | On Address Detail, users can add, edit and remove students with name (required), Goes to (Madrasa, High-School, College-University, Work) and YOB; changes persist via `PUT /api/addressList/:id/students`. | Unassigned | Requested 2026-09-26. Phase 2 (later): add students on the new-listing form (`AddAddress`) by reusing `StudentEditor`; the API already accepts `students` on create. |
 | F-003 | Backlog | Medium | Add a Print feature. | Users can print the current page through a visible print action, with the page's primary content included in the print output. | Unassigned | Requested 2026-09-01; implement later. |
 
 ## Bugs

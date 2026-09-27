@@ -4,6 +4,7 @@ import { formatDate } from '../utils';
 import { getAdmin } from '../config';
 import StatusBadges from './StatusBadges';
 import AddAddress from './AddAddress';
+import { hasStudentData } from '../students';
 import { useMasjidConfig } from '../hooks/useMasjids';
 
 function VisitationView() {
@@ -349,6 +350,9 @@ function VisitationView() {
                                                         style={{ cursor: 'pointer', accentColor: '#e65100', flexShrink: 0 }}
                                                     />
                                                     <Link to={`/address/${a._id}`} state={{ from: `${location.pathname}${location.search}` }} replace style={{ color: '#1976d2' }}>{a._id}</Link>
+                                                    {hasStudentData(a) && (
+                                                        <span title="Has student data" aria-label="Has student data" role="img" style={{ fontSize: '0.9em', marginLeft: '-0.25rem' }}>🎓</span>
+                                                    )}
                                                 </td>
                                                 <td style={{ ...td, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
                                                 <td style={{ ...td, maxWidth: '120px', whiteSpace: 'normal', overflowWrap: 'anywhere', wordBreak: 'break-word', verticalAlign: 'top' }} title={[a.address1, a.address2].filter(Boolean).join(', ')}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>

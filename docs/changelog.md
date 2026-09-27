@@ -7,6 +7,8 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ## 2026-09-26
 
+- **feat(students):** Add, edit and remove students inline on Address Detail (`StudentEditor`) with name, Goes to (Madrasa, High-School, College-University, new **Work** option) and year of birth; saved via `PUT /api/addressList/:id/students` (requires the matching API release). The Student view's "Students:" line now shows each student's Goes to label. (F-004)
+- **feat(visitation):** Show the 🎓 icon after the ID link on the Visitations page for listings that are a student or have students (same rule as the list rows).
 - **style(labels):** Rename the Address Detail "Inactive" checkbox to "Invalid" (helper text "Invalid listing status") and the search "Include Inactive" checkbox to "Include Invalid". Labels only — still reads and writes the `inactive` field.
 - **feat(students):** Add an "Is Student" checkbox on Address Detail (saved as `isStudent`; requires the matching API release). The Student view now includes listings flagged `isStudent` as well as those with students; list rows show a 🎓 icon in the ID column, and on the Student view the Name cell shows a STUDENT badge and student names.
 - **feat(address-detail):** List every student (🎓 per line) directly under the listing name and remove the separate Students section at the bottom; show 🎓 beside the name when the listing is a student.

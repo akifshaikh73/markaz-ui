@@ -1,11 +1,14 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatDate } from '../utils';
+import { goesToLabel, hasStudentData } from '../students';
 
 function AddressRow({ address, isSelected, onToggle, showStudentInfo = false }) {
     const location = useLocation();
     const studentNames = Array.isArray(address.students)
-        ? address.students.map(s => s && s.name).filter(n => n && n.trim())
+        ? address.students
+            .filter(s => s && s.name && s.name.trim())
+            .map(s => (s.goesTo ? `${s.name.trim()} (${goesToLabel(s.goesTo)})` : s.name.trim()))
         : [];
     const visitHistory = Array.isArray(address.visitHistory) ? address.visitHistory : [];
 
@@ -35,7 +38,7 @@ function AddressRow({ address, isSelected, onToggle, showStudentInfo = false }) 
                 <Link to={`/address/${address._id}`} state={{ address, from: `${location.pathname}${location.search}` }} replace>
                     {address._id}
                 </Link>
-                {(address.isStudent || (Array.isArray(address.students) && address.students.length > 0)) && (
+                {hasStudentData(address) && (
                     <span title="Has student data" aria-label="Has student data" role="img" style={{ marginLeft: '4px', fontSize: '0.9em' }}>🎓</span>
                 )}
             </td>
