@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { localDateString } from '../utils';
 
 const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
 
-function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
+// Prefer the unit the user is currently viewing; fall back to the first configured unit.
+function pickUnit(defaultUnitId, unitOptions) {
+    if (defaultUnitId !== undefined && defaultUnitId !== null && defaultUnitId !== ''
+        && unitOptions.some(u => String(u) === String(defaultUnitId))) {
+        return String(defaultUnitId);
+    }
+    return unitOptions[0] !== undefined ? String(unitOptions[0]) : '';
+}
+
+function AddAddress({ masjidID, unitOptions, defaultUnitId, onClose, onCreated }) {
     const API_URL = process.env.REACT_APP_API_URL || '';
 
     const [firstName, setFirstName] = useState('');
@@ -14,7 +23,13 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
     const [addrState, setAddrState] = useState('');
     const [zipcode, setZipcode] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [unitId, setUnitId] = useState(unitOptions[0] !== undefined ? unitOptions[0] : '');
+    const [unitId, setUnitId] = useState(() => pickUnit(defaultUnitId, unitOptions));
+
+    // unitOptions may still be loading when the form mounts; fill the unit in once they arrive
+    // so we never post unitId: null.
+    useEffect(() => {
+        if (unitId === '' && unitOptions.length > 0) setUnitId(pickUnit(defaultUnitId, unitOptions));
+    }, [unitOptions, defaultUnitId, unitId]);
 
     const [response, setResponse] = useState('');
     const [comment, setComment] = useState('');
@@ -29,14 +44,18 @@ function AddAddress({ masjidID, unitOptions, onClose, onCreated }) {
             setError('First name, last name and address are required.');
             return;
         }
+        if (isNaN(parseInt(unitId))) {
+            setError('Please select a unit.');
+            return;
+        }
         setError('');
         setSubmitting(true);
 
-        const fullAddress1 = [address1.trim(), address2.trim()].filter(Boolean).join(', ');
         const body = {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
-            address1: fullAddress1,
+            address1: address1.trim(),
+            ...(address2.trim() && { address2: address2.trim() }),
             ...(city.trim()     && { city: city.trim() }),
             ...(addrState.trim()&& { state: addrState.trim() }),
             ...(zipcode.trim()  && { zipcode: zipcode.trim() }),

@@ -2,8 +2,10 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatDate } from '../utils';
 import { goesToLabel, hasStudentData } from '../students';
+import { isDoNotDisturb, DoNotDisturbIcon, DND_COLORS } from '../doNotDisturb';
+import NewBadge from './NewBadge';
 
-function AddressRow({ address, isSelected, onToggle, showStudentInfo = false }) {
+function AddressRow({ address, isSelected, onToggle, showStudentInfo = false, isNew = false }) {
     const location = useLocation();
     const studentNames = Array.isArray(address.students)
         ? address.students
@@ -21,9 +23,14 @@ function AddressRow({ address, isSelected, onToggle, showStudentInfo = false }) 
         });
 
     const lastVisit = visitHistory.length > 0 ? visitHistory[visitHistory.length - 1] : null;
+    const doNotDisturb = isDoNotDisturb(address);
+    // Do Not Disturb takes precedence over the Inactive tint
+    const rowStyle = doNotDisturb
+        ? { background: DND_COLORS.rowBackground, boxShadow: `inset 4px 0 0 ${DND_COLORS.accent}` }
+        : address.inactive ? { background: '#fff3e0' } : undefined;
 
     return (
-        <tr style={address.inactive ? { background: '#fff3e0' } : undefined}>
+        <tr style={rowStyle} title={doNotDisturb ? 'Do Not Disturb — do not visit' : undefined}>
             <td className="m-u-id-col">
                 {address.masjidId}-{address.unitId}-{address._id}
             </td>
@@ -38,6 +45,8 @@ function AddressRow({ address, isSelected, onToggle, showStudentInfo = false }) 
                 <Link to={`/address/${address._id}`} state={{ address, from: `${location.pathname}${location.search}` }} replace>
                     {address._id}
                 </Link>
+                {doNotDisturb && <DoNotDisturbIcon />}
+                {isNew && <NewBadge />}
                 {hasStudentData(address) && (
                     <span title="Has student data" aria-label="Has student data" role="img" style={{ marginLeft: '4px', fontSize: '0.9em' }}>🎓</span>
                 )}

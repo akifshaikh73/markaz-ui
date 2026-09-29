@@ -41,6 +41,8 @@ function Landing({ showInactive: isInactiveView = false, showStudents: isStudent
     });
     const [includeInactive, setIncludeInactive] = useState(false);
     const [showAddAddress, setShowAddAddress] = useState(false);
+    // Listings added from this page during this visit; shown with a NEW badge. Not persisted.
+    const [recentlyAddedIds, setRecentlyAddedIds] = useState([]);
     const [selectedIds, setSelectedIds] = useState([]);
     const [newArea, setNewArea] = useState('');
     const [newUnit, setNewUnit] = useState('');
@@ -164,6 +166,33 @@ function Landing({ showInactive: isInactiveView = false, showStudents: isStudent
                 localStorage.setItem('addressList', JSON.stringify(filtered));
                 localStorage.setItem('landingContext', JSON.stringify({ masjidID, unitID, view }));
             });
+    };
+
+    // POST /api/addressList returns only { _id }, so fetch the full record and put it at the
+    // top of the current list (and its localStorage cache) instead of re-running the search.
+    // Inactive/student views never contain a brand-new listing, so they are left alone.
+    const handleAddressCreated = (id) => {
+        if (!id || isInactiveView || isStudentView) return;
+        fetch(`${API_URL}/api/addressList/search/${id}`)
+            .then(r => (r.ok ? r.json() : null))
+            .then(created => {
+                if (!created || !created._id) return;
+                // The form lets the user pick another unit; don't show it in this unit's list.
+                if (selectedUnit !== '' && String(created.unitId) !== String(selectedUnit)) return;
+                setRecentlyAddedIds(prev => (prev.includes(created._id) ? prev : [...prev, created._id]));
+                setAddressList(prev => {
+                    const next = [created, ...prev.filter(a => a._id !== created._id)];
+                    localStorage.setItem('addressList', JSON.stringify(next));
+                    return next;
+                });
+                // New listings have no area, so a Neighborhood filter would hide the row.
+                if (areaFilter) {
+                    setAreaFilter('');
+                    localStorage.setItem('areaFilter', '');
+                    sessionStorage.setItem(landingFiltersKey, '');
+                }
+            })
+            .catch(() => {});
     };
 
     const handleIncludeInactiveChange = (e) => {
@@ -391,11 +420,12 @@ function Landing({ showInactive: isInactiveView = false, showStudents: isStudent
                 <AddAddress
                     masjidID={masjidID}
                     unitOptions={unitOptions}
+                    defaultUnitId={selectedUnit}
                     onClose={() => setShowAddAddress(false)}
-                    onCreated={() => {}}
+                    onCreated={handleAddressCreated}
                 />
             )}
-            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} showStudentInfo={isStudentView} />
+            <AddressList initialAddressList={filteredAddressList} selectedIds={selectedIds} onSelectionChange={setSelectedIds} showStudentInfo={isStudentView} newIds={recentlyAddedIds} />
         </>
     );
 }

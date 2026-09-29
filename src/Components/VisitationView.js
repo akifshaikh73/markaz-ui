@@ -4,7 +4,9 @@ import { formatDate } from '../utils';
 import { getAdmin } from '../config';
 import StatusBadges from './StatusBadges';
 import AddAddress from './AddAddress';
+import NewBadge from './NewBadge';
 import { hasStudentData } from '../students';
+import { isDoNotDisturb, DoNotDisturbIcon, DND_COLORS } from '../doNotDisturb';
 import { useMasjidConfig } from '../hooks/useMasjids';
 
 function VisitationView() {
@@ -55,6 +57,9 @@ function VisitationView() {
     const [selectedIds, setSelectedIds] = useState([]);
     const [showAddAddress, setShowAddAddress] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    // Listings added from this screen during this visit. They are pinned to the top of their
+    // unit group so the top-N / area / search filters can't hide a brand-new row.
+    const [recentlyAddedIds, setRecentlyAddedIds] = useState([]);
 
     // On mount — fetch all listings for the masjid (no unit filter)
     useEffect(() => {
@@ -111,6 +116,7 @@ function VisitationView() {
         const active = allListings.filter(a => {
             if (a.inactive) return false;
             if (filterUnit !== '' && String(a.unitId ?? '—') !== filterUnit) return false;
+            if (recentlyAddedIds.includes(a._id)) return true;
             if (filterArea) {
                 const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
                 if (area !== filterArea) return false;
@@ -149,16 +155,18 @@ function VisitationView() {
             );
         }
 
-        // Pick 'total' addresses from each unit
+        // Pick 'total' addresses from each unit, with recently added listings pinned on top
         const result = {};
         let grandTotal = 0;
         for (const unit of Object.keys(byUnit).sort()) {
-            result[unit] = byUnit[unit].slice(0, total);
+            const pinned = byUnit[unit].filter(a => recentlyAddedIds.includes(a._id));
+            const rest = byUnit[unit].filter(a => !recentlyAddedIds.includes(a._id));
+            result[unit] = [...pinned, ...rest.slice(0, total)];
             grandTotal += result[unit].length;
         }
 
         setApplied({ grouped: result, total: grandTotal });
-    }, [allListings, filterUnit, filterArea, searchText, sortMode, total]);
+    }, [allListings, filterUnit, filterArea, searchText, sortMode, total, recentlyAddedIds]);
 
     // Auto-compute when filters, sort mode, or total changes
     useEffect(() => {
@@ -204,8 +212,12 @@ function VisitationView() {
                 <AddAddress
                     masjidID={masjidID}
                     unitOptions={masjidUnitsMap[String(masjidID)] || unitOptions}
+                    defaultUnitId={filterUnit}
                     onClose={() => setShowAddAddress(false)}
-                    onCreated={() => setRefreshKey(value => value + 1)}
+                    onCreated={id => {
+                        if (id) setRecentlyAddedIds(prev => (prev.includes(id) ? prev : [...prev, id]));
+                        setRefreshKey(value => value + 1);
+                    }}
                 />
             )}
 
@@ -340,8 +352,9 @@ function VisitationView() {
                                         const area = (a.area && a.area.trim()) ? a.area.trim() : '(No Area)';
                                         const visitedText = a.lastModifiedDate ? formatDate(a.lastModifiedDate) : 'Never';
                                         const responseText = lastVisit?.response || '—';
+                                        const doNotDisturb = isDoNotDisturb(a);
                                         return (
-                                            <tr key={a._id} style={{ borderBottom: '1px solid #eee' }}>
+                                            <tr key={a._id} title={doNotDisturb ? 'Do Not Disturb — do not visit' : undefined} style={{ borderBottom: '1px solid #eee', ...(doNotDisturb ? { background: DND_COLORS.rowBackground, boxShadow: `inset 4px 0 0 ${DND_COLORS.accent}` } : {}) }}>
                                                 <td style={{ ...td, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     <input 
                                                         type="checkbox"
@@ -353,6 +366,8 @@ function VisitationView() {
                                                     {hasStudentData(a) && (
                                                         <span title="Has student data" aria-label="Has student data" role="img" style={{ fontSize: '0.9em', marginLeft: '-0.25rem' }}>🎓</span>
                                                     )}
+                                                    {doNotDisturb && <DoNotDisturbIcon style={{ marginLeft: '-0.25rem' }} />}
+                                                    {recentlyAddedIds.includes(a._id) && <NewBadge style={{ marginLeft: '-0.25rem' }} />}
                                                 </td>
                                                 <td style={{ ...td, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}>{[a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</td>
                                                 <td style={{ ...td, maxWidth: '120px', whiteSpace: 'normal', overflowWrap: 'anywhere', wordBreak: 'break-word', verticalAlign: 'top' }} title={[a.address1, a.address2].filter(Boolean).join(', ')}>{[a.address1, a.address2].filter(Boolean).join(', ')}</td>
