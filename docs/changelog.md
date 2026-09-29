@@ -5,6 +5,18 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-09-28
+
+- **feat(listings):** Highlight Do Not Disturb listings — a "Do Not Disturb" response, or a comment mentioning "do not disturb" / "DND", in any of the last 3 visits. Rows get a red tint and left stripe with a ⛔ icon beside the ID on Full Listing and Visitations; Address Detail shows a "Do Not Disturb — please do not visit" banner at the top.
+- **feat(address):** Add Address now defaults to the unit being viewed (Full Listing URL unit / Visitations unit filter), fills in the unit once options load (previously it could save `unitId: null`), and rejects a missing unit.
+- **fix(landing):** A newly added address now appears at once on Full Listing (fetched by ID, prepended and cached); a Neighborhood filter that would hide it is cleared.
+- **fix(visitation):** Newly added addresses are pinned to the top of their unit group, so the top-N cut-off, area filter and search can't hide them.
+- **feat(listings):** Show a green NEW badge beside the ID of addresses added during the current visit, on Full Listing and Visitations.
+- **feat(address-detail):** Edit Street, Apt / Unit, City, State and Zip inline (requires the matching API release). It validates before saving, warns that map/route coordinates weren't updated when the street changes, and shows an error if the API ignored the change.
+- **feat(address-detail):** Show `address2` (e.g. "Apt 401") in the Address line.
+- **fix(address):** Add Address saves Address Line 2 as `address2` instead of merging it into `address1`.
+- **fix(landing):** Name, unit and address edits on Address Detail now update Landing's cached list, so the row is current when navigating back.
+
 ## 2026-09-26
 
 - **feat(students):** Add, edit and remove students inline on Address Detail (`StudentEditor`) with name, Goes to (Madrasa, High-School, College-University, new **Work** option) and year of birth; saved via `PUT /api/addressList/:id/students` (requires the matching API release). The Student view's "Students:" line now shows each student's Goes to label. (F-004)

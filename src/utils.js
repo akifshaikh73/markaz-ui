@@ -27,6 +27,31 @@ export function localDateString(d = new Date()) {
     return `${d.getFullYear()}-${month}-${day}`;
 }
 
+/**
+ * Applies an edit made on Address Detail to Landing's cached `addressList` in localStorage,
+ * so the row is current when the user navigates back (Landing reuses the cache instead of
+ * re-fetching). A unit change drops the listing from a unit-scoped cached list.
+ */
+export function patchCachedListing(id, fields) {
+    try {
+        const list = JSON.parse(localStorage.getItem('addressList') || 'null');
+        if (!Array.isArray(list)) return;
+        const ctx = JSON.parse(localStorage.getItem('landingContext') || '{}');
+        const next = list.flatMap(item => {
+            if (item._id !== id) return [item];
+            const updated = { ...item, ...fields };
+            if (fields.unitId !== undefined && ctx.unitID && ctx.unitID !== 'all'
+                && String(updated.unitId) !== String(ctx.unitID)) {
+                return [];
+            }
+            return [updated];
+        });
+        localStorage.setItem('addressList', JSON.stringify(next));
+    } catch {
+        // Cache is a convenience; Landing re-fetches on the next search/unit switch.
+    }
+}
+
 const roleStyles = {
     MarkazAdmin: { background: '#ede7f6', color: '#6a1b9a', border: '1px solid #ce93d8' },
     MasjidAdmin: { background: '#fff3e0', color: '#e65100', border: '1px solid #ffcc80' },

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { formatDate, localDateString } from '../utils';
+import { formatDate, localDateString, patchCachedListing } from '../utils';
 import { getAdmin } from '../config';
 import { useMasjidConfig } from '../hooks/useMasjids';
 import StatusBadges from './StatusBadges';
 import PencilIcon from './PencilIcon';
 import StudentEditor from './StudentEditor';
+import { getDoNotDisturbVisit, DoNotDisturbBanner } from '../doNotDisturb';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
@@ -45,6 +46,11 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [originalNotes, setOriginalNotes] = useState('');
     const [editingNotes, setEditingNotes] = useState(false);
     const [notesSaved, setNotesSaved] = useState(false);
+    const [editingAddress, setEditingAddress] = useState(false);
+    const [addressDraft, setAddressDraft] = useState({ address1: '', address2: '', city: '', state: '', zipcode: '' });
+    const [addressError, setAddressError] = useState('');
+    const [addressSaved, setAddressSaved] = useState(false);
+    const [coordsStale, setCoordsStale] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -130,6 +136,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
         .then(res => res.json())
         .then(() => {
             setAddress(prev => ({ ...prev, ...body }));
+            patchCachedListing(address._id, body);
             if (body.firstName !== undefined) setOriginalFirstName(firstName);
             if (body.lastName !== undefined) setOriginalLastName(lastName);
             setEditingName(false);
@@ -158,12 +165,76 @@ function AddressDetail({ address: initialAddress, isModal }) {
         .then(res => res.json())
         .then(() => {
             setAddress(prev => ({ ...prev, unitId: Number(unitId) }));
+            patchCachedListing(address._id, { unitId: Number(unitId) });
             setOriginalUnitId(unitId);
             setEditingUnit(false);
             setUnitError('');
         })
         .catch(err => console.error('Error updating unit:', err));
     };
+    const startEditAddress = () => {
+        setAddressDraft({
+            address1: address.address1 || '',
+            address2: address.address2 || '',
+            city: address.city || '',
+            state: address.state || '',
+            zipcode: address.zipcode ? String(address.zipcode) : '',
+        });
+        setAddressError('');
+        setEditingAddress(true);
+    };
+
+    const cancelEditAddress = () => {
+        setEditingAddress(false);
+        setAddressError('');
+    };
+
+    // Validation mirrors PUT /api/addressList/:id so users see the error before a round-trip.
+    const handleUpdateAddress = () => {
+        const next = {
+            address1: addressDraft.address1.trim(),
+            address2: addressDraft.address2.trim(),
+            city: addressDraft.city.trim(),
+            state: addressDraft.state.trim().toUpperCase(),
+            zipcode: addressDraft.zipcode.trim(),
+        };
+        if (!next.address1) { setAddressError('Street address is required.'); return; }
+        if (next.state && !/^[A-Z]{2}$/.test(next.state)) { setAddressError('State must be a 2-letter code, e.g. IL.'); return; }
+        if (next.zipcode && !/^\d{5}(-\d{4})?$/.test(next.zipcode)) { setAddressError('Zip must be 5 digits, e.g. 60101.'); return; }
+
+        // Only send what changed. zipcode is stored as a number, so compare numerically
+        // (e.g. "60101-1234" is the same stored value as 60101).
+        const body = {};
+        const saved = {};
+        ['address1', 'address2', 'city', 'state'].forEach(field => {
+            if (next[field] !== (address[field] || '')) { body[field] = next[field]; saved[field] = next[field]; }
+        });
+        const zipNum = parseInt(next.zipcode, 10) || 0;
+        if (zipNum !== (parseInt(address.zipcode, 10) || 0)) { body.zipcode = next.zipcode; saved.zipcode = zipNum; }
+        if (Object.keys(body).length === 0) { cancelEditAddress(); return; }
+
+        fetch(`${API_URL}/api/addressList/${address._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        })
+        .then(res => res.json().then(data => {
+            if (!res.ok) throw new Error(data.error || `Server error: ${res.status}`);
+            return data;
+        }))
+        .then(data => {
+            // An API without address support silently ignores these fields.
+            if (data.modifiedCount === 0) throw new Error('Address not saved — the API needs updating.');
+            setAddress(prev => ({ ...prev, ...saved }));
+            patchCachedListing(address._id, saved);
+            if (saved.address1 !== undefined && address.latitude && address.longitude) setCoordsStale(true);
+            cancelEditAddress();
+            setAddressSaved(true);
+            setTimeout(() => setAddressSaved(false), 2000);
+        })
+        .catch(err => setAddressError(err.message));
+    };
+
     const handleUpdateContact = (field) => {
         const valueMap = { phoneNumber, bestTime, profession, ethnicity };
         const originalMap = { phoneNumber: originalPhoneNumber, bestTime: originalBestTime, profession: originalProfession, ethnicity: originalEthnicity };
@@ -337,6 +408,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
     }
 
     const hasCoordinates = Boolean(address.latitude) && Boolean(address.longitude);
+    const doNotDisturbVisit = getDoNotDisturbVisit(address);
 
     return (
         <div>
@@ -355,6 +427,7 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         ) : null;
                     })()}
                 </div>
+                <DoNotDisturbBanner visit={doNotDisturbVisit} />
                 {address.inactive && (
                     <div style={{ margin: '0.5rem 0', padding: '0.6rem 1rem', background: '#fff3e0', border: '1px solid #ffb74d', borderRadius: '6px', color: '#e65100', fontWeight: 600 }}>
                         ⚠ This listing is marked Inactive
@@ -428,12 +501,56 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     )}
                 </div>
                 <StudentEditor students={address.students || []} onSave={handleSaveStudents} />
-            <div>
-                <label style={{ display: 'block', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}><strong>Address:</strong> {[
-                    address.address1,
-                    address.city,
-                    [address.state, address.zipcode].filter(Boolean).join(' ')
-                ].filter(Boolean).join(' ')}</label>
+            <div style={{ padding: '0.4rem 0' }}>
+                {editingAddress ? (
+                    <div>
+                        <strong>Address:</strong>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'flex-end', marginTop: '0.35rem' }}>
+                            {[
+                                { field: 'address1', label: 'Street', placeholder: 'Street address', width: '22ch' },
+                                { field: 'address2', label: 'Apt / Unit', placeholder: 'Apt / Suite / Unit', width: '12ch' },
+                                { field: 'city', label: 'City', placeholder: 'City', width: '14ch' },
+                                { field: 'state', label: 'State', placeholder: 'IL', width: '5ch', maxLength: 2 },
+                                { field: 'zipcode', label: 'Zip', placeholder: '60601', width: '10ch', maxLength: 10, inputMode: 'numeric' },
+                            ].map(({ field, label, placeholder, width, maxLength, inputMode }, i) => (
+                                <label key={field} style={{ display: 'flex', flexDirection: 'column', fontSize: '0.8em', color: '#555' }}>
+                                    {label}
+                                    <input
+                                        autoFocus={i === 0}
+                                        type="text"
+                                        value={addressDraft[field]}
+                                        onChange={e => setAddressDraft(prev => ({ ...prev, [field]: e.target.value }))}
+                                        onKeyDown={e => { if (e.key === 'Enter') handleUpdateAddress(); if (e.key === 'Escape') cancelEditAddress(); }}
+                                        placeholder={placeholder}
+                                        maxLength={maxLength}
+                                        inputMode={inputMode}
+                                        aria-invalid={Boolean(addressError)}
+                                        aria-describedby={addressError ? 'address-error' : undefined}
+                                        style={{ width, padding: '0.25rem 0.4rem', border: `1px solid ${addressError ? '#c62828' : '#1976d2'}`, borderRadius: '4px', fontSize: '1.1em' }}
+                                    />
+                                </label>
+                            ))}
+                            <button onClick={handleUpdateAddress} title="Save address" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}>✔</button>
+                            <button onClick={cancelEditAddress} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
+                        </div>
+                        {addressError && <div id="address-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em', marginTop: '0.25rem' }}>{addressError}</div>}
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <span style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}><strong>Address:</strong> {[
+                            [address.address1, address.address2 && address.address2.trim()].filter(Boolean).join(', '),
+                            address.city,
+                            [address.state, address.zipcode].filter(Boolean).join(' ')
+                        ].filter(Boolean).join(' ')}</span>
+                        {addressSaved && <span style={{ color: '#4caf50', fontWeight: 600, fontSize: '0.85em' }}>✔ Saved</span>}
+                        <button onClick={startEditAddress} title="Edit address" aria-label="Edit address" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}><PencilIcon /></button>
+                    </div>
+                )}
+                {coordsStale && (
+                    <div style={{ marginTop: '0.3rem', padding: '0.35rem 0.6rem', background: '#fff8e1', border: '1px solid #ffe082', borderRadius: '4px', color: '#8d6e00', fontSize: '0.85em' }}>
+                        ⚠ Street changed — map and route position still use the old location.
+                    </div>
+                )}
             </div>
             <div>
                 <label><strong>Neighborhood:</strong> {address.area}</label>

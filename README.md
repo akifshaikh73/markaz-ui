@@ -164,8 +164,10 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 | Initial page load, `/landing/inactive/:masjidID/:unitID` | Set via `fetchBaseList()` → `/filter/search/` with `showInactive: true` | Populated from fetched (inactive-only) data |
 | Initial page load, `/landing/students/:masjidID/:unitID` | Set via `fetchBaseList()` → `/filter/search/` with `filterByStudents: true` | Populated from fetched (student-only) data |
 | Search / "Include Inactive" checkbox (`doSearch`) | Replaced with results — merged active+inactive when `includeInactive` (or always inactive-only on the `/landing/inactive/...` route); always carries `filterByStudents: true` on the `/landing/students/...` route | Not touched |
+| Address created (`+ Add Address` → `handleAddressCreated`) | New record fetched via `/api/addressList/search/:id` and prepended (and written to the `localStorage` cache) when its unit matches the selected unit or the view is "all units"; skipped on the inactive/student routes. Clears `areaFilter` if one is set, since new listings have no area | Not touched |
 | Bulk area update | Patched in-place | New area appended if new |
 | Bulk unit update | Patched in-place with the new `unitId` | Unchanged |
+| Name / unit / address edited on Address Detail | The `localStorage` cached copy is patched via `patchCachedListing()` (`src/utils.js`), so Landing shows the edit when you navigate back. A unit change removes the listing from a unit-scoped cache | Not touched |
 | Unit switch (`handleUnitChange`) | Refetched via `fetchBaseList()` — stays inactive-/student-scoped if already on `/landing/inactive/...` or `/landing/students/...`; `includeInactive` resets to `false` (this was the original bug: it used to always refetch via `/list`, silently dropping the inactive filter) | Cleared |
 | Logout | Cleared | Cleared |
 

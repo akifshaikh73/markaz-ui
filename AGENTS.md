@@ -118,7 +118,7 @@ Never hardcode `localhost` URLs.
 - `userMasjids` — JSON array of masjid slugs MasjidAdmin has access to; shown as "Other Masjids" on MasjidLanding. Cleared on logout.
 
 **Address List & Filtering**:
-- `addressList` — working set from last fetch or search (cleared on logout)
+- `addressList` — working set from last fetch or search (cleared on logout). AddressDetail name/unit/address saves patch the matching entry in place via `patchCachedListing()` in `src/utils.js`; a unit change drops it from a unit-scoped cache.
 - `selectedIds` — IDs selected through the shared ID-column checkboxes for bulk Area and Unit updates; Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates, while Area updates remain admin-only; cleared after either update
 - `searchParams` — last search form values (cleared on logout)
 - `areaFilter` — last area filter text (cleared on logout)
@@ -136,7 +136,7 @@ Never hardcode `localhost` URLs.
 
 | State | Source | Rule |
 |-------|--------|------|
-| `addressList` | `fetchBaseList()` — `/list` on `/landing/:masjidID/:unitID`, `/filter/search/` with `showInactive: true` on `/landing/inactive/:masjidID/:unitID`, or `/filter/search/` with `filterByStudents: true` on `/landing/students/:masjidID/:unitID`; `/filter/search/` on search | Working set. Replaced by search/reset/unit-switch results. Area filter applied on top. |
+| `addressList` | `fetchBaseList()` — `/list` on `/landing/:masjidID/:unitID`, `/filter/search/` with `showInactive: true` on `/landing/inactive/:masjidID/:unitID`, or `/filter/search/` with `filterByStudents: true` on `/landing/students/:masjidID/:unitID`; `/filter/search/` on search | Working set. Replaced by search/reset/unit-switch results. A newly created address (`handleAddressCreated`) is fetched by ID and prepended (plus the `localStorage` cache) if it belongs to the selected unit — not on the inactive/student routes — and `areaFilter` is cleared so it's visible. Area filter applied on top. |
 | `selectedIds` | ID-column checkboxes | Shared selection for bulk Area and Unit updates. Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates; Area updates remain admin-only. The Unit column has been removed. |
 | `unitAreas` | Derived from initial `fetchBaseList()` load | Unique sorted area names. Cached in sessionStorage. Only grows (new areas appended on bulk update). |
 | `areaFilter` | Neighborhood `<select>` | Filters `addressList`. `''` = none; `'__NO_AREA__'` = unassigned addresses. |
