@@ -1,7 +1,7 @@
 // Client-side duplicate-address detection used by the add/edit address forms.
 // Only address1 and address2 are compared: city, state and zipcode are often missing
-// on listings, so they are deliberately ignored. address2 only contributes an
-// apartment / suite number.
+// on listings, so they are deliberately ignored. The street (house number + name) must
+// match; address2 is then filtered with a plain "contains" search on what was typed.
 
 const ABBREVIATIONS = {
     street: 'st', str: 'st', avenue: 'ave', av: 'ave', road: 'rd', drive: 'dr', lane: 'ln',
@@ -15,45 +15,41 @@ const ABBREVIATIONS = {
 const NOISE_WORDS = new Set(['st', 'ave', 'rd', 'dr', 'ln', 'ct', 'blvd', 'pl', 'cir', 'pkwy', 'hwy',
     'ter', 'trl', 'sq', 'way', 'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']);
 
-const UNIT_DESIGNATOR = String.raw`(?:\b(?:apartment|apt|unit|suite|ste)\b\.?|#)\s*#?\s*`;
-const TRAILING_UNIT_RE = new RegExp(`[\\s,]*${UNIT_DESIGNATOR}([a-z0-9-]+)\\s*$`, 'i');
-const ANY_UNIT_RE = new RegExp(`${UNIT_DESIGNATOR}([a-z0-9-]+)`, 'i');
-const BARE_UNIT_RE = /^#?\s*([0-9][a-z0-9-]*|[a-z])$/i;
+// Text after the street in address1 ("... Rd APT 217", "... Ave APT B", "... Rd (Code #10)", "... Rd # 416",
+// "... Ave 3rd Floor") is split off so the street still compares equal; that tail is searched together
+// with address2. A label is required (except "<n>th Floor"), so "... Ave E" stays part of the street.
+const LABELLED_TAIL = String.raw`(?:(?:\b(?:apartment|apt|unit|suite|ste|door|code|buzzer|buzz|bldg|building|floor|fl)(?![a-z])\.?|#)[\s:.-]*)+#?\s*(?:[a-z0-9-]*\d[a-z0-9-]*|[a-z](?![a-z0-9]))`;
+const FLOOR_TAIL = String.raw`\d+(?:st|nd|rd|th)?\s+(?:floor|fl)\.?`;
+const TRAILING_RE = new RegExp(String.raw`[\s,([]*(?:${LABELLED_TAIL}|${FLOOR_TAIL})[\s)\]]*$`, 'i');
+// Labels typed before the apartment ("Apt 36", "Unit #36", "Code 36") — not part of the search.
+const LEADING_LABELS_RE = /^(?:(?:apartment|apt|unit|suite|ste|door|code|buzzer|buzz|bldg|building)(?: |$))+/;
+// Labels alone ("Apt ") mean no apartment is recorded.
+const LABEL_WORDS_RE = /\b(?:apartment|apt|unit|suite|ste)\b/g;
 
 export function escapeRegex(s) {
     return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-const normalizeUnit = (u) => (u ? u.toLowerCase().replace(/-/g, '') : '');
+// Lowercase, punctuation to spaces, single-spaced: "Apt Door Code # 55" -> "apt door code 55".
+const normalizeText = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 function tokens(s) {
-    return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
-}
-
-// address2 counts only when it holds an apartment/suite number ("Apt 4B", "#4", "Suite 200", "4B").
-function unitFromAddress2(address2) {
-    const text = String(address2 || '').trim();
-    if (!text) return '';
-    const designated = text.match(ANY_UNIT_RE);
-    if (designated) return normalizeUnit(designated[1]);
-    const bare = text.match(BARE_UNIT_RE);
-    return bare ? normalizeUnit(bare[1]) : '';
+    return normalizeText(s).split(' ').filter(Boolean);
 }
 
 /**
- * @returns {{ houseNumber: string, street: string, core: string, unit: string }}
- *   core is the street without street-type/direction words, used for matching.
+ * @returns {{ houseNumber: string, street: string, core: string, unitText: string }}
+ *   core is the street without street-type/direction words, used for matching;
+ *   unitText is address2 plus any tail split off address1, normalized for searching.
  */
 export function normalizeAddress({ address1, address2 } = {}) {
-    let line1 = String(address1 || '').trim();
-    let unit = '';
-    // Legacy listings often carry the apartment in address1 ("123 Main St Apt 4").
-    const trailing = line1.match(TRAILING_UNIT_RE);
-    if (trailing) {
-        unit = normalizeUnit(trailing[1]);
+    let line1 = String(address1 || '');
+    let tail = '';
+    const trailing = line1.match(TRAILING_RE);
+    if (trailing && trailing.index > 0) {
+        tail = line1.slice(trailing.index);
         line1 = line1.slice(0, trailing.index);
     }
-    if (!unit) unit = unitFromAddress2(address2);
 
     const words = tokens(line1).map(w => ABBREVIATIONS[w] || w);
     const houseNumber = words.length > 0 && /^\d[\da-z]*$/.test(words[0]) ? words.shift() : '';
@@ -62,9 +58,16 @@ export function normalizeAddress({ address1, address2 } = {}) {
         houseNumber,
         street: words.join(' '),
         core: (coreWords.length > 0 ? coreWords : words).join(' '),
-        unit,
+        unitText: normalizeText(`${address2 || ''} ${tail}`),
     };
 }
+
+/** What to look for in address2: the typed text without leading "Apt" / "Unit" / "Code" / "#". */
+export function apartmentSearchTerm(address2) {
+    return normalizeText(address2).replace(LEADING_LABELS_RE, '').trim();
+}
+
+const hasApartment = (unitText) => unitText.replace(LABEL_WORDS_RE, '').trim() !== '';
 
 /**
  * Regex sent to GET /api/addressList/search/address/:address (matched server-side against
@@ -83,17 +86,21 @@ export function buildSearchPattern(address1) {
 }
 
 /**
- * Split search results into exact-address matches and other units in the same building.
- * Listings from other masjids and the listing being edited (excludeId) are dropped.
- * Once an apartment/suite is entered, other apartments are narrowed to those whose unit
- * starts with what was typed ("1" keeps 1A, 10, 12; "12" keeps 12B); listings with no
- * unit on record stay, since the data is often incomplete.
+ * Split search results at the same street into "already exists" (likely) and "other units at
+ * this address" (sameBuilding). Listings from other masjids and excludeId are dropped.
+ * - Nothing typed in address2: listings without an apartment are likely, the rest sameBuilding.
+ * - Something typed ("36"): only listings whose address2 contains it are kept — as a separate
+ *   number ("Apt code #36", "Unit 36") they are likely, inside a longer one ("360", "136",
+ *   "36B") they are sameBuilding. Nothing is interpreted (door code vs apartment).
  */
 export function classifyMatches(input, candidates, { masjidId, excludeId } = {}) {
     const likely = [];
     const sameBuilding = [];
     const target = normalizeAddress(input);
     if (!target.core) return { likely, sameBuilding };
+    // An apartment typed into address1 ("1301 S Finley Rd Apt 55") counts when address2 is empty.
+    const term = apartmentSearchTerm(input.address2) || apartmentSearchTerm(target.unitText);
+    const wholeTerm = term ? new RegExp(`(?:^| )${escapeRegex(term)}(?: |$)`) : null;
 
     (candidates || []).forEach(c => {
         if (!c || !c._id) return;
@@ -101,8 +108,11 @@ export function classifyMatches(input, candidates, { masjidId, excludeId } = {})
         if (excludeId !== undefined && excludeId !== null && String(c._id) === String(excludeId)) return;
         const n = normalizeAddress(c);
         if (n.houseNumber !== target.houseNumber || n.core !== target.core) return;
-        if (n.unit === target.unit) likely.push(c);
-        else if (!target.unit || !n.unit || n.unit.startsWith(target.unit)) sameBuilding.push(c);
+        if (!term) {
+            (hasApartment(n.unitText) ? sameBuilding : likely).push(c);
+        } else if (n.unitText.includes(term)) {
+            (wholeTerm.test(n.unitText) ? likely : sameBuilding).push(c);
+        }
     });
     return { likely, sameBuilding };
 }

@@ -1,32 +1,50 @@
-import { escapeRegex, normalizeAddress, buildSearchPattern, classifyMatches } from './addressDuplicates';
+import { escapeRegex, normalizeAddress, apartmentSearchTerm, buildSearchPattern, classifyMatches } from './addressDuplicates';
 
 describe('normalizeAddress', () => {
     it('abbreviates street types and directions', () => {
         expect(normalizeAddress({ address1: '123 North Main Street' }))
-            .toEqual({ houseNumber: '123', street: 'n main st', core: 'main', unit: '' });
+            .toEqual({ houseNumber: '123', street: 'n main st', core: 'main', unitText: '' });
         expect(normalizeAddress({ address1: '123 N. Main St.' }).core).toBe('main');
     });
 
-    it('reads the unit from address2 in any common form', () => {
-        ['Apt 4B', 'apt. 4b', '#4B', '# 4-B', 'Suite 4B', 'Unit 4B', 'Ste 4B', '4B'].forEach(a2 => {
-            expect(normalizeAddress({ address1: '10 Elm Ave', address2: a2 }).unit).toBe('4b');
-        });
+    it('keeps address2 as plain searchable text', () => {
+        expect(normalizeAddress({ address1: '10 Elm Ave', address2: 'Apt Door Code # 55' }).unitText).toBe('apt door code 55');
+        expect(normalizeAddress({ address1: '10 Elm Ave', address2: '#12-B' }).unitText).toBe('12 b');
     });
 
-    it('ignores address2 text that is not an apartment/suite number', () => {
-        ['c/o Ahmed', 'Rear house', 'Basement'].forEach(a2 => {
-            expect(normalizeAddress({ address1: '10 Elm Ave', address2: a2 }).unit).toBe('');
-        });
+    it('splits apartment / code text off the end of address1 so the street still matches', () => {
+        expect(normalizeAddress({ address1: '1301 S Finley Rd (Code #10)' }))
+            .toEqual({ houseNumber: '1301', street: 's finley rd', core: 'finley', unitText: 'code 10' });
+        expect(normalizeAddress({ address1: '1301 S Finley ( Code # 76 )' })).toMatchObject({ core: 'finley', unitText: 'code 76' });
+        expect(normalizeAddress({ address1: '1301 S FINLEY RD APT 217' })).toMatchObject({ core: 'finley', unitText: 'apt 217' });
+        expect(normalizeAddress({ address1: '1301 S Finley Rd # 416' })).toMatchObject({ core: 'finley', unitText: '416' });
+        expect(normalizeAddress({ address1: '1301 South Finley Road' })).toMatchObject({ core: 'finley', unitText: '' });
     });
 
-    it('splits a trailing unit off address1', () => {
-        expect(normalizeAddress({ address1: '55 Oak Dr Apt 12' }))
-            .toEqual({ houseNumber: '55', street: 'oak dr', core: 'oak', unit: '12' });
-        expect(normalizeAddress({ address1: '55 Oak Dr #12' }).unit).toBe('12');
+    it('splits letter-only units and floors off address1', () => {
+        expect(normalizeAddress({ address1: '2400 W North Ave APT B' })).toMatchObject({ street: 'w n ave', unitText: 'apt b' });
+        expect(normalizeAddress({ address1: '1500 W ANN ST # A' })).toMatchObject({ street: 'w ann st', unitText: 'a' });
+        expect(normalizeAddress({ address1: '10 S Main St STE D' })).toMatchObject({ street: 's main st', unitText: 'ste d' });
+        expect(normalizeAddress({ address1: '5 W Ann St UNIT B' })).toMatchObject({ street: 'w ann st', unitText: 'unit b' });
+        expect(normalizeAddress({ address1: '2200 N OAKLEY AVE 3rd Floor' })).toMatchObject({ street: 'n oakley ave', unitText: '3rd floor' });
+        expect(normalizeAddress({ address1: '7 Elm St Bldg 2' })).toMatchObject({ street: 'elm st', unitText: 'bldg 2' });
     });
 
-    it('does not mistake street names for unit designators', () => {
-        expect(normalizeAddress({ address1: '9 Unity Ave' })).toMatchObject({ street: 'unity ave', unit: '' });
+    it('does not mistake street names for apartment labels', () => {
+        expect(normalizeAddress({ address1: '9 Unity Ave' })).toMatchObject({ street: 'unity ave', unitText: '' });
+        expect(normalizeAddress({ address1: '123 Main Ave E' })).toMatchObject({ street: 'main ave e', unitText: '' });
+        expect(normalizeAddress({ address1: '40 Floral Ave' })).toMatchObject({ street: 'floral ave', unitText: '' });
+    });
+});
+
+describe('apartmentSearchTerm', () => {
+    it('drops leading labels and punctuation from what was typed', () => {
+        expect(apartmentSearchTerm('36')).toBe('36');
+        expect(apartmentSearchTerm('#36')).toBe('36');
+        expect(apartmentSearchTerm('Apt 36')).toBe('36');
+        expect(apartmentSearchTerm('Unit # 4B')).toBe('4b');
+        expect(apartmentSearchTerm('Apt ')).toBe('');
+        expect(apartmentSearchTerm('')).toBe('');
     });
 });
 
@@ -63,6 +81,7 @@ describe('escapeRegex', () => {
 
 describe('classifyMatches', () => {
     const listing = (over) => ({ _id: '1', masjidId: 7, unitId: 1, address1: '123 Main Street', ...over });
+    const ids = (list) => list.map(l => l._id);
 
     it('matches regardless of city, state and zip (often missing)', () => {
         const candidates = [
@@ -70,7 +89,7 @@ describe('classifyMatches', () => {
             listing({ _id: 'b' }),
         ];
         const { likely } = classifyMatches({ address1: '123 main st' }, candidates, { masjidId: '7' });
-        expect(likely.map(l => l._id)).toEqual(['a', 'b']);
+        expect(ids(likely)).toEqual(['a', 'b']);
     });
 
     it('includes inactive listings and listings without names', () => {
@@ -79,42 +98,7 @@ describe('classifyMatches', () => {
             [listing({ _id: 'x', inactive: true, firstName: undefined, lastName: undefined })],
             { masjidId: 7 }
         );
-        expect(likely.map(l => l._id)).toEqual(['x']);
-    });
-
-    describe('apartments in the same building', () => {
-        const building = [
-            listing({ _id: 'none' }),
-            listing({ _id: 'apt1', address2: 'Apt 1' }),
-            listing({ _id: 'apt1a', address2: 'Apt 1A' }),
-            listing({ _id: 'apt12', address2: 'Unit 12' }),
-            listing({ _id: 'apt12b', address2: '#12-B' }),
-            listing({ _id: 'apt3', address2: 'Apt 3' }),
-        ];
-        const ids = (list) => list.map(l => l._id);
-        const check = (address2) => classifyMatches({ address1: '123 Main St', address2 }, building, { masjidId: 7 });
-
-        it('lists every apartment while no apartment is entered', () => {
-            const result = check('');
-            expect(ids(result.likely)).toEqual(['none']);
-            expect(ids(result.sameBuilding)).toEqual(['apt1', 'apt1a', 'apt12', 'apt12b', 'apt3']);
-        });
-
-        it('narrows to apartments starting with what was typed, keeping listings with no unit', () => {
-            const typed1 = check('Apt 1');
-            expect(ids(typed1.likely)).toEqual(['apt1']);
-            expect(ids(typed1.sameBuilding)).toEqual(['none', 'apt1a', 'apt12', 'apt12b']);
-
-            const typed12 = check('#12');
-            expect(ids(typed12.likely)).toEqual(['apt12']);
-            expect(ids(typed12.sameBuilding)).toEqual(['none', 'apt12b']);
-        });
-
-        it('hides other apartments once a non-matching apartment is entered', () => {
-            const result = check('Suite 5');
-            expect(result.likely).toEqual([]);
-            expect(ids(result.sameBuilding)).toEqual(['none']);
-        });
+        expect(ids(likely)).toEqual(['x']);
     });
 
     it('drops other masjids, the excluded listing and different streets', () => {
@@ -127,7 +111,82 @@ describe('classifyMatches', () => {
         const { likely, sameBuilding } = classifyMatches(
             { address1: '123 Main St' }, candidates, { masjidId: 7, excludeId: 'self' }
         );
-        expect(likely.map(l => l._id)).toEqual(['keep']);
+        expect(ids(likely)).toEqual(['keep']);
         expect(sameBuilding).toEqual([]);
+    });
+
+    describe('address2 contains search', () => {
+        const building = [
+            listing({ _id: 'none' }),
+            listing({ _id: 'blankApt', address2: 'Apt ' }),
+            listing({ _id: 'apt36', address2: 'Apt 36' }),
+            listing({ _id: 'unit36', address2: 'UNit 36' }),
+            listing({ _id: 'code36', address2: 'Apt code #36' }),
+            listing({ _id: 'door36', address2: 'Apt Door Code # 36' }),
+            listing({ _id: 'n360', address2: '360' }),
+            listing({ _id: 'apt136', address2: 'Apt 136' }),
+            listing({ _id: 'apt36b', address2: 'Apt 36B' }),
+            listing({ _id: 'apt63', address2: 'Apt 63' }),
+            listing({ _id: 'line1', address1: '123 Main St Apt 36' }),
+        ];
+        const check = (address2) => classifyMatches({ address1: '123 Main St', address2 }, building, { masjidId: 7 });
+
+        it('with nothing typed, lists listings without an apartment as existing and the rest as other units', () => {
+            const result = check('');
+            expect(ids(result.likely)).toEqual(['none', 'blankApt']);
+            expect(ids(result.sameBuilding)).toEqual(['apt36', 'unit36', 'code36', 'door36', 'n360', 'apt136', 'apt36b', 'apt63', 'line1']);
+        });
+
+        it('"36" finds every address2 containing 36, whether apartment or door code', () => {
+            const result = check('36');
+            expect(ids(result.likely)).toEqual(['apt36', 'unit36', 'code36', 'door36', 'line1']);
+            expect(ids(result.sameBuilding)).toEqual(['n360', 'apt136', 'apt36b']);
+        });
+
+        it('typed labels are ignored: "Apt 36" and "#36" search for 36', () => {
+            expect(check('Apt 36')).toEqual(check('36'));
+            expect(check('#36')).toEqual(check('36'));
+        });
+
+        it('hides listings that do not contain the typed text', () => {
+            const result = check('5');
+            expect(result.likely).toEqual([]);
+            expect(result.sameBuilding).toEqual([]);
+            expect(ids(check('63').likely)).toEqual(['apt63']);
+        });
+    });
+
+    it('a large complex: "55" finds only listings whose address2 contains 55', () => {
+        const complex = [
+            listing({ _id: 'c55', address1: '1301 South Finley Road', address2: 'Apt Door Code # 55' }),
+            listing({ _id: 'c55old', address1: '1301 South Finley Road', address2: 'Apt Door Code # 55', inactive: true }),
+            listing({ _id: 'c36', address1: '1301 South Finley Road', address2: 'Apt code #36' }),
+            listing({ _id: 'c65', address1: '1301 South Finley Road', address2: 'Apt code #65' }),
+            listing({ _id: 'nounit', address1: '1301 South Finley Road' }),
+            listing({ _id: 'a1code10', address1: '1301 S Finley Rd (Code #10)' }),
+            listing({ _id: 'a1apt550', address1: '1301 S Finley Rd APT 550' }),
+        ];
+        const result = classifyMatches({ address1: '1301 S Finley', address2: '55' }, complex, { masjidId: 7 });
+        expect(ids(result.likely)).toEqual(['c55', 'c55old']);
+        expect(ids(result.sameBuilding)).toEqual(['a1apt550']);
+
+        // the apartment typed into address1 instead of address2 is used the same way
+        const inLine1 = classifyMatches({ address1: '1301 S Finley Rd Apt 55', address2: '' }, complex, { masjidId: 7 });
+        expect(inLine1).toEqual(result);
+    });
+
+    it('letter-only units in address1: "B" finds APT B, not APT D', () => {
+        const northAve = [
+            listing({ _id: 'aptB', address1: '2400 W North Ave APT B' }),
+            listing({ _id: 'aptD', address1: '2400 W North Ave APT D' }),
+            listing({ _id: 'plain', address1: '2400 W North Ave' }),
+        ];
+        const result = classifyMatches({ address1: '2400 W North Ave', address2: 'B' }, northAve, { masjidId: 7 });
+        expect(ids(result.likely)).toEqual(['aptB']);
+        expect(result.sameBuilding).toEqual([]);
+
+        const nothingTyped = classifyMatches({ address1: '2400 W North Ave', address2: '' }, northAve, { masjidId: 7 });
+        expect(ids(nothingTyped.likely)).toEqual(['plain']);
+        expect(ids(nothingTyped.sameBuilding)).toEqual(['aptB', 'aptD']);
     });
 });
