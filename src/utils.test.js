@@ -11,6 +11,21 @@ describe('wildcardToRegex', () => {
         expect(matches('1301*Finley', '1300 S Finley Rd')).toBe(false);
     });
 
+    it('passes regex typed on purpose through unchanged (issue #35 examples)', () => {
+        expect(wildcardToRegex('13.*Finley')).toBe('13.*Finley');
+        expect(wildcardToRegex(' 1.*.S.* Finley ')).toBe('1.*.S.* Finley');
+        ['1301 S Finley Rd', '1301 South Finley Road', '1301 S FINLEY RD APT 217'].forEach(address => {
+            expect(matches('13.*Finley', address)).toBe(true);
+            expect(matches('1.*.S.* Finley', address)).toBe(true);
+        });
+        expect(matches('13.*Finley', '1200 S Finley Rd')).toBe(false);
+    });
+
+    it('falls back to wildcard rules when text with .* is not a valid regex', () => {
+        expect(wildcardToRegex('12 (Rear.*Main')).toBe('12 \\(Rear\\..*Main');
+        expect(matches('12 (Rear.*Main', '12 (Rear. Main St')).toBe(true);
+    });
+
     it('collapses repeated * and allows leading/trailing *', () => {
         expect(wildcardToRegex('1301**Finley')).toBe('1301.*Finley');
         expect(wildcardToRegex('*Finley*')).toBe('.*Finley.*');

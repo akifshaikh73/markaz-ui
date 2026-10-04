@@ -56,10 +56,20 @@ export function patchCachedListing(id, fields) {
  * Turns search-box text into the regex the API's filter/search expects: `*` is a wildcard,
  * everything else is matched literally. "1301*Finley" -> "1301.*Finley" (finds "1301 S Finley"
  * and "1301 South Finley Road"); "12 (Rear)" -> "12 \(Rear\)" instead of breaking the regex.
+ * Text containing `.*` is taken as a regex typed on purpose ("13.*Finley", "1.*.S.* Finley") and
+ * passed through unchanged when it is a valid pattern; otherwise the wildcard rules apply.
  */
 export function wildcardToRegex(text) {
-    return String(text ?? '')
-        .trim()
+    const typed = String(text ?? '').trim();
+    if (typed.includes('.*')) {
+        try {
+            new RegExp(typed); // throws if the pattern is invalid
+            return typed;
+        } catch {
+            // not a valid regex: fall back to wildcard matching below
+        }
+    }
+    return typed
         .split(/\*+/)
         .map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
         .join('.*');
