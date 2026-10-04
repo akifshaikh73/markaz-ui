@@ -7,6 +7,8 @@ import StatusBadges from './StatusBadges';
 import PencilIcon from './PencilIcon';
 import StudentEditor from './StudentEditor';
 import { getDoNotDisturbVisit, DoNotDisturbBanner } from '../doNotDisturb';
+import useDuplicateAddressCheck from '../hooks/useDuplicateAddressCheck';
+import DuplicateAddressWarning from './DuplicateAddressWarning';
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
@@ -53,6 +55,19 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [coordsStale, setCoordsStale] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Look for other listings at the new address while the street or apt is being changed.
+    const addressChanged = editingAddress && (
+        addressDraft.address1.trim() !== (address.address1 || '').trim()
+        || addressDraft.address2.trim() !== (address.address2 || '').trim()
+    );
+    const dupes = useDuplicateAddressCheck({
+        masjidId: address.masjidId,
+        address1: addressDraft.address1,
+        address2: addressDraft.address2,
+        excludeId: address._id,
+        enabled: addressChanged,
+    });
 
     const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
 
@@ -188,6 +203,32 @@ function AddressDetail({ address: initialAddress, isModal }) {
         setEditingAddress(false);
         setAddressError('');
     };
+
+    const handleActivateAndOpenMatch = (match) => {
+        const name = [match.firstName, match.lastName].filter(Boolean).join(' ');
+        if (!window.confirm(`Activate listing #${match._id}${name ? ` (${name})` : ''} and open it? Your address edit here will not be saved.`)) return;
+        fetch(`${API_URL}/api/addressList/${match._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inactive: false }),
+        })
+        .then(res => res.json().then(data => {
+            if (!res.ok) throw new Error(data.error || `Server error: ${res.status}`);
+            return data;
+        }))
+        .then(() => {
+            patchCachedListing(match._id, { inactive: false });
+            handleOpenMatch({ ...match, inactive: false });
+        })
+        .catch(err => setAddressError(err.message));
+    };
+
+    const handleOpenMatch = (match) => {
+        cancelEditAddress();
+        navigate(`/address/${match._id}`, { state: { address: match, from: location.state?.from, fromState: location.state?.fromState } });
+    };
+
+    const matchBtn = { padding: '0.25rem 0.6rem', fontSize: '0.8rem', borderRadius: '4px', cursor: 'pointer' };
 
     // Validation mirrors PUT /api/addressList/:id so users see the error before a round-trip.
     const handleUpdateAddress = () => {
@@ -534,6 +575,15 @@ function AddressDetail({ address: initialAddress, isModal }) {
                             <button onClick={cancelEditAddress} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
                         </div>
                         {addressError && <div id="address-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em', marginTop: '0.25rem' }}>{addressError}</div>}
+                        <div style={{ marginTop: '0.5rem' }}>
+                            <DuplicateAddressWarning {...dupes} renderActions={match => (
+                                match.inactive ? (
+                                    <button onClick={() => handleActivateAndOpenMatch(match)} style={{ ...matchBtn, background: '#e65100', color: '#fff', border: 'none' }}>Activate &amp; open</button>
+                                ) : (
+                                    <button onClick={() => handleOpenMatch(match)} style={matchBtn}>Open listing</button>
+                                )
+                            )} />
+                        </div>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
