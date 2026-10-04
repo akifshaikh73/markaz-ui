@@ -52,6 +52,19 @@ export function patchCachedListing(id, fields) {
     }
 }
 
+/**
+ * Turns search-box text into the regex the API's filter/search expects: `*` is a wildcard,
+ * everything else is matched literally. "1301*Finley" -> "1301.*Finley" (finds "1301 S Finley"
+ * and "1301 South Finley Road"); "12 (Rear)" -> "12 \(Rear\)" instead of breaking the regex.
+ */
+export function wildcardToRegex(text) {
+    return String(text ?? '')
+        .trim()
+        .split(/\*+/)
+        .map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('.*');
+}
+
 const roleStyles = {
     MarkazAdmin: { background: '#ede7f6', color: '#6a1b9a', border: '1px solid #ce93d8' },
     MasjidAdmin: { background: '#fff3e0', color: '#e65100', border: '1px solid #ffcc80' },

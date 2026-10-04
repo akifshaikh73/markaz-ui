@@ -88,9 +88,12 @@ function SearchForm({ masjidID, unitID, unitOptions = [], onUnitChange, onSearch
                 Name:
                 <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
             </label>
-            <label>
+            <label style={{ display: 'inline-block', verticalAlign: 'top' }}>
                 Address:
                 <input type="text" placeholder="Address" value={address} onChange={e => setAddress(e.target.value)} />
+                <span style={{ display: 'block', maxWidth: '260px', fontSize: '0.75em', color: '#999', fontWeight: 400, lineHeight: 1.3 }}>
+                    Use * as a wildcard — e.g. 1301*Finley finds 1301 S Finley and 1301 South Finley
+                </span>
             </label>
             <label>
                 City:

@@ -7,6 +7,7 @@ import { exportToExcel } from '../exportExcel';
 import { getAdmin, getUserRole } from '../config';
 import StatusBadges from './StatusBadges';
 import { useMasjidConfig } from '../hooks/useMasjids';
+import { wildcardToRegex } from '../utils';
 
 function Landing({ showInactive: isInactiveView = false, showStudents: isStudentView = false }) {
     const location = useLocation();
@@ -144,6 +145,8 @@ function Landing({ showInactive: isInactiveView = false, showStudents: isStudent
         setSearchWarning(null);
         const body = { ...params, ...viewFilter };
         if (body.unitId === undefined || body.unitId === null || body.unitId === '') delete body.unitId;
+        // The box keeps what the user typed ("1301*Finley"); the API gets the regex ("1301.*Finley").
+        if (body.address) body.address = wildcardToRegex(body.address);
 
         const bodies = isInactiveView
             ? [{ ...body, showInactive: true }]
