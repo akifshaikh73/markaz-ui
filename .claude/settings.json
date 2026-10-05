@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/require-manual-update.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Checking feat commit includes the functional manual..."
+          }
+        ]
+      }
+    ]
+  }
+}
