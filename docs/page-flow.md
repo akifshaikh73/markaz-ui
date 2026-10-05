@@ -136,6 +136,19 @@ Navigate to selected page with state: { isLoggedIn: true, masjidID, unitID }
 
 ---
 
+### 2.6 Help link (user manual)
+
+```
+MasjidLanding  → "❓ Help — user manual" (plain <a href="/help">, full page load)
+/help          → Help component (public, no role needed)
+                 → window.location.replace('/user-manual.html')   // static page from public/
+Back           → returns to MasjidLanding (/help was replaced, so it is not in the history)
+```
+
+`/user-manual.html` is a static file generated from `docs/functional-manual-user.md`
+(`scripts/build-user-manual-html.mjs`); Render serves existing files before the `/* → /index.html`
+catch-all, so it loads without the SPA.
+
 ## 3. Visitation View Page Flow
 
 **Route:** `/visitation`

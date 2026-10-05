@@ -256,6 +256,7 @@ const MasjidLanding = () => {
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 <StatusBadges showOnMobile={true} />
             </div>
+            <a href="/help" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#1976d2', fontWeight: 600, textDecoration: 'none' }}>❓ Help — user manual</a>
             <p style={{ margin: 0, textAlign: 'center', fontSize: '0.75rem', color: '#aaa' }}>v{version}</p>
         </div>
     );

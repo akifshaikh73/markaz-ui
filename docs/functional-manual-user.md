@@ -25,6 +25,7 @@ The starting hub for your masjid:
 - **Full Listings** opens the address list and search tools.
 - **Student Listings** opens the address list limited to student listings.
 - **Quick Links** opens shortcuts to lists, routes, and reports.
+- **❓ Help — user manual** opens this manual (also at `/help`).
 - **Logout** ends the session.
 
 The browser may remember the last masjid, unit, and view.

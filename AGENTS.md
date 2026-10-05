@@ -30,6 +30,7 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 | `/user-login` | `UserLogin` | None | MasjidAdmin entry: Email + PIN login; auto-login on PWA return if credentials cached; redirects to `/:masjidSlug` on success |
 | `/:masjidSlug` | `MasjidLanding` | None | Public landing page; auto-grants `MasjidUser` role when user makes a selection; shows unit selector and four navigation options (Visitations, Full Listings, Student Listings, Quick Links); on return visits, auto-navigates to last viewed page; collapsible "Other Masjids" section for MasjidAdmin users |
 | `/admin-login` | `AdminPasswordLogin` | None | MarkazAdmin entry: Markaz password prompt; sets `userRole = 'MarkazAdmin'`; redirects to `/admin-home` on success |
+| `/help` | `Help` | None | Public — forwards (`window.location.replace`) to the static user manual `/user-manual.html`; linked from `MasjidLanding` |
 | `/admin-home` | `Home` | `MarkazAdmin` | Admin dashboard; redirects to `/admin-login` if not MarkazAdmin; shows navigation links and logout button |
 | `/landing/:masjidID/:unitID` | `Landing` | Any authenticated | Protected — main address list view; accessible to MasjidUser, MasjidAdmin, or MarkazAdmin |
 | `/landing/inactive/:masjidID/:unitID` | `Landing showInactive` | Any authenticated | Protected — inactive addresses only |

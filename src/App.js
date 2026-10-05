@@ -16,6 +16,7 @@ import MasjidDetail from './Components/MasjidDetail';
 import UserManagement from './Components/UserManagement';
 import UserDetail from './Components/UserDetail';
 import Home from './Components/Home';
+import Help from './Components/Help';
 import { MasjidProvider } from './hooks/useMasjids';
 
 const ProtectedMarkazAdminRoute = () => {
@@ -45,6 +46,7 @@ function App() {
                     <Route path="/masjid-login" element={<MasjidLogin />} />
                     <Route path="/user-login" element={<UserLogin />} />
                     <Route path="/admin-home" element={<Home />} />
+                    <Route path="/help" element={<Help />} />
                     <Route path="/:masjidSlug" element={<MasjidLanding />} />
                     <Route path="/admin-login" element={<AdminPasswordLogin />} />
                     <Route element={<ProtectedUserRoute />}>
