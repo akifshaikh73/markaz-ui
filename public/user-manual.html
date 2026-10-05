@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visitations User Manual</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --line: #d1d9e0; --soft: #f6f8fa; --accent: #1976d2; --code: #eff1f3; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --line: #30363d; --soft: #151b23; --accent: #4493f8; --code: #262c36; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; }
+  nav { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 24px 16px; border-right: 1px solid var(--line); }
+  nav strong { display: block; margin-bottom: 8px; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  nav a { display: block; padding: 4px 0; color: var(--fg); text-decoration: none; font-size: 0.92rem; }
+  nav a:hover { color: var(--accent); }
+  main { padding: 24px 40px 80px; min-width: 0; }
+  h1 { font-size: 1.9rem; margin: 0 0 12px; }
+  h2 { font-size: 1.4rem; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); scroll-margin-top: 16px; }
+  h3 { font-size: 1.1rem; margin: 28px 0 8px; scroll-margin-top: 16px; }
+  a { color: var(--accent); }
+  code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+  figure { margin: 16px 0 24px; }
+  figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); background: #fff; }
+  figcaption { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; margin: 12px 0; }
+  th, td { border: 1px solid var(--line); padding: 6px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--soft); }
+  li { margin: 4px 0; }
+  .note { color: var(--muted); font-size: 0.85rem; }
+  @media (max-width: 800px) {
+    .layout { display: block; }
+    nav { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 16px; }
+    main { padding: 16px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav><strong>Contents</strong><a href="#1-signing-in">1. Signing in</a><a href="#2-masjid-landing-screen">2. Masjid landing screen</a><a href="#3-visitations">3. Visitations</a><a href="#4-full-listings">4. Full Listings</a><a href="#5-adding-an-address-and-the-duplicate-check">5. Adding an address and the duplicate check</a><a href="#6-address-detail-and-visits">6. Address detail and visits</a><a href="#7-routes">7. Routes</a><a href="#8-quick-links-and-reports">8. Quick Links and Reports</a><a href="#9-navigation">9. Navigation</a><a href="#10-troubleshooting">10. Troubleshooting</a></nav>
+<main>
+<h1>Chicago Visitations — User Manual (Masjid User)</h1>
+<p>This manual is for <strong>Masjid Users</strong>: volunteers who sign in with a masjid PIN or a masjid link and do the visitation work for one masjid. Administrators use the same screens; their extra tools are in the <strong>Admin Manual</strong>.</p>
+<p>Menu names in the application are the source of truth. Cards labeled <strong>Coming Soon</strong> are planned features and are not usable yet. The screenshots use made-up demo data — the names, streets and masjid shown are fictitious.</p>
+<h2 id="1-signing-in">1. Signing in</h2>
+<ol><li>Open <code>/masjid-login</code>, or the masjid's shared link (for example <code>/di</code>).</li><li>Enter the masjid PIN (a shared link already identifies the masjid, so no PIN is needed).</li><li>Select a unit, or choose <strong>All</strong>.</li><li>Choose <strong>Visitations</strong>, <strong>Full Listings</strong>, <strong>Student Listings</strong>, or <strong>Quick Links</strong>.</li></ol>
+<p>You only see and open listings for your own masjid; opening another masjid's listing shows <strong>Access Denied</strong>. Use <strong>Logout</strong> on a shared device.</p>
+<figure><a href="user-manual/01-masjid-login.png"><img src="user-manual/01-masjid-login.png" alt="Masjid Login screen with the Masjid PIN box" loading="lazy"></a><figcaption>Masjid Login screen with the Masjid PIN box</figcaption></figure>
+<h2 id="2-masjid-landing-screen">2. Masjid landing screen</h2>
+<p>The starting hub for your masjid:</p>
+<ul><li><strong>Masjid ID</strong> shows the current masjid and cannot be changed here.</li><li><strong>Unit ID</strong> selects one unit or <strong>All</strong>.</li><li><strong>Visitations</strong> opens the daily/weekly visitation queue.</li><li><strong>Full Listings</strong> opens the address list and search tools.</li><li><strong>Student Listings</strong> opens the address list limited to student listings.</li><li><strong>Quick Links</strong> opens shortcuts to lists, routes, and reports.</li><li><strong>Logout</strong> ends the session.</li></ul>
+<p>The browser may remember the last masjid, unit, and view.</p>
+<figure><a href="user-manual/02-masjid-landing.png"><img src="user-manual/02-masjid-landing.png" alt="Masjid landing screen with the Unit selector and the Visitations, Full Listings, Student Listings and Quick Links buttons" loading="lazy"></a><figcaption>Masjid landing screen with the Unit selector and the Visitations, Full Listings, Student Listings and Quick Links buttons</figcaption></figure>
+<h2 id="3-visitations">3. Visitations</h2>
+<p>The visitation queue shows active addresses for the masjid, a manageable number per unit.</p>
+<ol><li>Choose <strong>Earliest</strong> (least recently visited first) or <strong>Latest</strong> (most recently visited first).</li><li>Choose how many addresses to show per unit: 5, 10, 25, or a custom number.</li><li>Filter by unit, then by neighborhood.</li><li>Search by name, address, or phone number.</li><li>Review the last visit date and response.</li><li>Tick addresses and use <strong>Route Selected</strong>, or use <strong>Route Unit</strong>, to plan a route (see <a href="#7-routes">Routes</a>).</li><li>Use <strong>+ Add Address</strong> to add a household you met (see <a href="#5-adding-an-address-and-the-duplicate-check">Adding an address</a>). The unit defaults to the unit filter.</li></ol>
+<figure><a href="user-manual/03-visitations.png"><img src="user-manual/03-visitations.png" alt="Visitations queue: Earliest/Latest, Show count, Unit and Area filters, search box, and a unit group with Route Unit" loading="lazy"></a><figcaption>Visitations queue: Earliest/Latest, Show count, Unit and Area filters, search box, and a unit group with Route Unit</figcaption></figure>
+<p>Invalid (inactive) addresses are not in the queue. ⛔ red rows are <strong>Do Not Disturb</strong> — do not visit them (see <a href="#row-markers">Row markers</a>). 🎓 marks student listings. An address you add here is pinned to the top of its unit with a <strong>NEW</strong> badge. Filters are remembered for the browser session.</p>
+<h2 id="4-full-listings">4. Full Listings</h2>
+<p>The full address list for the masjid, at <code>/landing/:masjidID/:unitID</code>.</p>
+<h3 id="finding-addresses">Finding addresses</h3>
+<ol><li>Choose a unit, if available.</li><li>Fill in any of: ID, name, address, city, phone number.</li><li>Use the <strong>Neighborhood</strong> selector to narrow by area.</li><li>Tick <strong>Include Invalid</strong> to also show invalid (inactive) listings.</li><li>Select <strong>Search</strong>. <strong>Reset</strong> returns to the normal list.</li></ol>
+<figure><a href="user-manual/04-full-listings.png"><img src="user-manual/04-full-listings.png" alt="Full Listings: search fields, Neighborhood, Include Invalid, + Add Address and the address list grouped by neighborhood" loading="lazy"></a><figcaption>Full Listings: search fields, Neighborhood, Include Invalid, + Add Address and the address list grouped by neighborhood</figcaption></figure>
+<p>Searches ignore upper/lower case and match any part of a field. In the <strong>Address</strong> box, <code>*</code> means &quot;anything here&quot;: <code>1301*Finley</code> finds both <code>1301 S Finley Rd</code> and <code>1301 South Finley Road</code>. Everything else is matched exactly as typed. A hint under the Address box shows this example. If you know regular expressions, text containing <code>.*</code> is used as a regex as typed (e.g. <code>13.*Finley</code>, <code>1.*.S.* Finley</code>).</p>
+<figure><a href="user-manual/05-search-wildcard.png"><img src="user-manual/05-search-wildcard.png" alt="Search results for 1301*Larkspur: the S Larkspur Rd and South Larkspur Road listings, with the wildcard hint under the Address box" loading="lazy"></a><figcaption>Search results for 1301*Larkspur: the S Larkspur Rd and South Larkspur Road listings, with the wildcard hint under the Address box</figcaption></figure>
+<p>Results are grouped by neighborhood; addresses without one appear under <strong>(No Area)</strong>. The neighborhood filter narrows the current results.</p>
+<h3 id="row-markers">Row markers</h3>
+<ul><li>🎓 beside the ID: a student listing, or a listing with students.</li><li>⛔ and a red tint: <strong>Do Not Disturb</strong>. A listing is Do Not Disturb when one of its last three visits has the response &quot;Do Not Disturb&quot; or a comment mentioning &quot;do not disturb&quot; / &quot;DND&quot;. <strong>Do not visit these addresses.</strong></li><li>Green <strong>NEW</strong> badge: an address added during your current visit to the page; it appears at the top straight away.</li><li><strong>INACTIVE</strong>: an invalid listing (shown only with <strong>Include Invalid</strong> or on Inactive Listings).</li></ul>
+<p>Open a listing by selecting its ID.</p>
+<h3 id="working-with-several-addresses">Working with several addresses</h3>
+<p>Tick the checkboxes on the rows you want, then:</p>
+<ul><li><strong>Set Neighborhood</strong> — give them all the same neighborhood.</li><li><strong>Set Unit</strong> — move them to another unit.</li><li><strong>Route</strong> — open them in route planning.</li></ul>
+<h3 id="student-listings">Student Listings</h3>
+<p>Student Listings shows only listings marked <strong>Is Student</strong> or with students recorded. Each row shows a <strong>STUDENT</strong> badge and the students' names with where they go (Madrasa, High-School, College-University, Work). The filter stays on through search, reset, unit changes, and <strong>Include Invalid</strong>. Open it from the landing screen or the <strong>Student List</strong> Quick Link.</p>
+<figure><a href="user-manual/09-student-listings.png"><img src="user-manual/09-student-listings.png" alt="Student Listings with STUDENT badges and student names" loading="lazy"></a><figcaption>Student Listings with STUDENT badges and student names</figcaption></figure>
+<h2 id="5-adding-an-address-and-the-duplicate-check">5. Adding an address and the duplicate check</h2>
+<p><strong>+ Add Address</strong> is on Full Listings and Visitations.</p>
+<ol><li>Check the <strong>Unit</strong> (it defaults to the unit you are viewing).</li><li>Enter <strong>First Name</strong>, <strong>Last Name</strong>, and <strong>Address Line 1</strong> (required).</li><li>Put the apartment, suite, or unit in <strong>Address Line 2</strong>.</li><li>Optionally add city, state, zip, phone number, and the first visit (response, comment, date).</li><li>Select <strong>Add Address</strong>. The new address appears at the top of the list with a <strong>NEW</strong> badge.</li></ol>
+<p><strong>Duplicate check.</strong> While you type the street, the form looks for listings already at that address in your masjid — including invalid ones:</p>
+<ul><li>Only Address Line 1 and Address Line 2 are compared; city, state, and zip are ignored because they are often missing. <code>St</code> / <code>Street</code> and <code>S</code> / <code>South</code> count as the same.</li><li>An orange box lists what it finds. <strong>This address already exists</strong> = same address. <strong>Other units at this address</strong> = other apartments in the same building.</li><li>Typing in Address Line 2 narrows the list. <code>36</code> finds <code>Apt 36</code>, <code>Unit 36</code>, and <code>Apt Door Code # 36</code> as existing, and <code>360</code> or <code>36B</code> as other units; anything without <code>36</code> is hidden. A leading &quot;Apt&quot;, &quot;Unit&quot;, &quot;Suite&quot;, &quot;Code&quot;, or &quot;#&quot; in what you type is ignored.</li><li>Each match has <strong>Open listing</strong>. An invalid match has <strong>Activate &amp; open</strong>, which makes it active again and opens it. Prefer these over adding a duplicate. If you already typed a name, phone, or comment, you are asked before leaving the form.</li><li>The check never stops you: <strong>Add Address</strong> still saves when it really is a different household.</li></ul>
+<figure><a href="user-manual/06-add-address-duplicate.png"><img src="user-manual/06-add-address-duplicate.png" alt="Add New Address form: 1301 S Larkspur with 55 in Address Line 2 shows two existing listings, one with Open listing and an inactive one with Activate &amp; open" loading="lazy"></a><figcaption>Add New Address form: 1301 S Larkspur with 55 in Address Line 2 shows two existing listings, one with Open listing and an inactive one with Activate &amp; open</figcaption></figure>
+<p>The same check runs when you change the street or apartment on an address's detail page; the listing being edited is never listed as its own duplicate.</p>
+<h2 id="6-address-detail-and-visits">6. Address detail and visits</h2>
+<p>Select an address ID to open its details:</p>
+<ul><li><strong>Do Not Disturb — please do not visit</strong> banner when it applies, and an <strong>Inactive</strong> banner for invalid listings</li><li>ID, Masjid ID, and Unit ID on one row</li><li>Name, students (listed under the name), contact details, and notes</li><li>Street address (with Address Line 2) and neighborhood</li><li>Invalid, Is Student, Met status, and last visited date</li><li>Visit history, newest first</li></ul>
+<figure><a href="user-manual/07-address-detail.png"><img src="user-manual/07-address-detail.png" alt="Address Detail: ID row, name, address, editable contact fields, checkboxes, visit entry and history, Route and Back" loading="lazy"></a><figcaption>Address Detail: ID row, name, address, editable contact fields, checkboxes, visit entry and history, Route and Back</figcaption></figure>
+<h3 id="recording-a-visit">Recording a visit</h3>
+<p>Choose the <strong>Date</strong>, select a <strong>Response</strong>, optionally add <strong>Comments</strong>, and select <strong>Update Response</strong> (a response is required). A response of <strong>Invalid</strong>, <strong>Moved</strong>, or <strong>Duplicate</strong> also marks the listing invalid.</p>
+<h3 id="editing-details">Editing details</h3>
+<p>Fields with a ✏️ pencil can be edited in place; ✔ saves, ✕ cancels:</p>
+<ul><li><strong>Name</strong> and <strong>Unit ID</strong></li><li><strong>Address</strong> — street, apt/unit, city, state (two letters), and zip (five digits). Changing the street shows a notice that the map and route still use the old location. The <a href="#5-adding-an-address-and-the-duplicate-check">duplicate check</a> runs while you edit.</li><li><strong>Phone Number</strong>, <strong>Best Time</strong>, <strong>Profession</strong>, <strong>Ethnicity</strong></li><li><strong>Notes</strong></li><li><strong>Students</strong> — add, edit, or remove students with name, where they go, and year of birth</li><li>Checkboxes: <strong>Mens Work</strong> / <strong>Ladies Work</strong> (with time spent), <strong>Invalid</strong>, <strong>Is Student</strong> (&quot;Student or young adult&quot;)</li></ul>
+<p><strong>Route</strong> opens this address in route planning; it is greyed out when the address has no coordinates. <strong>Back</strong> returns to the list you came from.</p>
+<h2 id="7-routes">7. Routes</h2>
+<p>Route planning opens from ticked rows (<strong>Route</strong>), a whole visitation unit (<strong>Route Unit</strong>), an address's <strong>Route</strong> button, or the <strong>Routes</strong> Quick Link.</p>
+<ol><li>Review the stops on the map and in the list (only addresses with coordinates can be shown). Markers are blue when ticked, green when the address has a neighborhood, grey when it has none.</li><li>Started from a single address? Enter a number in <strong>Find nearby</strong> and select <strong>Go</strong> to add that many of the closest active addresses in your masjid (up to 50) — handy for planning a walk around one visit.</li><li>Tick stops to route only those; with none ticked, all stops are routed.</li><li>Select <strong>Optimize Route</strong> to calculate a driving route starting from the masjid, then review the total distance and estimated time.</li><li><strong>Clear Route</strong> removes the calculated route but keeps the stops.</li></ol>
+<p>With stops ticked you can also type a neighborhood in <strong>Type area</strong> and select <strong>Set</strong> to give them all that neighborhood (<strong>Clear</strong> unticks them). From Quick Links, Route View opens with the masjid as the starting point and no stops selected.</p>
+<figure><a href="user-manual/08-route.png"><img src="user-manual/08-route.png" alt="Route View: an optimized route from the masjid with distance and time, the stop list, and Type area / Set" loading="lazy"></a><figcaption>Route View: an optimized route from the masjid with distance and time, the stop list, and Type area / Set</figcaption></figure>
+<h2 id="8-quick-links-and-reports">8. Quick Links and Reports</h2>
+<div class="table-wrap"><table><thead><tr><th>Quick Link</th><th>What it does</th></tr></thead><tbody><tr><td>Visitations</td><td>Opens the visitation queue</td></tr><tr><td>Full List</td><td>Opens the full address list for all units</td></tr><tr><td>Student List</td><td>Opens Student Listings</td></tr><tr><td>Routes</td><td>Opens route planning</td></tr><tr><td>Reports</td><td>Opens the Reports screen</td></tr><tr><td>Inactive Listings</td><td>Opens the list of invalid (inactive) listings</td></tr><tr><td>Businesses, Old Workers, Masturat Work</td><td>Coming Soon</td></tr></tbody></table></div>
+<figure><a href="user-manual/10-quick-links.png"><img src="user-manual/10-quick-links.png" alt="Quick Links tiles; Businesses, Old Workers and Masturat Work are greyed out as Coming Soon" loading="lazy"></a><figcaption>Quick Links tiles; Businesses, Old Workers and Masturat Work are greyed out as Coming Soon</figcaption></figure>
+<p>All cards on the <strong>Reports</strong> screen are currently <strong>Coming Soon</strong> (Unvisited Addresses, High Priority, Visit Statistics, Area Summary, Export Data). Use <strong>Home</strong> to return to the masjid landing screen.</p>
+<h2 id="9-navigation">9. Navigation</h2>
+<ul><li><strong>Home</strong> returns to the masjid landing screen.</li><li><strong>Back</strong> returns to the previous list or page.</li><li>Opening a page directly without signing in sends you to the login screen.</li><li><strong>Logout</strong> clears saved filters and the selected masjid on this device.</li></ul>
+<h2 id="10-troubleshooting">10. Troubleshooting</h2>
+<p><strong>No data appears.</strong> Check that the right masjid and unit are selected and that you are online. After the app has been idle, the first load can take up to a minute.</p>
+<p><strong>The duplicate check does not appear on Add Address.</strong> It starts about half a second after you stop typing and needs a house number plus at least two letters of the street (for example <code>1301 Fi</code>). It shows <strong>Checking for existing listings…</strong> while waiting. After a new release, reload the page (Ctrl+Shift+R, or close and reopen the installed app).</p>
+<p><strong>An address search finds nothing.</strong> Text is matched exactly as typed. Use <code>*</code> for the parts that vary, e.g. <code>1301*Finley</code> instead of <code>1301 S Finley</code>.</p>
+<p><strong>A route has no stops.</strong> Only addresses with coordinates can be routed. Check the address detail page.</p>
+<p><strong>A button is missing.</strong> Some features are <strong>Coming Soon</strong>; Map View and Excel export are for administrators.</p>
+<p><strong>The app opens at the login screen.</strong> This is normal for a new session — enter the masjid PIN again or use the masjid link.</p>
+<p class="note">Generated from docs/functional-manual-user.md on 2026-10-05.</p>
+</main>
+</div>
+</body>
+</html>

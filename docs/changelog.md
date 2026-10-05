@@ -5,6 +5,16 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-10-04
+
+- **feat(address):** Add Address and the Address Detail address editor flag existing listings at the same address in the same masjid, active and inactive, using `GET /api/addressList/search/address/:address` (anchored on the house number; no API change). Only Address Line 1 / 2 are compared — city, state and zip are ignored. Matches are listed under "This address already exists" / "Other units at this address" with **Open listing**, or **Activate & open** for inactive ones. Saving is never blocked. Saving the form onto the existing listing is implemented but hidden behind `AddAddress` `allowUpdateExisting`.
+- **fix(address):** Address Line 2 is matched with a plain contains search (no door-code vs apartment interpretation): `36` finds `Apt 36`, `Unit 36`, `Apt code #36` as existing and `360` / `36B` as other units. Apartment / suite / code / floor text at the end of Address Line 1 (`APT B`, `# 416`, `(Code #10)`, `3rd Floor`) is split off so the street still matches and is searched the same way; an apartment typed into Address Line 1 is used when Line 2 is empty.
+- **fix(search):** Address search text containing `.*` is passed through as a regex again when valid (`13.*Finley`, `1.*.S.* Finley` — #35); other text keeps the `*` wildcard rules.
+- **feat(search):** `*` is a wildcard in the Full Listings Address search — `1301*Finley` finds `1301 S Finley Rd` and `1301 South Finley Road`. Everything else is matched literally (input like `12 (Rear)` no longer breaks the search). A hint under the Address box explains it.
+- **docs(manual):** Split the functional manual by role — `docs/functional-manual-user.md` (Masjid User; all shared screens) and `docs/functional-manual-admin.md` (Masjid Admin / Markaz Admin extras and dashboard), with `docs/functional-manual.md` as the index — and bring it up to date with the 2026-09-06 → 2026-10-04 releases (students, Do Not Disturb, NEW badge, inline address editing, Quick Links/Reports changes, duplicate check, wildcard search). Role notes now follow the code: Add Address, address editing and Set Neighborhood are available to Masjid Users; Map View, Excel export and coordinates are admin-only.
+- **docs(manual):** HTML User Manual with screenshots — `public/user-manual.html` (served at `/user-manual.html`), generated from `docs/functional-manual-user.md` by `scripts/build-user-manual-html.mjs`. Screenshots are captured from the running app by `scripts/capture-manual-screenshots.mjs` into `public/user-manual/` — the only copy, used by both the HTML page and the markdown — with the API answered from fictitious demo data (`scripts/manual-demo-data.mjs`), so no real household data is published. The User Manual also documents Route View's **Find nearby** and **Type area / Set**.
+- **chore(claude):** Add a Claude Code hook that requires a functional manual (user and/or admin) to be staged with any `feat` commit.
+
 ## 2026-09-28
 
 - **feat(listings):** Highlight Do Not Disturb listings — a "Do Not Disturb" response, or a comment mentioning "do not disturb" / "DND", in any of the last 3 visits. Rows get a red tint and left stripe with a ⛔ icon beside the ID on Full Listing and Visitations; Address Detail shows a "Do Not Disturb — please do not visit" banner at the top.

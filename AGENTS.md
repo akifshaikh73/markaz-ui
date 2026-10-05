@@ -120,7 +120,7 @@ Never hardcode `localhost` URLs.
 **Address List & Filtering**:
 - `addressList` — working set from last fetch or search (cleared on logout). AddressDetail name/unit/address saves patch the matching entry in place via `patchCachedListing()` in `src/utils.js`; a unit change drops it from a unit-scoped cache.
 - `selectedIds` — IDs selected through the shared ID-column checkboxes for bulk Area and Unit updates; Masjid Users, Masjid Admins, and Markaz Admins can use bulk Unit updates, while Area updates remain admin-only; cleared after either update
-- `searchParams` — last search form values (cleared on logout)
+- `searchParams` — last search form values, as typed (cleared on logout). `doSearch()` sends `address` through `wildcardToRegex()` (`src/utils.js`) so `*` is a wildcard and other characters are literal; the stored value is never converted.
 - `areaFilter` — last area filter text (cleared on logout)
 - `activeFilters` — `{ showInactive, filterByStudents }` (cleared on logout)
 

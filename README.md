@@ -152,7 +152,7 @@ All endpoints are relative to `REACT_APP_API_URL` (configured via environment va
 | `unitAreas` | React state | Derived from `addressList` on initial fetch | Sorted unique area/neighborhood names for the Neighborhood `<select>` dropdown and the "Set Neighborhood" datalist. Cached in `sessionStorage`. Only grows — new areas appended on bulk update. |
 | `areaFilter` | React state | User selects from Neighborhood `<select>` | Active neighborhood filter. `''` = no filter. `'__NO_AREA__'` = show unassigned addresses. |
 | `filteredAddressList` | Derived (render-time) | `addressList` filtered by `areaFilter` | What `AddressList` actually renders. Area and search filters compose — both apply to the same `addressList`. |
-| `searchParams` | React state | Search form submit | Last submitted search field values. |
+| `searchParams` | React state | Search form submit | Last submitted search field values, exactly as typed (e.g. `address: "1301*Finley"`). `doSearch()` converts `address` with `wildcardToRegex()` (`src/utils.js`: `*` → `.*`, everything else escaped) only in the request body, so the box and the cached `searchParams` keep the user's text. |
 | `includeInactive` | React state | "Include Inactive" checkbox (`SearchForm`) | `false` = active-only (default). `true` = `addressList` is the **merged** result of an active-only fetch + an inactive-only fetch (the API's `showInactive` is an exclusive filter, not additive — there's no single-request "both" option). Reset to `false` on unit switch and on Reset. |
 | `activeFilters` (legacy, unused) | — | `FilterUI` (orphaned component, not rendered by `Landing`) | Documented here historically; superseded by `includeInactive` + the `/landing/inactive/...` route. Not wired up — do not assume it does anything. |
 
