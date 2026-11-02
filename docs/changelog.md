@@ -5,6 +5,16 @@ Format: `<type>(<scope>): <description>` — types: `feat`, `fix`, `refactor`, `
 
 ---
 
+## 2026-11-01
+
+- **feat(address):** Add Address suggests US street addresses as you type (Mapbox Geocoding v6, biased to your location) and fills street, city, state and zip when you pick one. Optional — needs `REACT_APP_MAPBOX_TOKEN` (public `pk.` token, URL-restricted); without it the field is a plain input. Address Line 2 is never filled by a suggestion.
+- **feat(address):** New listings are saved with a map location: on **Add Address** the app looks the address up on OpenStreetMap Nominatim (needs city + state, or zip) and sends `latitude` / `longitude`. A failed lookup never blocks saving; the listing is simply saved without a location.
+- **feat(address):** Address detail shows **📍 Locate & route** instead of a greyed-out Route button when a listing has no location. It finds and saves the location, then opens the route. If the address isn't found: **Fix address** (opens the editor) or **Place on map** (tap/drag a pin on a map centred on the city, then **Save location**).
+- **feat(address):** Editing the street, city, state or zip on Address detail re-looks-up the map location and saves it with the address. If the new address can't be found the old location is removed (with a notice) instead of leaving a pin at the old address; apartment-only edits don't touch the location. This replaces the "street changed — map still uses the old location" warning.
+- **docs(spec):** Add `docs/spec.md`, a reverse-engineered product spec for spec-driven development — roles, routes, data model, API surface, full requirements for adding addresses and map locations, the external services (Mapbox, Nominatim, OSRM, OSM tiles) and their usage policies, and the open issues found (including Nominatim search-as-you-type in the masjid editor and Mapbox storage terms).
+- **docs(manual):** User Manual updated for address suggestions, location lookup on save, Locate & route and Place on map; `AGENTS.md` documents `REACT_APP_MAPBOX_TOKEN`.
+- **Deploy note:** requires the API with `latitude` / `longitude` accepted on `PUT /api/addressList/:id` (visitation_api `75e505e`); set `REACT_APP_MAPBOX_TOKEN` in the Render static site's environment.
+
 ## 2026-10-04
 
 - **feat(help):** `/help` opens the user manual (forwards to the static `/user-manual.html`; public, no login needed), and the masjid landing screen has a **❓ Help — user manual** link. Documented in `docs/page-flow.md` §2.6 and the AGENTS route table.
