@@ -96,10 +96,10 @@ Student Listings shows only listings marked **Is Student** or with students reco
 **+ Add Address** is on Full Listings and Visitations.
 
 1. Check the **Unit** (it defaults to the unit you are viewing).
-2. Enter **First Name**, **Last Name**, and **Address Line 1** (required).
-3. Put the apartment, suite, or unit in **Address Line 2**.
+2. Enter **First Name**, **Last Name**, and **Address Line 1** (required). As you type the street, address suggestions appear, favouring places near you (your browser may ask to share your location). Pick one to fill in the street, city, state, and zip.
+3. Put the apartment, suite, or unit in **Address Line 2**. Suggestions do not include apartment numbers, so type it yourself.
 4. Optionally add city, state, zip, phone number, and the first visit (response, comment, date).
-5. Select **Add Address**. The new address appears at the top of the list with a **NEW** badge.
+5. Select **Add Address**. The new address appears at the top of the list with a **NEW** badge. When the city and state (or the zip) are filled in, the app also looks up the address on the map so it can be routed; if it cannot be found, the address is still saved without a map location (see [Locate & route](#6-address-detail-and-visits)).
 
 **Duplicate check.** While you type the street, the form looks for listings already at that address in your masjid — including invalid ones:
 
@@ -135,13 +135,18 @@ Choose the **Date**, select a **Response**, optionally add **Comments**, and sel
 Fields with a ✏️ pencil can be edited in place; ✔ saves, ✕ cancels:
 
 - **Name** and **Unit ID**
-- **Address** — street, apt/unit, city, state (two letters), and zip (five digits). Changing the street shows a notice that the map and route still use the old location. The [duplicate check](#5-adding-an-address-and-the-duplicate-check) runs while you edit.
+- **Address** — street, apt/unit, city, state (two letters), and zip (five digits). Changing the street, city, state, or zip looks up the new map location when you save (changing only the apartment does not). If the new address cannot be found, the old map location is removed and a notice tells you; use **Locate & route** to try again. The [duplicate check](#5-adding-an-address-and-the-duplicate-check) runs while you edit.
 - **Phone Number**, **Best Time**, **Profession**, **Ethnicity**
 - **Notes**
 - **Students** — add, edit, or remove students with name, where they go, and year of birth
 - Checkboxes: **Mens Work** / **Ladies Work** (with time spent), **Invalid**, **Is Student** ("Student or young adult")
 
-**Route** opens this address in route planning; it is greyed out when the address has no coordinates. **Back** returns to the list you came from.
+**Route** opens this address in route planning. **Back** returns to the list you came from.
+
+**Locate & route.** When the address has no map location yet, the button reads **📍 Locate & route**. Select it and the app finds the address on the map, saves the location, and opens the route. If it cannot find the address you get two choices:
+
+- **Fix address** opens the address editor — check the street, city, and zip, then save.
+- **Place on map** shows a map centred on the city. Tap where the house is (drag the pin to adjust) and select **Save location**. The button then becomes **🗺 Route**.
 
 ## 7. Routes
 
@@ -188,7 +193,7 @@ All cards on the **Reports** screen are currently **Coming Soon** (Unvisited Add
 
 **An address search finds nothing.** Text is matched exactly as typed. Use `*` for the parts that vary, e.g. `1301*Finley` instead of `1301 S Finley`.
 
-**A route has no stops.** Only addresses with coordinates can be routed. Check the address detail page.
+**A route has no stops.** Only addresses with coordinates can be routed. Open the address detail page and select **Locate & route** (or **Place on map** if it cannot be found).
 
 **A button is missing.** Some features are **Coming Soon**; Map View and Excel export are for administrators.
 

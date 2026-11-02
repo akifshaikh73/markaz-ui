@@ -66,6 +66,8 @@ React 18 SPA (Create React App). All components live in `src/Components/`. Share
 
 **Env var**: `REACT_APP_ADMIN_PASSWORD` — Markaz admin password; used by `/admin-login`.
 
+**Env var**: `REACT_APP_MAPBOX_TOKEN` — public Mapbox token (`pk.…`, URL-restricted in the Mapbox dashboard) for the Add Address street suggestions (`src/mapbox.js`). Optional: without it the street field is a plain input. Set it in `.env.local` and in the Render static site's environment. Coordinates themselves come from OpenStreetMap Nominatim (`src/geocode.js`, ≤1 request/second, no autocomplete, © OpenStreetMap contributors attribution).
+
 ## Authentication Flows
 
 **Note**: Knowledge of a valid masjid slug is treated as sufficient authentication (equivalent to PIN entry).

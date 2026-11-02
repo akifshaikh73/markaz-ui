@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { localDateString } from '../utils';
 import useDuplicateAddressCheck from '../hooks/useDuplicateAddressCheck';
 import DuplicateAddressWarning from './DuplicateAddressWarning';
+import AddressAutocompleteInput from './AddressAutocompleteInput';
+import { geocodeAddress } from '../geocode';
 
 const RESPONSE_OPTIONS = ['Met', 'No Response', 'Left Message', 'Moved', 'Invalid', 'Do Not Disturb', 'Duplicate', 'Rented'];
 
@@ -52,6 +54,15 @@ function AddAddress({ masjidID, unitOptions, defaultUnitId, onClose, onCreated, 
 
     const dupes = useDuplicateAddressCheck({ masjidId: masjidID, address1, address2, enabled: !createdId });
 
+    // Fill the address fields from a Google Places suggestion; keep any Address Line 2 already typed.
+    const handlePlaceSelected = (parts) => {
+        setAddress1(parts.address1);
+        if (parts.address2 && !address2.trim()) setAddress2(parts.address2);
+        setCity(parts.city);
+        setAddrState(parts.state);
+        setZipcode(parts.zipcode);
+    };
+
     const handleSubmit = () => {
         if (!firstName.trim() || !lastName.trim() || !address1.trim()) {
             setError('First name, last name and address are required.');
@@ -85,11 +96,13 @@ function AddAddress({ masjidID, unitOptions, defaultUnitId, onClose, onCreated, 
             body.comments = comment;
         }
 
-        fetch(`${API_URL}/api/addressList`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        })
+        // Look the coordinates up from the address as it stands now; a failed lookup just saves without them.
+        geocodeAddress(body)
+            .then(coords => fetch(`${API_URL}/api/addressList`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...body, ...coords }),
+            }))
             .then(res => {
                 if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 return res.json();
@@ -288,7 +301,13 @@ function AddAddress({ masjidID, unitOptions, defaultUnitId, onClose, onCreated, 
 
             <label style={labelStyle}>
                 Address Line 1 <span style={{ color: 'red' }}>*</span>
-                <input type="text" value={address1} onChange={e => setAddress1(e.target.value)} style={fieldStyle} placeholder="Street address" />
+                <AddressAutocompleteInput
+                    value={address1}
+                    onChange={setAddress1}
+                    onSelect={handlePlaceSelected}
+                    style={fieldStyle}
+                    placeholder="Street address"
+                />
             </label>
 
             <label style={labelStyle}>
@@ -347,6 +366,9 @@ function AddAddress({ masjidID, unitOptions, defaultUnitId, onClose, onCreated, 
                 </button>
                 {onClose && <button onClick={onClose} style={{ padding: '0.5rem 1rem' }}>Cancel</button>}
             </div>
+            <p style={{ margin: '0.75rem 0 0', fontSize: '0.7rem', color: '#777' }}>
+                Map location lookup © OpenStreetMap contributors
+            </p>
         </div>
     );
 }

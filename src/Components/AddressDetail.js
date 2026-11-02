@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { formatDate, localDateString, patchCachedListing } from '../utils';
 import { getAdmin } from '../config';
@@ -9,6 +9,10 @@ import StudentEditor from './StudentEditor';
 import { getDoNotDisturbVisit, DoNotDisturbBanner } from '../doNotDisturb';
 import useDuplicateAddressCheck from '../hooks/useDuplicateAddressCheck';
 import DuplicateAddressWarning from './DuplicateAddressWarning';
+import { geocodeAddress } from '../geocode';
+
+// Leaflet is only needed when someone places a listing on the map by hand.
+const PinPicker = lazy(() => import('./PinPicker'));
 
 function AddressDetail({ address: initialAddress, isModal }) {
     const { id } = useParams();
@@ -52,7 +56,14 @@ function AddressDetail({ address: initialAddress, isModal }) {
     const [addressDraft, setAddressDraft] = useState({ address1: '', address2: '', city: '', state: '', zipcode: '' });
     const [addressError, setAddressError] = useState('');
     const [addressSaved, setAddressSaved] = useState(false);
-    const [coordsStale, setCoordsStale] = useState(false);
+    const [savingAddress, setSavingAddress] = useState(false);
+    // Set when an address edit removed a location the new address couldn't replace.
+    const [coordsCleared, setCoordsCleared] = useState(false);
+    const [locating, setLocating] = useState(false);
+    const [locateFailed, setLocateFailed] = useState(false); // address not found on the map
+    const [locateError, setLocateError] = useState('');
+    const [showPinPicker, setShowPinPicker] = useState(false);
+    const [savingPin, setSavingPin] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -254,26 +265,87 @@ function AddressDetail({ address: initialAddress, isModal }) {
         if (zipNum !== (parseInt(address.zipcode, 10) || 0)) { body.zipcode = next.zipcode; saved.zipcode = zipNum; }
         if (Object.keys(body).length === 0) { cancelEditAddress(); return; }
 
-        fetch(`${API_URL}/api/addressList/${address._id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        })
+        // Apt/unit doesn't move the pin; any other address change does, so look the new place up.
+        const locationChanged = ['address1', 'city', 'state', 'zipcode'].some(field => body[field] !== undefined);
+        const hadCoordinates = Boolean(address.latitude) && Boolean(address.longitude);
+
+        setSavingAddress(true);
+        setAddressError('');
+        (locationChanged ? geocodeAddress(next) : Promise.resolve(null))
+            .then(coords => {
+                // No match: drop the old position rather than leave it pointing at the old address.
+                const newCoords = coords || (locationChanged && hadCoordinates ? { latitude: 0, longitude: 0 } : null);
+                return fetch(`${API_URL}/api/addressList/${address._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...body, ...newCoords }),
+                })
+                .then(res => res.json().then(data => {
+                    if (!res.ok) throw new Error(data.error || `Server error: ${res.status}`);
+                    return data;
+                }))
+                .then(data => {
+                    // An API without address support silently ignores these fields.
+                    if (data.modifiedCount === 0) throw new Error('Address not saved — the API needs updating.');
+                    const changes = { ...saved, ...newCoords };
+                    setAddress(prev => ({ ...prev, ...changes }));
+                    patchCachedListing(address._id, changes);
+                    setCoordsCleared(Boolean(newCoords) && !coords);
+                    if (coords) setLocateFailed(false);
+                    cancelEditAddress();
+                    setAddressSaved(true);
+                    setTimeout(() => setAddressSaved(false), 2000);
+                });
+            })
+            .catch(err => setAddressError(err.message))
+            .finally(() => setSavingAddress(false));
+    };
+
+    // PUT the position onto this listing and reflect it locally.
+    const saveCoordinates = (coords) => fetch(`${API_URL}/api/addressList/${address._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(coords),
+    })
         .then(res => res.json().then(data => {
             if (!res.ok) throw new Error(data.error || `Server error: ${res.status}`);
             return data;
         }))
         .then(data => {
-            // An API without address support silently ignores these fields.
-            if (data.modifiedCount === 0) throw new Error('Address not saved — the API needs updating.');
-            setAddress(prev => ({ ...prev, ...saved }));
-            patchCachedListing(address._id, saved);
-            if (saved.address1 !== undefined && address.latitude && address.longitude) setCoordsStale(true);
-            cancelEditAddress();
-            setAddressSaved(true);
-            setTimeout(() => setAddressSaved(false), 2000);
-        })
-        .catch(err => setAddressError(err.message));
+            // An API without coordinate support silently ignores these fields.
+            if (data.modifiedCount === 0) throw new Error('Location not saved — the API needs updating.');
+            setAddress(prev => ({ ...prev, ...coords }));
+            patchCachedListing(address._id, coords);
+            setCoordsCleared(false);
+        });
+
+    // Route needs coordinates: find them on demand, then open the route.
+    const handleLocateAndRoute = () => {
+        setLocating(true);
+        setLocateFailed(false);
+        setLocateError('');
+        geocodeAddress(address)
+            .then(coords => {
+                if (!coords) { setLocateFailed(true); return null; }
+                return saveCoordinates(coords).then(() => coords);
+            })
+            .then(coords => {
+                if (coords) navigate('/route', { state: { listings: [{ ...address, ...coords }] } });
+            })
+            .catch(err => setLocateError(err.message))
+            .finally(() => setLocating(false));
+    };
+
+    const handlePinSaved = (coords) => {
+        setSavingPin(true);
+        setLocateError('');
+        saveCoordinates(coords)
+            .then(() => {
+                setShowPinPicker(false);
+                setLocateFailed(false);
+            })
+            .catch(err => setLocateError(err.message))
+            .finally(() => setSavingPin(false));
     };
 
     const handleUpdateContact = (field) => {
@@ -571,8 +643,8 @@ function AddressDetail({ address: initialAddress, isModal }) {
                                     />
                                 </label>
                             ))}
-                            <button onClick={handleUpdateAddress} title="Save address" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px' }}>✔</button>
-                            <button onClick={cancelEditAddress} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
+                            <button onClick={handleUpdateAddress} disabled={savingAddress} title="Save address" style={{ background: 'none', border: 'none', cursor: savingAddress ? 'wait' : 'pointer', fontSize: '1.2rem', color: '#4caf50', padding: '0 4px', opacity: savingAddress ? 0.5 : 1 }}>✔</button>
+                            <button onClick={cancelEditAddress} disabled={savingAddress} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#999', padding: '0 4px' }}>✕</button>
                         </div>
                         {addressError && <div id="address-error" role="alert" style={{ color: '#c62828', fontSize: '0.85em', marginTop: '0.25rem' }}>{addressError}</div>}
                         <div style={{ marginTop: '0.5rem' }}>
@@ -596,9 +668,9 @@ function AddressDetail({ address: initialAddress, isModal }) {
                         <button onClick={startEditAddress} title="Edit address" aria-label="Edit address" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', padding: '0 4px' }}><PencilIcon /></button>
                     </div>
                 )}
-                {coordsStale && (
+                {coordsCleared && (
                     <div style={{ marginTop: '0.3rem', padding: '0.35rem 0.6rem', background: '#fff8e1', border: '1px solid #ffe082', borderRadius: '4px', color: '#8d6e00', fontSize: '0.85em' }}>
-                        ⚠ Street changed — map and route position still use the old location.
+                        ⚠ Couldn't find the new address on the map, so the old location was removed. Use “Locate &amp; route” to try again or place it on the map.
                     </div>
                 )}
             </div>
@@ -815,12 +887,11 @@ function AddressDetail({ address: initialAddress, isModal }) {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'center' }}>
                 <button
-                    onClick={() => navigate('/route', { state: { listings: [address] } })}
-                    disabled={!hasCoordinates || !address._id}
-                    title={hasCoordinates ? undefined : 'Missing coordinates for this address'}
-                    style={{ background: hasCoordinates ? '#e65100' : '#ccc', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: hasCoordinates ? 'pointer' : 'not-allowed', fontWeight: 700, fontSize: '0.9rem', opacity: hasCoordinates ? 1 : 0.6 }}
+                    onClick={hasCoordinates ? () => navigate('/route', { state: { listings: [address] } }) : handleLocateAndRoute}
+                    disabled={!address._id || locating}
+                    style={{ background: '#e65100', color: '#fff', border: 'none', padding: '0.4rem 1rem', borderRadius: '5px', cursor: locating ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.9rem', opacity: locating ? 0.6 : 1 }}
                 >
-                    🗺 Route
+                    {hasCoordinates ? '🗺 Route' : locating ? 'Locating…' : '📍 Locate & route'}
                 </button>
                 {!isModal && (
                     <button
@@ -831,6 +902,21 @@ function AddressDetail({ address: initialAddress, isModal }) {
                     </button>
                 )}
             </div>
+            {!hasCoordinates && !locating && locateFailed && !showPinPicker && (
+                <div role="alert" style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', background: '#fff8e1', border: '1px solid #ffe082', borderRadius: '4px', color: '#8d6e00', fontSize: '0.9rem' }}>
+                    We couldn't find this address on the map. Check the street, city and zip, or place it on the map yourself.
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <button onClick={() => { setLocateFailed(false); startEditAddress(); window.scrollTo?.({ top: 0, behavior: 'smooth' }); }} style={{ padding: '0.3rem 0.7rem' }}>Fix address</button>
+                        <button onClick={() => setShowPinPicker(true)} style={{ padding: '0.3rem 0.7rem' }}>Place on map</button>
+                    </div>
+                </div>
+            )}
+            {locateError && <div role="alert" style={{ marginTop: '0.5rem', color: '#c62828', fontSize: '0.9rem' }}>{locateError}</div>}
+            {showPinPicker && !hasCoordinates && (
+                <Suspense fallback={<div style={{ marginTop: '0.75rem', color: '#666' }}>Loading map…</div>}>
+                    <PinPicker address={address} onSave={handlePinSaved} onCancel={() => setShowPinPicker(false)} saving={savingPin} />
+                </Suspense>
+            )}
         </div>
     );
 }
